@@ -15,22 +15,40 @@ The useful side effect: OpenNext runs the app with `nodejs_compat`, so route han
 keep the **Node.js runtime**. Nothing had to be rewritten for the edge, and
 `app/api/appointments/route.ts` can still move to SMTP delivery in Phase 2.
 
-## The build does not run on Windows
+## If the build fails with "Invalid alias name"
 
-`npm run cf:build` **fails on Windows** with a series of
-`Invalid alias name: "next/dist/compiled/..."` errors from esbuild. This is a known
-limitation that OpenNext prints on every run:
+Symptom, on any OS including Cloudflare's own Linux builders:
 
 ```
-WARN OpenNext is not fully compatible with Windows.
-WARN For optimal performance, it is recommended to use Windows Subsystem for Linux (WSL).
+X [ERROR] Invalid alias name: "next/dist/compiled/node-fetch"
+X [ERROR] Invalid alias name: "next/dist/compiled/edge-runtime"
+   ... and ~13 more
 ```
 
-`next build` itself succeeds — it is OpenNext's own bundling step that fails.
+**Cause: a stale `@cloudflare/next-on-pages` in the dependency tree.** It pins
+`esbuild@0.15.18` (2022), which predates esbuild's `alias` feature entirely — that
+landed in 0.16.0. OpenNext's bundler resolves the old copy and every alias is rejected.
 
-**This does not block deployment.** Cloudflare builds on Linux, where it works. Windows
-only prevents building and previewing the Worker *locally*. To preview locally, install
-a WSL distribution (`wsl --install -d Ubuntu`) and run the build from there.
+```
++-- @cloudflare/next-on-pages@1.13.16
+| `-- esbuild@0.15.18          <-- too old to understand aliases
++-- @opennextjs/cloudflare@1.20.6
+| `-- @opennextjs/aws@4.1.4
+|   `-- esbuild@0.25.4         <-- the one that should win
+```
+
+Fix:
+
+```bash
+npm uninstall @cloudflare/next-on-pages
+rm -rf node_modules .next .open-next package-lock.json
+npm install
+npm ls esbuild --all      # confirm no 0.15.x remains
+```
+
+OpenNext prints a warning on Windows that it "is not fully compatible with Windows" and
+suggests WSL. That warning is unrelated to this failure and is a red herring here —
+`npm run cf:build` completes on Windows once the old esbuild is gone.
 
 ## Cloudflare setup (once)
 
