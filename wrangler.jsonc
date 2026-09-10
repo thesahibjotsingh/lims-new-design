@@ -1,0 +1,37 @@
+{
+  // Cloudflare Workers config for the LIMS site.
+  //
+  // NOTE ON PRODUCT: this deploys to Workers with static assets, NOT to Cloudflare
+  // Pages. Workers-with-assets is Cloudflare's current path for Next.js and is what the
+  // OpenNext adapter targets. The dashboard flow differs from the Pages projects on
+  // this account — see the deploy notes in README-DEPLOY.md.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lims-hisar",
+  "main": ".open-next/worker.js",
+
+  // Must be on or after 2024-09-23 for nodejs_compat to provide the Node built-ins the
+  // Next server expects. Pinned rather than floating so a redeploy months from now
+  // cannot silently change runtime behaviour.
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Everything in public/ plus the client bundles, served straight from Cloudflare's
+  // edge without waking the Worker.
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+
+  // Appointment delivery is read from the environment by app/api/appointments/route.ts.
+  // Do NOT put the value here — this file is committed to a public repo. Set it as a
+  // secret instead:
+  //
+  //   npx wrangler secret put APPOINTMENT_WEBHOOK_URL
+  //
+  // Until it is set the endpoint returns its honest 503 and the form shows the
+  // hospital's phone number, which is the correct behaviour for an unconfigured deploy.
+}

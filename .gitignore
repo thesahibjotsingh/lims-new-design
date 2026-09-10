@@ -22,3 +22,7 @@ LIMS-Website-Quotation.pdf
 # Optimised assets are generated from assets-source/ by scripts/build_assets.py.
 # public/ IS committed (Cloudflare serves it directly) — this is only a reminder that
 # it is derived, so fix the source art, not the output.
+
+# Cloudflare / OpenNext build output
+.open-next
+.wrangler
