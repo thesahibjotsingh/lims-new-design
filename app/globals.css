@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /*
+   * Global focus ring.
+   *
+   * Set once here rather than per-component: a focus style that has to be remembered
+   * on every interactive element is a focus style that will be missing from some of
+   * them. `:focus-visible` keeps it off mouse clicks and on for keyboard users.
+   *
+   * The offset is what makes the ring readable on the teal header — a ring drawn
+   * flush against a dark background reads as part of the button.
+   */
+  :focus-visible {
+    outline: 2px solid theme('colors.brand.copper');
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* On the copper CTA itself, copper-on-copper is invisible. Flip to the dark base. */
+  .focus-ring-inverse:focus-visible {
+    outline-color: theme('colors.brand.dark-base');
+  }
+}
+
+@layer components {
+  /*
+   * Minimum 44x44 CSS px target (WCAG 2.5.5 / Apple HIG).
+   *
+   * Applied to the element itself rather than a wrapper so the target is the thing
+   * the finger lands on. `inline-flex` + centring keeps a short label ("Book") from
+   * sitting at the top-left of a 44px box.
+   */
+  .tap-target {
+    @apply inline-flex items-center justify-center min-h-[44px] min-w-[44px];
+  }
+}
+
+@layer utilities {
+  /*
+   * Reduced motion, globally.
+   *
+   * The marquee, the emergency beacon and the typewriter caret are all decorative
+   * motion. A patient who has asked their OS to stop animation has usually asked for a
+   * reason — vestibular disorder, migraine, seizure risk — and honouring it per
+   * component means honouring it in most components and forgetting it in one.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

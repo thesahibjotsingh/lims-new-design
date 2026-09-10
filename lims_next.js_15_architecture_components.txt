@@ -1,0 +1,694 @@
+/* ==========================================================================
+   LIMS (Lifeline Institute of Medical Sciences) - Next.js 15 App Router Architecture
+   Styled with Tailwind CSS 3.4 & Medflow Visual Language Precision
+   ========================================================================== */
+
+// --------------------------------------------------------------------------
+// 1. tailwind.config.ts
+// --------------------------------------------------------------------------
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  darkMode: 'class',
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          teal: '#0F5B66',
+          'teal-dark': '#0B3F47',
+          'teal-light': '#168B99',
+          copper: '#D68060',
+          'copper-hover': '#C26E4E',
+          cyan: '#168B99',
+          'dark-base': '#0B1416',
+          mist: '#F2F8F8',
+          'mist-subtle': '#E8F3F4',
+        },
+      },
+      fontFamily: {
+        serif: ['"Source Serif 4"', 'Georgia', 'serif'],
+        sans: [
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          '"Helvetica Neue"',
+          'Arial',
+          'sans-serif',
+        ],
+      },
+      animation: {
+        'marquee-slow': 'marquee 28s linear infinite',
+        'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
+      keyframes: {
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+      },
+    },
+  },
+  plugins: [],
+}
+
+// --------------------------------------------------------------------------
+// 2. types/index.ts
+// --------------------------------------------------------------------------
+export interface NavItem {
+  label: string
+  href: string
+  overviewLabel?: string
+  panel?: string
+  children?: { label: string; href: string }[]
+}
+
+export interface Doctor {
+  id: string
+  name: string
+  qualification: string
+  role: string
+  department: string
+  rating: number
+  reviewsCount: number
+  experience: string
+  image: string
+  timing: string
+  nextAvailable: string
+}
+
+export interface ServiceCategory {
+  id: 'clinical' | 'diagnostics' | 'support'
+  title: string
+  basePath: string
+  count: number
+  description: string
+}
+
+// --------------------------------------------------------------------------
+// 3. lib/data.ts (Data Store aligned with LIMS specifications)
+// --------------------------------------------------------------------------
+export const LIMS_DOCTORS: Doctor[] = [
+  {
+    id: 'harshal-godara',
+    name: 'Dr. Harshal Godara',
+    qualification: 'MS, MCh (Surgical Excellence)',
+    role: 'Senior Consultant & Laparoscopic Surgeon',
+    department: 'General & Minimally Invasive Surgery',
+    rating: 4.9,
+    reviewsCount: 420,
+    experience: '18+ Years',
+    image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=600&q=80',
+    timing: '09:00 AM - 04:00 PM',
+    nextAvailable: 'Today, 11:30 AM',
+  },
+  {
+    id: 'shweta-godara',
+    name: 'Dr. Shweta Godara',
+    qualification: 'MD, DNB (Obstetrics & Gynaecology)',
+    role: 'Head of Women’s Health & Advanced Gynaecology',
+    department: 'Obstetrics & Gynaecology',
+    rating: 4.9,
+    reviewsCount: 512,
+    experience: '15+ Years',
+    image: 'https://images.unsplash.com/photo-1594824813637-295669527658?auto=format&fit=crop&w=600&q=80',
+    timing: '10:00 AM - 03:00 PM',
+    nextAvailable: 'Tomorrow, 10:00 AM',
+  },
+  {
+    id: 'rajesh-malik',
+    name: 'Dr. Rajesh Malik',
+    qualification: 'MS (Ortho), Fellowship Joint Replacement',
+    role: 'Lead Orthopaedic & Trauma Surgeon',
+    department: 'Orthopaedics & Joint Replacement',
+    rating: 4.8,
+    reviewsCount: 380,
+    experience: '16+ Years',
+    image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=600&q=80',
+    timing: '10:00 AM - 05:00 PM',
+    nextAvailable: 'Today, 02:00 PM',
+  },
+]
+
+export const MARQUEE_SERVICES = [
+  '24x7 Emergency & Trauma',
+  'Advanced Surgical Theatre',
+  'Cashless TPA Insurance',
+  'High-Precision Digital Pathology',
+  'Modular ICU & HDU',
+  '24x7 On-Site Pharmacy',
+  'Comprehensive Maternal Care',
+  'Fully Digital Diagnostic Imaging',
+]
+
+// --------------------------------------------------------------------------
+// 4. components/DesktopHeader.tsx
+// --------------------------------------------------------------------------
+import React from 'react'
+import Link from 'next/link'
+
+export function DesktopHeader() {
+  return (
+    <header className="hidden lg:block w-full bg-brand-teal/95 backdrop-blur-md sticky top-0 z-50 border-b border-white/10 transition-colors">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        {/* Brand Logo */}
+        <Link href="/" className="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-brand-copper rounded-lg p-1">
+          <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white font-serif font-bold text-xl shadow-inner group-hover:scale-105 transition-transform">
+            ✚
+          </div>
+          <div className="flex flex-col">
+            <span className="text-white font-serif text-2xl font-bold tracking-tight leading-none">
+              LIMS
+            </span>
+            <span className="text-white/70 text-[10px] uppercase tracking-widest font-semibold mt-1">
+              Hisar • Lifeline Care
+            </span>
+          </div>
+        </Link>
+
+        {/* Centered Navigation */}
+        <nav className="flex items-center gap-8 text-sm font-medium text-white/85">
+          <Link href="/specialities" className="hover:text-white hover:underline underline-offset-8 transition-colors focus:ring-2 focus:ring-brand-copper rounded px-1">
+            Departments (15)
+          </Link>
+          <Link href="/doctors" className="hover:text-white hover:underline underline-offset-8 transition-colors focus:ring-2 focus:ring-brand-copper rounded px-1">
+            Doctors
+          </Link>
+          <Link href="/services" className="hover:text-white hover:underline underline-offset-8 transition-colors focus:ring-2 focus:ring-brand-copper rounded px-1">
+            Services
+          </Link>
+          <Link href="/patient-care/insurance" className="hover:text-white hover:underline underline-offset-8 transition-colors focus:ring-2 focus:ring-brand-copper rounded px-1">
+            Cashless Insurance
+          </Link>
+          <Link href="/contact" className="hover:text-white hover:underline underline-offset-8 transition-colors focus:ring-2 focus:ring-brand-copper rounded px-1">
+            Contact
+          </Link>
+        </nav>
+
+        {/* Find a Doctor CTA */}
+        <div className="flex items-center gap-4">
+          <Link
+            href="/doctors"
+            className="inline-flex items-center justify-center px-6 py-2.5 rounded-full border border-white/30 text-white text-sm font-medium hover:bg-white/10 hover:border-white transition-all focus:outline-none focus:ring-2 focus:ring-brand-copper min-h-[44px]"
+          >
+            Find a Doctor
+          </Link>
+        </div>
+      </div>
+    </header>
+  )
+}
+
+// --------------------------------------------------------------------------
+// 5. components/HeroSearchCard.tsx (Client Component for Interactive Search)
+// --------------------------------------------------------------------------
+'use client'
+
+import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+export function HeroSearchCard() {
+  const router = useRouter()
+  const [specialty, setSpecialty] = useState('')
+  const [location, setLocation] = useState('Jindal Chowk, Hisar')
+  const [insurance, setInsurance] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const query = new URLSearchParams()
+    if (specialty) query.set('specialty', specialty)
+    if (insurance) query.set('insurance', insurance)
+    router.push(`/doctors?${query.toString()}`)
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white/15 backdrop-blur-xl border border-white/20 p-5 rounded-2xl shadow-2xl space-y-3 w-full max-w-sm text-left relative z-20"
+      aria-label="Doctor and Department Quick Search"
+    >
+      {/* Specialty or Condition */}
+      <div className="relative">
+        <label htmlFor="search-specialty" className="sr-only">Specialty or Condition</label>
+        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/70">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
+        <input
+          id="search-specialty"
+          type="text"
+          value={specialty}
+          onChange={(e) => setSpecialty(e.target.value)}
+          placeholder="Specialty, condition or doctor..."
+          className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/90 focus:bg-white text-brand-dark-base placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-brand-copper transition shadow-inner min-h-[44px]"
+        />
+      </div>
+
+      {/* Location */}
+      <div className="relative">
+        <label htmlFor="search-location" className="sr-only">Location</label>
+        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/70">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        <input
+          id="search-location"
+          type="text"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          placeholder="Address, City or Pin code"
+          className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/90 focus:bg-white text-brand-dark-base placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-brand-copper transition shadow-inner min-h-[44px]"
+        />
+      </div>
+
+      {/* Insurance */}
+      <div className="relative">
+        <label htmlFor="search-insurance" className="sr-only">Insurance Provider</label>
+        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/70">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <input
+          id="search-insurance"
+          type="text"
+          value={insurance}
+          onChange={(e) => setInsurance(e.target.value)}
+          placeholder="Insurance provider (e.g. Star, HDFC, Ayushman)"
+          className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/90 focus:bg-white text-brand-dark-base placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-brand-copper transition shadow-inner min-h-[44px]"
+        />
+      </div>
+
+      {/* Submit Button */}
+      <button
+        type="submit"
+        className="w-full py-3.5 px-6 rounded-xl bg-brand-dark-base hover:bg-black text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg focus:outline-none focus:ring-2 focus:ring-brand-copper min-h-[44px]"
+      >
+        <svg className="w-4 h-4 text-brand-copper" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        Search Doctors & Facilities
+      </button>
+    </form>
+  )
+}
+
+// --------------------------------------------------------------------------
+// 6. components/HeroSection.tsx (Medflow Replica Hero Layout)
+// --------------------------------------------------------------------------
+import Image from 'next/image'
+
+export function HeroSection() {
+  return (
+    <section className="relative w-full bg-gradient-to-b from-brand-teal via-brand-teal to-brand-teal-dark text-white overflow-hidden pt-10 pb-20 lg:py-24">
+      {/* Background Decorative Rings */}
+      <div className="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 rounded-full bg-brand-cyan/20 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-10 w-80 h-80 rounded-full bg-brand-copper/10 blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        {/* Left Column: Heading & Value Proposition */}
+        <div className="lg:col-span-6 space-y-8 z-10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold text-white/90">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            24×7 Emergency Care • Jindal Chowk, Hisar
+          </div>
+
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.12]">
+            World Class <br />
+            Care Close to <br />
+            Home
+          </h1>
+
+          <p className="text-white/80 text-base sm:text-lg max-w-lg leading-relaxed font-sans">
+            From emergency trauma and minimally invasive surgery to advanced obstetrics
+            and on-campus diagnostic pathology—LIMS delivers compassion, excellence, and care.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-4 pt-2">
+            <Link
+              href="/appointments"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-white text-brand-dark-base font-semibold text-sm hover:bg-brand-mist hover:text-brand-teal transition-all shadow-lg focus:outline-none focus:ring-2 focus:ring-brand-copper min-h-[44px]"
+            >
+              Book Appointment <span>→</span>
+            </Link>
+            <Link
+              href="tel:+919254984121"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full border border-white/40 text-white font-semibold text-sm hover:bg-white/10 hover:border-white transition-all focus:outline-none focus:ring-2 focus:ring-brand-copper min-h-[44px]"
+            >
+              Emergency: +91 92549 84121
+            </Link>
+          </div>
+
+          {/* Trust Metric Snapshot */}
+          <div className="flex items-center gap-4 pt-4 border-t border-white/15">
+            <div className="flex -space-x-2 overflow-hidden">
+              <div className="inline-block h-9 w-9 rounded-full ring-2 ring-brand-teal bg-gray-200" />
+              <div className="inline-block h-9 w-9 rounded-full ring-2 ring-brand-teal bg-gray-300" />
+              <div className="inline-block h-9 w-9 rounded-full ring-2 ring-brand-teal bg-gray-400" />
+            </div>
+            <div className="text-xs text-white/80 font-medium">
+              <span className="text-white font-bold block">50,000+ Patients Trusted</span>
+              Comprehensive multi-speciality clinical team
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Hero Medical Imagery & Glass Floating Cards */}
+        <div className="lg:col-span-6 relative flex justify-center lg:justify-end">
+          <div className="relative w-full max-w-md lg:max-w-none flex justify-center">
+            {/* Primary Physician Portrait */}
+            <div className="relative w-[340px] sm:w-[420px] h-[460px] sm:h-[520px] rounded-3xl overflow-hidden shadow-2xl">
+              <Image
+                src="https://images.unsplash.com/photo-1594824813637-295669527658?auto=format&fit=crop&w=800&q=85"
+                alt="LIMS Senior Medical Consultant"
+                fill
+                priority
+                className="object-cover object-top"
+                sizes="(max-width: 768px) 100vw, 500px"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-base/60 via-transparent to-transparent" />
+            </div>
+
+            {/* Overlapping Floating Search Glass Card */}
+            <div className="absolute -bottom-8 lg:bottom-4 -left-4 sm:left-4 lg:-left-12 z-30">
+              <HeroSearchCard />
+            </div>
+
+            {/* Top Right Floating Badge */}
+            <div className="absolute top-6 -right-2 sm:right-6 bg-brand-dark-base/80 backdrop-blur-md border border-white/20 p-3.5 rounded-2xl flex items-center gap-3 shadow-xl z-20">
+              <div className="w-10 h-10 rounded-full bg-brand-copper flex items-center justify-center font-bold text-white text-xs">
+                30M+
+              </div>
+              <p className="text-[11px] text-white/90 leading-snug max-w-[120px]">
+                Quality verified clinical care network
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// --------------------------------------------------------------------------
+// 7. components/MarqueeRibbon.tsx (Marquee Service Indicators)
+// --------------------------------------------------------------------------
+export function MarqueeRibbon() {
+  return (
+    <div className="w-full bg-white border-b border-gray-100 py-6 overflow-hidden">
+      <div className="flex whitespace-nowrap animate-marquee-slow [mask-image:_linear-gradient(to_right,_transparent_0%,_white_10%,_white_90%,_transparent_100%)]">
+        {[...MARQUEE_SERVICES, ...MARQUEE_SERVICES].map((item, idx) => (
+          <div key={idx} className="flex items-center mx-8 text-brand-dark-base font-serif text-lg tracking-wide">
+            <span className="mr-6 text-brand-copper font-bold text-base">✦</span>
+            <span>{item}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// --------------------------------------------------------------------------
+// 8. components/StatsTrustSection.tsx
+// --------------------------------------------------------------------------
+export function StatsTrustSection() {
+  const stats = [
+    { label: 'Patient Satisfaction', value: '97%' },
+    { label: 'Emergency Response', value: '<15m' },
+    { label: 'Bedded Intensive Care', value: '50+' },
+    { label: 'Emergency Care', value: '24/7' },
+    { label: 'Clinical Specialities', value: '15' },
+  ]
+
+  return (
+    <section className="w-full bg-white py-16">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="bg-brand-dark-base text-white rounded-3xl p-8 sm:p-12 shadow-xl grid grid-cols-2 md:grid-cols-5 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-white/10">
+          {stats.map((stat, i) => (
+            <div key={i} className="pt-4 md:pt-0">
+              <p className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-2">
+                {stat.value}
+              </p>
+              <p className="text-xs sm:text-sm text-white/70 font-medium tracking-wide">
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// --------------------------------------------------------------------------
+// 9. components/ConsultantRoster.tsx
+// --------------------------------------------------------------------------
+export function ConsultantRoster() {
+  return (
+    <section className="w-full bg-brand-mist/60 py-20 border-t border-brand-teal/5">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+          <div>
+            <span className="text-brand-copper font-semibold text-xs tracking-wider uppercase">
+              Meet Our Consultants
+            </span>
+            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-brand-dark-base mt-2">
+              Experienced Doctors at LIMS
+            </h2>
+          </div>
+          <Link
+            href="/doctors"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-brand-teal hover:text-brand-copper transition-colors"
+          >
+            View All Clinical Faculty <span>→</span>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {LIMS_DOCTORS.map((doctor) => (
+            <div
+              key={doctor.id}
+              className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group"
+            >
+              <div className="relative h-64 w-full overflow-hidden bg-gray-100">
+                <Image
+                  src={doctor.image}
+                  alt={doctor.name}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-semibold text-brand-dark-base flex items-center gap-1 shadow-sm">
+                  <span className="text-amber-500">★</span> {doctor.rating} ({doctor.reviewsCount})
+                </div>
+              </div>
+
+              <div className="p-6 flex flex-col flex-grow justify-between space-y-4">
+                <div>
+                  <h3 className="font-serif text-xl font-bold text-brand-dark-base group-hover:text-brand-teal transition-colors">
+                    {doctor.name}
+                  </h3>
+                  <p className="text-xs text-brand-copper font-medium mt-1">
+                    {doctor.qualification}
+                  </p>
+                  <p className="text-sm text-gray-600 font-medium mt-2">
+                    {doctor.role}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Dept: {doctor.department}
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+                  <div className="text-xs">
+                    <span className="text-gray-400 block">Available:</span>
+                    <span className="font-semibold text-emerald-600">{doctor.nextAvailable}</span>
+                  </div>
+                  <Link
+                    href={`/appointments?doctor=${doctor.id}`}
+                    className="px-4 py-2 rounded-full bg-brand-teal hover:bg-brand-teal-dark text-white text-xs font-semibold transition-colors min-h-[44px] inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-brand-copper"
+                  >
+                    Book Consult
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// --------------------------------------------------------------------------
+// 10. components/MobileNavigation.tsx (Mobile Header & Liquid Glass Bottom Nav)
+// --------------------------------------------------------------------------
+'use client'
+
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+
+export function MobileNavigation() {
+  const pathname = usePathname()
+  const [activeTab, setActiveTab] = useState('home')
+
+  return (
+    <>
+      {/* 65px Compact Mobile Header */}
+      <header className="lg:hidden sticky top-0 z-50 h-[65px] bg-brand-teal px-4 flex items-center justify-between border-b border-white/10 shadow-md">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center font-serif font-bold text-sm">
+            ✚
+          </div>
+          <div>
+            <span className="text-white font-serif font-bold text-lg leading-tight block">
+              LIMS Hisar
+            </span>
+            <span className="text-[10px] text-white/70 tracking-wider uppercase font-semibold">
+              Emergency Care
+            </span>
+          </div>
+        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="tel:+919254984121"
+            className="px-3 py-1.5 rounded-full bg-brand-copper text-white text-xs font-bold shadow min-h-[44px] inline-flex items-center justify-center"
+          >
+            Emergency Call
+          </Link>
+        </div>
+      </header>
+
+      {/* Floating "Liquid Glass" Frosted Bottom Navigation Pill */}
+      <nav
+        className="lg:hidden fixed bottom-5 inset-x-4 z-50 bg-white/70 dark:bg-brand-dark-base/80 backdrop-blur-xl border border-white/30 dark:border-white/10 rounded-full shadow-2xl px-6 py-2.5 flex items-center justify-around"
+        aria-label="Mobile Bottom Navigation"
+      >
+        <Link
+          href="/"
+          className={`flex flex-col items-center gap-1 text-xs font-medium transition-colors min-h-[44px] min-w-[44px] justify-center ${
+            pathname === '/' ? 'text-brand-teal font-bold' : 'text-gray-600'
+          }`}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          <span>Home</span>
+        </Link>
+
+        <Link
+          href="/doctors"
+          className={`flex flex-col items-center gap-1 text-xs font-medium transition-colors min-h-[44px] min-w-[44px] justify-center ${
+            pathname.startsWith('/doctors') ? 'text-brand-teal font-bold' : 'text-gray-600'
+          }`}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <span>Doctors</span>
+        </Link>
+
+        <Link
+          href="/specialities"
+          className={`flex flex-col items-center gap-1 text-xs font-medium transition-colors min-h-[44px] min-w-[44px] justify-center ${
+            pathname.startsWith('/specialities') ? 'text-brand-teal font-bold' : 'text-gray-600'
+          }`}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          <span>Depts</span>
+        </Link>
+
+        <Link
+          href="/appointments"
+          className="flex flex-col items-center gap-1 text-xs font-semibold text-brand-copper min-h-[44px] min-w-[44px] justify-center"
+        >
+          <div className="w-6 h-6 rounded-full bg-brand-copper text-white flex items-center justify-center font-bold text-xs shadow-sm">
+            +
+          </div>
+          <span>Book</span>
+        </Link>
+      </nav>
+    </>
+  )
+}
+
+// --------------------------------------------------------------------------
+// 11. app/layout.tsx (Next.js 15 Root Layout)
+// --------------------------------------------------------------------------
+export const metadata = {
+  title: 'LIMS Hisar | Lifeline Institute of Medical Sciences',
+  description:
+    'Multi-speciality hospital at Jindal Chowk, Hisar, Haryana — 24×7 emergency care, surgery, orthopaedics, obstetrics and gynaecology, with diagnostics, imaging and pathology on campus.',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en" className="scroll-smooth">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..800;1,8..60,300..800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="font-sans antialiased text-brand-dark-base bg-white selection:bg-brand-copper/20 selection:text-brand-dark-base">
+        <DesktopHeader />
+        <MobileNavigation />
+        <main className="min-h-screen">{children}</main>
+        {/* Footer */}
+        <footer className="bg-brand-dark-base text-white/80 py-16 border-t border-white/10">
+          <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="space-y-3">
+              <h4 className="font-serif text-xl font-bold text-white">LIMS Hisar</h4>
+              <p className="text-xs text-white/60 leading-relaxed">
+                Jindal Chowk, Hisar, Haryana.<br />
+                Official helpline: +91 92549 84121, +91 92549 84122
+              </p>
+              <p className="text-xs text-brand-copper font-medium">Compassion • Excellence • Care</p>
+            </div>
+            <div>
+              <h5 className="font-semibold text-white text-sm mb-3">Clinical Specialities</h5>
+              <ul className="text-xs space-y-2 text-white/60">
+                <li>General & Laparoscopic Surgery</li>
+                <li>Obstetrics & Gynaecology</li>
+                <li>Orthopaedics & Joint Surgery</li>
+                <li>24x7 Critical Emergency</li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="font-semibold text-white text-sm mb-3">Patient Care</h5>
+              <ul className="text-xs space-y-2 text-white/60">
+                <li>Cashless TPA Desks</li>
+                <li>Inpatient Admission Guide</li>
+                <li>Diagnostic Report Portal</li>
+                <li>Visitor Guidelines</li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="font-semibold text-white text-sm mb-3">Accreditations</h5>
+              <p className="text-xs text-white/60 leading-relaxed">
+                Adhering to strict clinical governance, sterile operating suites, and digitized health record protocols.
+              </p>
+            </div>
+          </div>
+        </footer>
+      </body>
+    </html>
+  )
+}
