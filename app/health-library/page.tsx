@@ -18,6 +18,7 @@ export default function HealthLibraryPage() {
   return (
     <>
       <PageHeader
+        banner="/banners/health-library.webp"
         eyebrow="Patient information"
         title="Health library"
         intro="Clinically reviewed articles on conditions, procedures and recovery."

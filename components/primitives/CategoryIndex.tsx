@@ -13,6 +13,19 @@ import { ServiceGrid } from '@/components/primitives/ServiceGrid'
 import { PageHeader, Section } from '@/components/primitives/PageShell'
 import type { ServiceCategory } from '@/lib/services'
 
+/**
+ * Banner art per category index.
+ *
+ * Keyed by category id rather than passed in as a prop: all three of these pages are
+ * this one component, and a prop would mean three call sites that can disagree about
+ * which picture belongs to which page.
+ */
+const CATEGORY_BANNERS: Record<ServiceCategory, string> = {
+  clinical: '/banners/specialities.webp',
+  diagnostics: '/banners/diagnostics-and-imaging.webp',
+  support: '/banners/patient-care.webp',
+}
+
 export function CategoryIndex({
   category,
   query,
@@ -38,6 +51,7 @@ export function CategoryIndex({
         eyebrow={`${all.length} ${all.length === 1 ? 'service' : 'services'}`}
         title={definition.pageTitle}
         intro={definition.blurb}
+        banner={CATEGORY_BANNERS[category]}
       />
 
       <Section>

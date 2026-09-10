@@ -25,9 +25,15 @@ export function DesktopHeader() {
         No bottom border: the deep teal navigation directly below supplies the edge, and
         a rule between white and teal only reads as a seam. py-2.5 sits the bar tight to
         the mark's own height so the navigation starts immediately beneath it.
+
+        Full-bleed, unlike every other row on the site: the lockup sits against the left
+        edge of the window and the emergency line and CTA against the right, with only
+        the gutter between them and the glass. The navigation ribbon below and the page
+        content both stay on the max-w-7xl measure, so the branding tier reads as the
+        frame around the site rather than as the first row of it.
       */}
       <div className="bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-8 px-6 py-2.5">
+        <div className="flex w-full items-center justify-between gap-8 px-6 py-2.5">
           <BrandMark />
 
           <div className="flex items-center gap-6">

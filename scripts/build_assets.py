@@ -88,6 +88,132 @@ def emit(src: Path, dest: Path, box: int, trim: bool = False) -> int:
     return dest.stat().st_size
 
 
+# Consultant portraits. DoctorCard renders a fixed 4:5 box, so an off-ratio source is
+# cropped rather than letterboxed, and the crop is anchored high because a portrait's
+# subject is in the top half.
+PORTRAIT_W, PORTRAIT_H = 800, 1000
+
+# Below this the source has to be scaled UP to fill the card, which softens it. The
+# demo placeholders are under this, so the script upscales and names them rather than
+# refusing — but it names them every run, because a soft portrait is the visible symptom
+# of a placeholder that nobody has replaced yet.
+MIN_PORTRAIT_W, MIN_PORTRAIT_H = 640, 800
+
+
+# Page banners. 3:1 art with the subject on the right and clear space on the left, so
+# PageHeader can set its heading over the empty side.
+BANNER_W, BANNER_H = 1800, 600
+
+# Source filename (without .png) -> output name. Two sources are misspelled; renaming
+# them here rather than in the page code keeps the same rule as SLUG_FIXES above — the
+# output is named for what the site asks for, not for what the art was called.
+BANNER_NAMES = {
+    "specialities": "specialities",
+    "find-a-doctor": "find-a-doctor",
+    "diagnostics-and-maging": "diagnostics-and-imaging",
+    "health-check-packages": "health-packages",
+    "patient-care": "patient-care",
+    "health-library": "health-library",
+    "about-lmis": "about",
+    "contact-us": "contact",
+}
+
+
+def build_banners() -> int:
+    """assets-source/Placeholders/<name>.png -> public/banners/<name>.webp
+
+    Quality 75 rather than the 82 used for icons: these are full-width photographs and
+    the largest thing on their page, so they set the LCP. At 3:1 and this width the
+    difference is invisible and worth roughly a third of the bytes.
+    """
+    folder = SRC / "Placeholders"
+    if not folder.exists():
+        return 0
+
+    written = 0
+    unknown = []
+
+    for src in sorted(folder.glob("*.png")):
+        name = BANNER_NAMES.get(src.stem.lower())
+        if name is None:
+            unknown.append(src.name)
+            continue
+
+        im = Image.open(src).convert("RGB")
+        w, h = im.size
+        target = BANNER_W / BANNER_H
+
+        if w / h > target:
+            # Too wide: crop from the RIGHT edge inward, never centred. The subject of
+            # every one of these sits on the right; a centred crop trims it off.
+            new_w = round(h * target)
+            im = im.crop((w - new_w, 0, w, h))
+        else:
+            new_h = round(w / target)
+            top = (h - new_h) // 2
+            im = im.crop((0, top, w, top + new_h))
+
+        im = im.resize((BANNER_W, BANNER_H), Image.LANCZOS)
+        out = PUB / "banners" / f"{name}.webp"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        im.save(out, "WEBP", quality=75, method=6)
+        written += out.stat().st_size
+
+    if unknown:
+        sys.exit("Unrecognised banner art (add it to BANNER_NAMES): " + "; ".join(unknown))
+
+    return written
+
+
+def build_portraits() -> int:
+    """assets-source/doctors/dr-<id>.png -> public/doctors/<id>.webp
+
+    The `dr-` prefix is dropped so the output name is exactly the doctor `id` in
+    lib/doctors.ts. Nothing here writes into lib/doctors.ts: a file appearing in this
+    folder is not evidence that the photograph is of that consultant, and wiring it up
+    is a decision a person makes, not a build step.
+    """
+    folder = SRC / "doctors"
+    if not folder.exists():
+        return 0
+
+    written = 0
+    skipped = []
+
+    for src in sorted(folder.glob("*.png")):
+        doctor_id = re.sub(r"^dr-", "", src.stem.lower())
+        im = Image.open(src).convert("RGB")
+        w, h = im.size
+
+        if w < MIN_PORTRAIT_W or h < MIN_PORTRAIT_H:
+            skipped.append(f"{src.name}  {w}x{h}  upscaled to {PORTRAIT_W}x{PORTRAIT_H}")
+
+        target = PORTRAIT_W / PORTRAIT_H
+        if w / h > target:
+            # Too wide: take a centred column.
+            new_w = round(h * target)
+            left = (w - new_w) // 2
+            im = im.crop((left, 0, left + new_w, h))
+        else:
+            # Too tall: take from the top, leaving a tenth of the excess as head room.
+            new_h = round(w / target)
+            top = round((h - new_h) * 0.1)
+            im = im.crop((0, top, w, top + new_h))
+
+        im = im.resize((PORTRAIT_W, PORTRAIT_H), Image.LANCZOS)
+        out = PUB / "doctors" / f"{doctor_id}.webp"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        im.save(out, "WEBP", quality=QUALITY, method=6)
+        written += out.stat().st_size
+
+    if skipped:
+        print("portraits upscaled from a source smaller than the card - replace before launch:")
+        for line in skipped:
+            print(f"  {line}")
+
+    return written
+
+
 def main():
     if not SRC.exists():
         sys.exit(f"Missing {SRC}. Move public/images there first (see README note).")
@@ -140,6 +266,12 @@ def main():
         if not p.exists():
             sys.exit(f"Missing brand asset {p}")
         written += emit(p, PUB / "brand" / out_name, box, trim=True)
+
+    # ---- page banners ------------------------------------------------------------
+    written += build_banners()
+
+    # ---- consultant portraits ----------------------------------------------------
+    written += build_portraits()
 
     # ---- photography -------------------------------------------------------------
     hero = SRC / "hero-doctor.jpg"

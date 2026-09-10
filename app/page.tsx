@@ -3,6 +3,7 @@ import { MobileHero } from '@/components/home/MobileHero'
 import { MarqueeRibbon } from '@/components/home/MarqueeRibbon'
 import { ServiceArchitecture } from '@/components/home/ServiceArchitecture'
 import { ConsultantRoster } from '@/components/home/ConsultantRoster'
+import { SiteIndex } from '@/components/home/SiteIndex'
 
 /*
  * Two heroes, one rendered at a time.
@@ -25,6 +26,7 @@ export default function HomePage() {
       <MarqueeRibbon />
       <ServiceArchitecture />
       <ConsultantRoster />
+      <SiteIndex />
     </>
   )
 }

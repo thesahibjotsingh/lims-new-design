@@ -18,6 +18,28 @@
 //     slug that does not exist there disappears from the department page silently,
 //     which is why assertDoctorDepartments() below runs at module load.
 //
+//  4. `portrait` must end up holding a photograph OF THAT CONSULTANT and nothing else.
+//     A stock face captioned with a real, registered doctor's name is an invented
+//     likeness of that person, and rule 1 covers it as squarely as an invented
+//     qualification would be.
+//
+//     ALL FOUR PORTRAITS BELOW ARE STOCK PLACEHOLDERS AND MUST NOT SHIP. They are in
+//     place so the client demo shows the finished card design, on the same footing as
+//     the stock photography in lib/media.ts. Before launch, either replace all four
+//     with photographs of the actual consultants or delete the `portrait` lines —
+//     DoctorCard renders a finished monogram card without them, which is why leaving
+//     the field out costs nothing.
+//
+//     Known problems in the current placeholders, so nobody rediscovers them:
+//       - shweta-godara   carries a visible Dreamstime watermark (unlicensed comp).
+//       - vikash-raj      is a photograph of a woman.
+//       - udit-choudhary  and vikash-raj were upscaled from sources far below the card
+//                         size, so both look soft.
+//
+//     Pipeline: assets-source/doctors/dr-<id>.png -> public/doctors/<id>.webp, written
+//     by scripts/build_assets.py as a 4:5 crop at 800x1000. Drop the real photographs
+//     in under the same names, re-run the script, and nothing in this file changes.
+//
 // Phase 3 moves this behind the CMS or HIS loader. The shape stays the same.
 
 import { getService, serviceName } from '@/lib/services'
@@ -33,6 +55,13 @@ export const DOCTORS: Doctor[] = [
     designation: 'Consultant — Emergency Medicine & Critical Care',
     departmentSlug: 'emergency-services',
     registrationNumber: 'RMC: 48421',
+    // PLACEHOLDER - see rule 4. Upscaled from 363x493; soft.
+    portrait: {
+      src: '/doctors/udit-choudhary.webp',
+      alt: 'Portrait of Dr. Udit Choudhary',
+      width: 800,
+      height: 1000,
+    },
   },
   {
     id: 'shweta-godara',
@@ -41,6 +70,13 @@ export const DOCTORS: Doctor[] = [
     qualifications: 'MS (Obstetrics & Gynaecology)',
     departmentSlug: 'obstetrics-gynaecology',
     registrationNumber: 'HN-31657',
+    // PLACEHOLDER - see rule 4. Carries a visible Dreamstime watermark.
+    portrait: {
+      src: '/doctors/shweta-godara.webp',
+      alt: 'Portrait of Dr. Shweta Godara',
+      width: 800,
+      height: 1000,
+    },
   },
   {
     id: 'vikash-raj',
@@ -48,6 +84,13 @@ export const DOCTORS: Doctor[] = [
     qualifications: 'MS, General Surgery',
     departmentSlug: 'general-laparoscopic-surgery',
     registrationNumber: 'UPMC Reg. No. 123298',
+    // PLACEHOLDER - see rule 4. Photograph is of a woman; upscaled from 280x360.
+    portrait: {
+      src: '/doctors/vikash-raj.webp',
+      alt: 'Portrait of Dr. Vikash Raj',
+      width: 800,
+      height: 1000,
+    },
   },
   {
     id: 'harshal-godara',
@@ -55,6 +98,13 @@ export const DOCTORS: Doctor[] = [
     qualifications: 'M.S. (Orthopedic)',
     departmentSlug: 'ortho-joint-replacement',
     registrationNumber: 'HN-31573',
+    // PLACEHOLDER - see rule 4. The only one at full resolution (3000x3855 source).
+    portrait: {
+      src: '/doctors/harshal-godara.webp',
+      alt: 'Portrait of Dr. Harshal Godara',
+      width: 800,
+      height: 1000,
+    },
   },
 ]
 

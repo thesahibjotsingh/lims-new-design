@@ -3,10 +3,15 @@
 // The asymmetric hero: a 7/5 split, copy left, photography right, with the glass search
 // card straddling the seam between them.
 //
-// The clipping trap this avoids: the decorative blur fields have to be clipped to the
-// section or they paint a halo down the page, but the search card is deliberately
-// hanging past the section's left edge. `overflow-hidden` on the section itself would
-// clip both. So the blurs get their OWN clipping wrapper and the section does not clip.
+// The glow is painted as radial gradients, NOT as blurred circles behind an
+// `overflow-hidden` wrapper. A blurred circle parked at the section's top-right corner
+// has to be clipped there or it paints a halo down the page — and clipping a soft glow
+// cuts it off along a dead-straight line, which is visible against flat teal as a seam
+// running along the top edge. A radial gradient fades to transparent on its own, so
+// there is nothing to clip and no seam. Do not reintroduce blur-3xl circles here.
+//
+// The section still must not clip: the search card deliberately hangs past the seam
+// between the two columns, and `overflow-hidden` on the section would cut it in half.
 //
 // Server component. The one interactive part is HeroSearchCard, a client leaf.
 
@@ -21,11 +26,23 @@ import { SERVICES, servicesByCategory } from '@/lib/services'
 export function DesktopHero() {
   return (
     <section className="relative hidden bg-gradient-to-b from-brand-teal via-brand-teal to-brand-teal-dark text-white lg:block">
-      {/* Decorative blur field — clipped here, so the section itself need not clip. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand-cyan/25 blur-3xl" />
-        <div className="absolute bottom-0 left-10 h-80 w-80 rounded-full bg-brand-copper/10 blur-3xl" />
-      </div>
+      {/*
+        Decorative light. Both stops end at `transparent`, so the glow dies out inside
+        the section and needs no clipping — see the note at the top of this file.
+        brand-cyan is #168B99 and brand-copper is #D68060; they are written as rgba here
+        because a gradient stop needs an alpha channel, which a Tailwind colour token
+        cannot supply inside a background-image.
+      */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: [
+            'radial-gradient(58rem 34rem at 96% -6%, rgba(22, 139, 153, 0.38), rgba(22, 139, 153, 0) 68%)',
+            'radial-gradient(42rem 30rem at 6% 104%, rgba(214, 128, 96, 0.16), rgba(214, 128, 96, 0) 70%)',
+          ].join(', '),
+        }}
+      />
 
       <div className="relative mx-auto grid max-w-7xl grid-cols-12 items-center gap-12 px-6 py-20">
         {/* Copy column */}

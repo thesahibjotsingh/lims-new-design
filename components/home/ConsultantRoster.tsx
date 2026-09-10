@@ -6,6 +6,7 @@
 import Link from 'next/link'
 import { DOCTORS } from '@/lib/doctors'
 import { DoctorCard } from '@/components/primitives/DoctorCard'
+import { RevealMore } from '@/components/primitives/RevealMore'
 import { Section } from '@/components/primitives/PageShell'
 
 export function ConsultantRoster() {
@@ -21,21 +22,31 @@ export function ConsultantRoster() {
               Doctors at LIMS
             </h2>
           </div>
+          {/* Desktop only: on a phone RevealMore's button sits under the third card. */}
           <Link
             href="/doctors"
-            className="tap-target self-start rounded-full border border-brand-teal/20 px-5 text-sm font-semibold text-brand-teal transition-colors hover:bg-white md:self-auto"
+            className="tap-target hidden self-start rounded-full border border-brand-teal/20 px-5 text-sm font-semibold text-brand-teal transition-colors hover:bg-white md:inline-flex md:self-auto"
           >
             View the full roster &rarr;
           </Link>
         </div>
 
-        <ul className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+        {/*
+          Three cards then a button, on a phone. A consultant card is tall — taller
+          again once LIMS supplies portraits — and four of them stacked is most of a
+          screen's scrolling spent on one section.
+        */}
+        <RevealMore
+          limit={3}
+          className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4"
+          moreLabel="View more consultants"
+        >
           {DOCTORS.map((doctor) => (
             <li key={doctor.id}>
               <DoctorCard doctor={doctor} />
             </li>
           ))}
-        </ul>
+        </RevealMore>
 
         {/*
           Said plainly rather than hidden. A roster page that silently shows four

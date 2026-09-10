@@ -44,14 +44,20 @@ export function ServiceArchitecture() {
                   </h3>
                   <p className="mt-1 text-sm text-brand-dark-base/60">{category.blurb}</p>
                 </div>
+                {/*
+                  Hidden on a phone, where RevealMore puts its own control directly
+                  under the third tile. Two "see the rest" affordances a thumb-width
+                  apart, one expanding in place and one navigating away, is a choice
+                  nobody wants to make mid-scroll.
+                */}
                 <Link
                   href={category.basePath}
-                  className="tap-target rounded-full border border-brand-teal/20 px-4 text-xs font-semibold text-brand-teal transition-colors hover:bg-brand-mist"
+                  className="tap-target hidden rounded-full border border-brand-teal/20 px-4 text-xs font-semibold text-brand-teal transition-colors hover:bg-brand-mist md:inline-flex"
                 >
                   View all &rarr;
                 </Link>
               </div>
-              <ServiceGrid services={services} />
+              <ServiceGrid services={services} mobileLimit={3} />
             </div>
           )
         })}
