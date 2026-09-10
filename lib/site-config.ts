@@ -168,7 +168,10 @@ export const patientServicesNav: NavItem[] = [
  * link, so the tap target is the tile, not the icon inside it.
  */
 export const mobileQuickActions = [
-  { label: 'Book appointment', href: '/appointments', icon: 'calendar' as const },
-  { label: 'Find a doctor', href: '/doctors', icon: 'stethoscope' as const },
-  { label: 'Departments', href: '/specialities', icon: 'building' as const },
+  // `icon` is the basename in public/actions/. Lowercase, because the source art had a
+  // capital D in "locations-and-Directions" which resolves on Windows and 404s on the
+  // Linux host this deploys to.
+  { label: 'Book appointment', href: '/appointments', icon: 'book-an-appointment' },
+  { label: 'Find a doctor', href: '/doctors', icon: 'find-a-doctor' },
+  { label: 'Health packages', href: '/health-packages', icon: 'health-check-packages' },
 ]

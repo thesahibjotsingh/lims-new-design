@@ -62,7 +62,10 @@ export function PrimaryNavBar({ items }: { items: NavItem[] }) {
   }
 
   return (
-    <div ref={navRef} className="border-t border-brand-teal/10 bg-brand-ribbon">
+    // Deep teal, flowing straight into the hero below it with no seam. The pale ribbon
+    // this replaced read as a separate strip between two coloured blocks; carrying the
+    // brand teal all the way down makes the header and hero one mass.
+    <div ref={navRef} className="bg-brand-teal">
       <nav
         aria-label="Primary"
         className="mx-auto flex max-w-7xl items-stretch gap-1 px-6"
@@ -88,15 +91,15 @@ export function PrimaryNavBar({ items }: { items: NavItem[] }) {
                 className={[
                   'tap-target relative px-3 text-sm transition-colors',
                   active
-                    ? 'font-bold text-brand-teal-dark'
-                    : 'font-medium text-brand-dark-base/75 hover:text-brand-teal-dark',
+                    ? 'font-bold text-white'
+                    : 'font-medium text-white/80 hover:text-white',
                 ].join(' ')}
               >
                 {item.label}
                 {/*
                   The active marker is an underline AND a weight change, never colour
-                  alone — colour on its own fails WCAG 1.4.1 against the ribbon's
-                  already-low contrast.
+                  alone — colour on its own fails WCAG 1.4.1, and white-on-teal has even
+                  less room to signal state through hue than the old pale ribbon did.
                 */}
                 <span
                   aria-hidden="true"
@@ -117,7 +120,7 @@ export function PrimaryNavBar({ items }: { items: NavItem[] }) {
                   aria-expanded={open}
                   aria-haspopup="true"
                   aria-label={`${item.label} menu`}
-                  className="tap-target -ml-2 w-8 min-w-0 text-brand-dark-base/60 transition-colors hover:text-brand-teal-dark"
+                  className="tap-target -ml-2 w-8 min-w-0 text-white/65 transition-colors hover:text-white"
                 >
                   <ChevronDownIcon
                     className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`}

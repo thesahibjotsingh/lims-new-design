@@ -11,29 +11,41 @@ export function PageHeader({
   eyebrow,
   title,
   intro,
+  icon,
   children,
 }: {
   eyebrow?: string
   title: string
   intro?: string
+  /** Service artwork, shown beside the heading. Decorative — the title carries the name. */
+  icon?: ReactNode
   children?: ReactNode
 }) {
   return (
     <header className="border-b border-brand-teal/10 bg-brand-mist">
       <div className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:py-14">
-        {eyebrow && (
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-copper">
-            {eyebrow}
-          </p>
-        )}
-        <h1 className="font-serif text-3xl font-bold tracking-tight text-brand-dark-base sm:text-4xl lg:text-5xl">
-          {title}
-        </h1>
-        {intro && (
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-brand-dark-base/70">
-            {intro}
-          </p>
-        )}
+        <div className="flex items-start gap-5">
+          {icon && (
+            <span className="mt-1 hidden shrink-0 rounded-2xl bg-white p-3 shadow-sm sm:block">
+              {icon}
+            </span>
+          )}
+          <div className="min-w-0">
+            {eyebrow && (
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-copper">
+                {eyebrow}
+              </p>
+            )}
+            <h1 className="font-serif text-3xl font-bold tracking-tight text-brand-dark-base sm:text-4xl lg:text-5xl">
+              {title}
+            </h1>
+            {intro && (
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-brand-dark-base/70">
+                {intro}
+              </p>
+            )}
+          </div>
+        </div>
         {children}
       </div>
     </header>

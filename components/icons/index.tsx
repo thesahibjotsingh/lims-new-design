@@ -156,10 +156,3 @@ export function ShieldIcon(props: IconProps) {
     </Base>
   )
 }
-
-/** Maps the `icon` key in site-config's quick actions to a component. */
-export const QUICK_ACTION_ICONS = {
-  calendar: CalendarIcon,
-  stethoscope: StethoscopeIcon,
-  building: BuildingIcon,
-} as const

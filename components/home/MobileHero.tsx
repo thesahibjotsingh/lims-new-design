@@ -13,7 +13,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { TypewriterSearchBar } from '@/components/home/TypewriterSearchBar'
-import { QUICK_ACTION_ICONS } from '@/components/icons'
 import { heroImageMobile } from '@/lib/media'
 import { mobileQuickActions, primaryLocation, siteConfig } from '@/lib/site-config'
 
@@ -61,27 +60,27 @@ export function MobileHero() {
       {/* Three across. The tile is the tap target, not the icon inside it. */}
       <nav aria-label="Quick actions" className="px-4 pt-4">
         <ul className="grid grid-cols-3 gap-2.5">
-          {mobileQuickActions.map((action) => {
-            const Icon = QUICK_ACTION_ICONS[action.icon]
-            return (
-              <li key={action.href}>
-                <Link
-                  href={action.href}
-                  className="flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-2xl border border-brand-teal/10 bg-brand-mist px-2 py-3 text-center transition-colors active:bg-brand-mist-subtle"
-                >
-                  <span
-                    aria-hidden="true"
-                    className="grid h-10 w-10 place-items-center rounded-full bg-white text-brand-teal shadow-sm"
-                  >
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <span className="text-[11px] font-semibold leading-tight text-brand-dark-base">
-                    {action.label}
-                  </span>
-                </Link>
-              </li>
-            )
-          })}
+          {mobileQuickActions.map((action) => (
+            <li key={action.href}>
+              <Link
+                href={action.href}
+                className="flex min-h-[96px] flex-col items-center justify-center gap-2 rounded-2xl border border-brand-teal/10 bg-brand-mist px-2 py-3 text-center transition-colors active:bg-brand-mist-subtle"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/actions/${action.icon}.webp`}
+                  alt=""
+                  aria-hidden="true"
+                  width={40}
+                  height={40}
+                  className="h-10 w-10 object-contain"
+                />
+                <span className="text-[11px] font-semibold leading-tight text-brand-dark-base">
+                  {action.label}
+                </span>
+              </Link>
+            </li>
+          ))}
         </ul>
       </nav>
 

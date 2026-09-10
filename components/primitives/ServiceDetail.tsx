@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { getCategory, serviceHref, servicesByCategory } from '@/lib/services'
 import { getDoctorsByDepartment } from '@/lib/doctors'
 import { DoctorCard } from '@/components/primitives/DoctorCard'
+import { ServiceIcon } from '@/components/primitives/ServiceIcon'
 import { AwaitingContent, PageHeader, Section } from '@/components/primitives/PageShell'
 import type { ClinicalService } from '@/lib/services'
 
@@ -28,6 +29,7 @@ export function ServiceDetail({ service }: { service: ClinicalService }) {
         eyebrow={category.name}
         title={service.name}
         intro={service.alsoKnownAs?.length ? `Also known as ${service.alsoKnownAs.join(', ')}.` : undefined}
+        icon={<ServiceIcon slug={service.slug} size={72} />}
       >
         <nav aria-label="Breadcrumb" className="mt-5">
           <ol className="flex flex-wrap items-center gap-2 text-xs text-brand-dark-base/55">

@@ -2,6 +2,20 @@
 //
 // The LIMS lockup. One component so the mark, the name and the tagline can never
 // disagree between the desktop header, the mobile header and the footer.
+//
+// TWO MARKS, BY BACKGROUND — this is not a style preference.
+//
+// The logo's wordmark and the institute line are dark navy. On the white desktop
+// branding tier that reads perfectly, so `tone="light"` uses the full colour mark. On
+// the teal mobile header and the near-black footer that same artwork loses its
+// letterforms into the background, so `tone="dark"` uses the round badge — which
+// carries its own light disc — beside white text set in the page's own typeface.
+//
+// Plain <img> rather than next/image: these are already display-sized WebP, so there
+// is nothing for an optimiser to improve, and it keeps the header working on hosts
+// where the Next image endpoint needs a loader (Cloudflare Pages among them).
+
+/* eslint-disable @next/next/no-img-element */
 
 import Link from 'next/link'
 import { siteConfig } from '@/lib/site-config'
@@ -11,7 +25,7 @@ export function BrandMark({
   tone = 'light',
 }: {
   size?: 'default' | 'compact'
-  /** `light` = dark ink on a white ground. `dark` = white ink on teal. */
+  /** `light` = the logo on a white ground. `dark` = badge + white text on teal/black. */
   tone?: 'light' | 'dark'
 }) {
   const compact = size === 'compact'
@@ -20,42 +34,79 @@ export function BrandMark({
   return (
     <Link
       href="/"
-      className="group flex items-center gap-3 rounded-lg py-1 pr-2"
+      // The aria-label names the link, so every child below is decorative — that is why
+      // the marks carry alt="" and the visible wordmark is not announced twice.
+      className={`group flex items-center rounded-lg pr-2 ${onDark ? 'gap-2.5' : 'gap-4'}`}
       aria-label={`${siteConfig.name}, ${siteConfig.city} — home`}
     >
-      <span
-        aria-hidden="true"
-        className={[
-          'grid place-items-center rounded-full font-serif font-bold shadow-inner transition-transform group-hover:scale-105',
-          compact ? 'h-9 w-9 text-base' : 'h-11 w-11 text-xl',
-          onDark
-            ? 'bg-white/15 text-white ring-1 ring-white/25'
-            : 'bg-brand-teal text-white ring-1 ring-brand-teal-dark/20',
-        ].join(' ')}
-      >
-        ✚
-      </span>
+      {onDark ? (
+        <>
+          {/*
+            Width is set, height is auto. The badge is trimmed to its own content box so
+            it is not square (roughly 0.89:1) — forcing equal width and height here would
+            squash the mark.
+          */}
+          <img
+            src="/brand/lims-badge.webp"
+            alt=""
+            aria-hidden="true"
+            width={compact ? 38 : 44}
+            height={compact ? 43 : 50}
+            className={`block h-auto shrink-0 transition-transform group-hover:scale-105 ${
+              compact ? 'w-[38px]' : 'w-[44px]'
+            }`}
+          />
+          <span className="flex flex-col leading-none">
+            <span
+              className={[
+                'font-serif font-bold tracking-tight text-white',
+                compact ? 'text-lg' : 'text-2xl',
+              ].join(' ')}
+            >
+              {siteConfig.shortName} {siteConfig.city}
+            </span>
+            {/*
+              Hidden under 480px. The lockup, the emergency button and the menu all have
+              to fit inside a 65px bar, and below that width the tagline wraps to two
+              lines and pushes the whole row out of shape. It is decorative here — the
+              desktop header and the footer both carry it in full.
+            */}
+            <span className="mt-1 hidden whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.14em] text-white/70 min-[480px]:block">
+              {siteConfig.tagline.join(' · ')}
+            </span>
+          </span>
+        </>
+      ) : (
+        <>
+          <img
+            src="/brand/lims-mark.webp"
+            alt=""
+            aria-hidden="true"
+            width={compact ? 112 : 150}
+            height={compact ? 55 : 74}
+            // `block` matters: as an inline image it sits on the text baseline and adds
+            // a few pixels of descender space under the bar, which is part of what made
+            // the white tier taller than the mockup's.
+            className="block h-auto w-[112px] shrink-0 transition-transform group-hover:scale-[1.03] lg:w-[150px]"
+          />
+          {/*
+            Institute name and tagline sit BESIDE the mark, not under it. Stacking them
+            pushed the white bar to ~130px and left a visible gap above the navigation;
+            set side by side the bar collapses to the height of the mark itself.
 
-      <span className="flex flex-col leading-none">
-        <span
-          className={[
-            'font-serif font-bold tracking-tight',
-            compact ? 'text-lg' : 'text-2xl',
-            onDark ? 'text-white' : 'text-brand-dark-base',
-          ].join(' ')}
-        >
-          {siteConfig.shortName}
-          {compact ? ` ${siteConfig.city}` : ''}
-        </span>
-        <span
-          className={[
-            'mt-1 text-[10px] font-semibold uppercase tracking-[0.14em]',
-            onDark ? 'text-white/70' : 'text-brand-copper',
-          ].join(' ')}
-        >
-          {siteConfig.tagline.join(' · ')}
-        </span>
-      </span>
+            Live text rather than the baked-in lockup artwork: it stays crisp at any
+            zoom, is selectable, and is read properly by a screen reader.
+          */}
+          <span className="hidden flex-col leading-tight xl:flex">
+            <span className="text-[13px] font-bold uppercase tracking-[0.06em] text-brand-dark-base">
+              {siteConfig.name}, {siteConfig.city}
+            </span>
+            <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-copper">
+              {siteConfig.tagline.join(' · ')}
+            </span>
+          </span>
+        </>
+      )}
     </Link>
   )
 }

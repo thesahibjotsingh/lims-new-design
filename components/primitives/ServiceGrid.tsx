@@ -7,6 +7,7 @@
 import Link from 'next/link'
 import { serviceHref } from '@/lib/services'
 import { ArrowRightIcon } from '@/components/icons'
+import { ServiceIcon } from '@/components/primitives/ServiceIcon'
 import type { ClinicalService } from '@/lib/services'
 
 export function ServiceGrid({ services }: { services: ClinicalService[] }) {
@@ -16,9 +17,11 @@ export function ServiceGrid({ services }: { services: ClinicalService[] }) {
         <li key={service.slug}>
           <Link
             href={serviceHref(service)}
-            className="group flex min-h-[76px] items-center justify-between gap-3 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm transition-all hover:border-brand-teal/25 hover:shadow-md"
+            className="group flex min-h-[76px] items-center gap-3.5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm transition-all hover:border-brand-teal/25 hover:shadow-md"
           >
-            <span className="min-w-0">
+            <ServiceIcon slug={service.slug} size={44} />
+
+            <span className="min-w-0 flex-1">
               <span className="block font-serif text-base font-bold leading-snug text-brand-dark-base group-hover:text-brand-teal">
                 {service.name}
               </span>

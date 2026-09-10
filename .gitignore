@@ -11,3 +11,14 @@ yarn-error.log*
 .vercel
 *.tsbuildinfo
 next-env.d.ts
+
+# Client-facing commercial documents. NEVER commit these — this repo is public, and a
+# deleted file stays readable in git history forever. The quotation carries the standard
+# rate, the discount and the internal cost breakdown.
+LIMS-Website-Quotation.pdf
+*.quote.pdf
+/private/
+
+# Optimised assets are generated from assets-source/ by scripts/build_assets.py.
+# public/ IS committed (Cloudflare serves it directly) — this is only a reminder that
+# it is derived, so fix the source art, not the output.
