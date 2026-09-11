@@ -6,7 +6,6 @@
 import Link from 'next/link'
 import { DOCTORS } from '@/lib/doctors'
 import { DoctorCard } from '@/components/primitives/DoctorCard'
-import { RevealMore } from '@/components/primitives/RevealMore'
 import { Section } from '@/components/primitives/PageShell'
 
 export function ConsultantRoster() {
@@ -22,31 +21,51 @@ export function ConsultantRoster() {
               Doctors at LIMS
             </h2>
           </div>
-          {/* Desktop only: on a phone RevealMore's button sits under the third card. */}
+          {/*
+            Visible at every width again. It was desktop-only while RevealMore put a
+            "View more" button under the cards; the rail has no such button, so this is
+            now a phone's only route to the full roster.
+          */}
           <Link
             href="/doctors"
-            className="tap-target hidden self-start rounded-full border border-brand-teal/20 px-5 text-sm font-semibold text-brand-teal transition-colors hover:bg-white md:inline-flex md:self-auto"
+            className="tap-target self-start rounded-full border border-brand-teal/20 px-5 text-sm font-semibold text-brand-teal transition-colors hover:bg-white md:self-auto"
           >
             View the full roster &rarr;
           </Link>
         </div>
 
         {/*
-          Three cards then a button, on a phone. A consultant card is tall — taller
-          again once LIMS supplies portraits — and four of them stacked is most of a
-          screen's scrolling spent on one section.
+          A swipe rail on a phone, the same grid from md up — matching /doctors, so the
+          roster behaves the same way in both places.
+
+          This replaced a "three then View more" list. Reveal is the right pattern for
+          the service tiles above, which are short rows where seeing all fifteen at once
+          is the point. A consultant card is tall, carries a portrait, and is read one
+          at a time; swiping suits that and costs no vertical space at all.
+
+          Pure CSS scroll-snap, no library and no JS. The 78% card width is the whole
+          affordance: the next card is visibly cut off at the right edge, which is what
+          tells a thumb there is more to the right.
         */}
-        <RevealMore
-          limit={3}
-          className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4"
-          moreLabel="View more consultants"
+        <ul
+          className="
+            grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4
+            max-md:-mx-5 max-md:flex max-md:snap-x max-md:snap-mandatory
+            max-md:gap-4 max-md:overflow-x-auto max-md:scroll-px-5 max-md:px-5
+            max-md:pb-2 max-md:[-webkit-overflow-scrolling:touch]
+            max-md:[overscroll-behavior-x:contain]
+            max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden
+          "
         >
           {DOCTORS.map((doctor) => (
-            <li key={doctor.id}>
+            <li
+              key={doctor.id}
+              className="max-md:w-[78%] max-md:shrink-0 max-md:snap-start"
+            >
               <DoctorCard doctor={doctor} />
             </li>
           ))}
-        </RevealMore>
+        </ul>
 
         {/*
           Said plainly rather than hidden. A roster page that silently shows four

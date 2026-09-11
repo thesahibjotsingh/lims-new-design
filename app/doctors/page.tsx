@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { DOCTORS, searchDoctors } from '@/lib/doctors'
 import { DoctorCard } from '@/components/primitives/DoctorCard'
 import { DoctorSearchBox } from '@/components/doctors/DoctorSearchBox'
-import { didYouMean } from '@/lib/doctor-search'
+import { didYouMean } from '@/lib/search'
 import { PageHeader, Section } from '@/components/primitives/PageShell'
 import { contact } from '@/lib/site-config'
 

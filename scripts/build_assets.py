@@ -100,21 +100,33 @@ PORTRAIT_W, PORTRAIT_H = 800, 1000
 MIN_PORTRAIT_W, MIN_PORTRAIT_H = 640, 800
 
 
-# Page banners. 3:1 art with the subject on the right and clear space on the left, so
+# Page banners. Wide art with the subject on the right and clear space on the left, so
 # PageHeader can set its heading over the empty side.
-BANNER_W, BANNER_H = 1800, 600
+#
+# HEIGHT ONLY — the source's own aspect ratio is preserved and nothing is cropped.
+# PageHeader sizes the banner to the band's height and pins it to the right rather than
+# stretching it across the full width, so the picture's ratio no longer has to match
+# anything. Forcing a fixed ratio here would crop framing that the page then has no need
+# of, and the sources are not consistent anyway: most are 3:1, find-a-doctor is 2.5:1.
+BANNER_H = 600
 
-# Source filename (without .png) -> output name. Two sources are misspelled; renaming
-# them here rather than in the page code keeps the same rule as SLUG_FIXES above — the
-# output is named for what the site asks for, not for what the art was called.
+# Source filename (without .png) -> output name. Art gets named by hand and does not
+# always match what the site asks for, so the mapping lives here rather than in the page
+# code — the same rule as SLUG_FIXES above.
+#
+# Both spellings of the diagnostics file are accepted: the original art shipped as
+# "diagnostics-and-maging" and the replacement fixed it. Keeping the old key means
+# re-running this against an older copy of the source folder still works.
 BANNER_NAMES = {
     "specialities": "specialities",
     "find-a-doctor": "find-a-doctor",
+    "diagnostics-and-imaging": "diagnostics-and-imaging",
     "diagnostics-and-maging": "diagnostics-and-imaging",
     "health-check-packages": "health-packages",
     "patient-care": "patient-care",
     "health-library": "health-library",
     "about-lmis": "about",
+    "about-lims": "about",
     "contact-us": "contact",
 }
 
@@ -141,19 +153,7 @@ def build_banners() -> int:
 
         im = Image.open(src).convert("RGB")
         w, h = im.size
-        target = BANNER_W / BANNER_H
-
-        if w / h > target:
-            # Too wide: crop from the RIGHT edge inward, never centred. The subject of
-            # every one of these sits on the right; a centred crop trims it off.
-            new_w = round(h * target)
-            im = im.crop((w - new_w, 0, w, h))
-        else:
-            new_h = round(w / target)
-            top = (h - new_h) // 2
-            im = im.crop((0, top, w, top + new_h))
-
-        im = im.resize((BANNER_W, BANNER_H), Image.LANCZOS)
+        im = im.resize((round(w * BANNER_H / h), BANNER_H), Image.LANCZOS)
         out = PUB / "banners" / f"{name}.webp"
         out.parent.mkdir(parents=True, exist_ok=True)
         im.save(out, "WEBP", quality=75, method=6)

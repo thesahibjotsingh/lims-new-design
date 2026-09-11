@@ -17,9 +17,14 @@
 //     back to a plain static placeholder, and the CSS media query in globals.css cannot
 //     do that job because this animation is driven by a timer, not by CSS.
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SearchIcon } from '@/components/icons'
+import {
+  SuggestionList,
+  useCloseOnOutside,
+  useSearchSuggest,
+} from '@/components/search/SearchSuggest'
 
 const PHRASES = [
   'Orthopaedics',
@@ -36,11 +41,30 @@ const ERASE_MS = 35
 const HOLD_MS = 1400
 
 export function TypewriterSearchBar() {
+  const rootRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
   const [typed, setTyped] = useState('')
   const [animate, setAnimate] = useState(false)
+
+  const {
+    suggestions,
+    visible,
+    showingRecent,
+    active,
+    setActive,
+    setOpen,
+    choose,
+    listId,
+    inputProps,
+  } =
+    useSearchSuggest({ query })
+
+  useCloseOnOutside(
+    rootRef,
+    useCallback(() => setOpen(false), [setOpen]),
+  )
 
   // Start disabled and enable only after the media query is read on the client. The
   // server cannot know the preference, and defaulting to "animate" would flash motion
@@ -99,8 +123,9 @@ export function TypewriterSearchBar() {
   }, [idle])
 
   return (
-    <form
-      role="search"
+    <div ref={rootRef} className="relative">
+      <form
+        role="search"
       onSubmit={(event) => {
         event.preventDefault()
         const trimmed = query.trim()
@@ -115,12 +140,19 @@ export function TypewriterSearchBar() {
       <div className="relative flex-1">
         <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-dark-base/45" />
         <input
+          {...inputProps}
           id="mobile-hero-search"
           type="search"
           value={query}
-          autoComplete="off"
-          onChange={(event) => setQuery(event.target.value)}
-          onFocus={() => setFocused(true)}
+          onChange={(event) => {
+            setQuery(event.target.value)
+            setOpen(true)
+            setActive(-1)
+          }}
+          onFocus={() => {
+            setFocused(true)
+            inputProps.onFocus()
+          }}
           onBlur={() => setFocused(false)}
           // The real placeholder attribute stays the plain sentence, so assistive tech
           // and a reduced-motion user get a stable, meaningful hint.
@@ -149,6 +181,18 @@ export function TypewriterSearchBar() {
       >
         Search
       </button>
-    </form>
+      </form>
+
+      {visible && (
+        <SuggestionList
+          suggestions={suggestions}
+          active={active}
+          setActive={setActive}
+          choose={choose}
+          listId={listId}
+          showingRecent={showingRecent}
+        />
+      )}
+    </div>
   )
 }

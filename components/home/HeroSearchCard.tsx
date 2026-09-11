@@ -13,9 +13,14 @@
 // a `bg-brand-dark-base/45` floor rather than pure translucency, so the label text
 // clears 4.5:1 no matter which part of the photograph ends up behind it.
 
-import { useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SearchIcon } from '@/components/icons'
+import {
+  SuggestionList,
+  useCloseOnOutside,
+  useSearchSuggest,
+} from '@/components/search/SearchSuggest'
 import { SERVICE_CATEGORIES, serviceHref, servicesByCategory } from '@/lib/services'
 
 type Target = 'doctors' | 'departments'
@@ -28,6 +33,33 @@ export function HeroSearchCard() {
   // different route prefixes, so a slug alone cannot say where it goes — resolving it
   // here through serviceHref() is what keeps a diagnostics pick out of /specialities.
   const [departmentHref, setDepartmentHref] = useState('')
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  // The toggle above the field already says which of the two the reader wants, so the
+  // suggestion list answers that question rather than offering both and making them
+  // choose twice.
+  const kinds = useMemo(
+    () => (target === 'doctors' ? (['doctor'] as const) : (['department'] as const)),
+    [target],
+  )
+
+  const {
+    suggestions,
+    visible,
+    showingRecent,
+    active,
+    setActive,
+    setOpen,
+    choose,
+    listId,
+    inputProps,
+  } =
+    useSearchSuggest({ query, kinds: [...kinds] })
+
+  useCloseOnOutside(
+    rootRef,
+    useCallback(() => setOpen(false), [setOpen]),
+  )
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -87,22 +119,37 @@ export function HeroSearchCard() {
         </div>
       </fieldset>
 
-      <div>
+      <div ref={rootRef} className="relative">
         <label htmlFor="hero-query" className="sr-only">
           Condition, speciality or doctor name
         </label>
         <div className="relative">
           <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-dark-base/45" />
           <input
+            {...inputProps}
             id="hero-query"
             type="search"
             value={query}
-            autoComplete="off"
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value)
+              setOpen(true)
+              setActive(-1)
+            }}
             placeholder="Condition, speciality or doctor"
             className="min-h-[44px] w-full rounded-xl bg-white/95 pl-9 pr-3 text-sm text-brand-dark-base shadow-inner placeholder:text-brand-dark-base/45 focus:bg-white"
           />
         </div>
+
+        {visible && (
+          <SuggestionList
+            suggestions={suggestions}
+            active={active}
+            setActive={setActive}
+            choose={choose}
+            listId={listId}
+            showingRecent={showingRecent}
+          />
+        )}
       </div>
 
       <div>

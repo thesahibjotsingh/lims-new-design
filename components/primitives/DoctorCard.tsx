@@ -37,13 +37,14 @@ export function DoctorCard({ doctor }: { doctor: Doctor }) {
           baseline whatever crops LIMS sends. 4:5 from md up is the portrait proportion
           a phone camera produces held upright, which is what these will be.
 
-          3:2 on a phone. A card is full-bleed there, so a 4:5 band is roughly 230px of
-          photograph before the consultant's name is even reached — most of a screen
-          spent on one person. The shorter box crops to head and shoulders, which is the
-          part that identifies someone, and `object-top` on the image guarantees the
-          crop comes off the coat rather than the face.
+          3:2 at every width. It started as a phone-only change — a full-bleed 4:5 card
+          was roughly 230px of photograph before the consultant's name was reached — and
+          the same argument holds on a desktop grid, where four tall portraits in a row
+          push the names and the appointment buttons below the fold. The shorter box
+          crops to head and shoulders, which is the part that identifies someone, and
+          `object-top` guarantees the crop comes off the coat rather than the face.
         */
-        <div className="relative aspect-[4/5] w-full overflow-hidden bg-brand-mist max-md:aspect-[3/2]">
+        <div className="relative aspect-[3/2] w-full overflow-hidden bg-brand-mist">
           {/*
             Plain <img>: next/image is unoptimised on Cloudflare Workers (see
             next.config.mjs), so next/image would add a client component and a wrapper

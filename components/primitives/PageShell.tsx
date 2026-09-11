@@ -24,18 +24,38 @@ export function PageHeader({
    * Path to a banner from public/banners/, e.g. "/banners/about.webp".
    *
    * Decorative, so it carries alt="" — the heading already says what the page is, and a
-   * description of a stock hospital corridor read out before every page title is noise.
-   * The art is 3:1 with its subject on the right and clear space on the left, and the
-   * mist gradient below guarantees the heading stays legible even if a later banner
-   * arrives without that clear space.
+   * description of a hospital corridor read out before every page title is noise.
+   *
+   * PASSING ONE FLIPS THE WHOLE BAND DARK. The art is deep teal on its left side, so a
+   * banner page sets the header to brand-teal with white type; without a banner the
+   * band stays pale mist with dark type. That is why this is one prop and not two —
+   * a banner on a mist background would show a hard teal edge where the art begins.
    */
   banner?: string
   children?: ReactNode
 }) {
   return (
-    <header className="relative isolate overflow-hidden border-b border-brand-teal/10 bg-brand-mist">
+    <header
+      className={
+        banner
+          ? // No bottom border: the band is teal and the section under it is white, so
+            // the colour change is the edge. A rule there only reads as a seam.
+            'relative bg-brand-teal text-white'
+          : 'relative border-b border-brand-teal/10 bg-brand-mist'
+      }
+    >
+      {/*
+        The banner gets its OWN clipping wrapper and the header does not clip.
+
+        The image is wider than the band and hangs off the left edge, so something has
+        to clip it — but `overflow-hidden` on the header itself also clips anything a
+        page puts INSIDE the header, and the consultant directory puts a search box
+        there whose suggestion list drops below the band. That list was being cut off at
+        the header's edge, which read as a broken dropdown. Same trap, and the same fix,
+        as the decorative blur field in DesktopHero.
+      */}
       {banner && (
-        <>
+        <div aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden">
           {/*
             HEIGHT-FIRST, NOT COVER. The art is 3:1 and this band renders at roughly 5:1
             on a wide screen, so stretching the image across the full width and cropping
@@ -45,10 +65,10 @@ export function PageHeader({
 
             So the image is sized to the band's HEIGHT (`h-full w-auto`) and pinned to
             the right. Nothing is cropped vertically. The strip of band left over on the
-            left is brand-mist, which is what the empty left half of every one of these
-            banners already is — the art was drawn with clear space there for the
-            heading, so the seam falls inside a flat pale area and the gradient below
-            finishes the blend.
+            left is brand-teal, which is what the empty left side of every one of these
+            banners already is — the art is drawn with a flat teal panel there for the
+            heading. Sampled across all eight it sits at about #015C6C against the
+            token's #0F5B66, so the join is invisible and the gradient finishes it.
 
             Nothing forces a minimum width. A `min-w` makes the picture stretch wider
             than its own ratio and the crop comes straight back — 55% cost 13% off the
@@ -62,19 +82,19 @@ export function PageHeader({
             aria-hidden="true"
             width={1800}
             height={600}
-            className="absolute inset-y-0 right-0 -z-10 h-full w-auto max-w-none object-cover object-[right_top]"
+            className="absolute inset-y-0 right-0 h-full w-auto max-w-none object-cover object-[right_top]"
           />
           {/*
-            Opaque mist on the left fading out to the right. This is what makes the
-            heading readable rather than the art happening to be pale there — on a phone
-            the crop lands much closer to the subject and the text would otherwise sit
-            over a photograph.
+            Opaque teal on the left fading out to the right. This is what makes the
+            heading readable rather than the art happening to be flat there — on a phone
+            the crop lands much closer to the subject and white text would otherwise sit
+            over a brightly lit photograph.
           */}
           <div
             aria-hidden="true"
-            className="absolute inset-0 -z-10 bg-gradient-to-r from-brand-mist via-brand-mist/90 to-brand-mist/20 sm:via-brand-mist/75 sm:to-transparent"
+            className="absolute inset-0 bg-gradient-to-r from-brand-teal via-brand-teal/90 to-brand-teal/20 sm:via-brand-teal/75 sm:to-transparent"
           />
-        </>
+        </div>
       )}
       <div
         className={[
@@ -92,15 +112,36 @@ export function PageHeader({
           )}
           <div className="min-w-0">
             {eyebrow && (
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-copper">
+              /*
+                White at 75% on a banner rather than the copper used on mist. Copper on
+                brand teal measures about 3.3:1, under the 4.5:1 this text needs at this
+                size, and an eyebrow that says which section you are in is not decoration
+                to be left half-legible.
+              */
+              <p
+                className={[
+                  'mb-2 text-xs font-semibold uppercase tracking-[0.14em]',
+                  banner ? 'text-white/75' : 'text-brand-copper',
+                ].join(' ')}
+              >
                 {eyebrow}
               </p>
             )}
-            <h1 className="font-serif text-3xl font-bold tracking-tight text-brand-dark-base sm:text-4xl lg:text-5xl">
+            <h1
+              className={[
+                'font-serif text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl',
+                banner ? 'text-white' : 'text-brand-dark-base',
+              ].join(' ')}
+            >
               {title}
             </h1>
             {intro && (
-              <p className="mt-4 max-w-2xl text-base leading-relaxed text-brand-dark-base/70">
+              <p
+                className={[
+                  'mt-4 max-w-2xl text-base leading-relaxed',
+                  banner ? 'text-white/80' : 'text-brand-dark-base/70',
+                ].join(' ')}
+              >
                 {intro}
               </p>
             )}
