@@ -25,18 +25,28 @@ export function BrandMark({
   tone = 'light',
 }: {
   size?: 'default' | 'compact'
-  /** `light` = the logo on a white ground. `dark` = badge + white text on teal/black. */
-  tone?: 'light' | 'dark'
+  /**
+   * `light` = the logo on a white ground.
+   * `dark`  = badge + white text on teal/black.
+   * `badge` = the round badge on its own, no words. For the 65px mobile header, where
+   *           the artwork is the identity and the name is already in the drawer, the
+   *           footer and every page title. The link's aria-label still speaks the full
+   *           hospital name, so a screen reader loses nothing.
+   */
+  tone?: 'light' | 'dark' | 'badge'
 }) {
   const compact = size === 'compact'
-  const onDark = tone === 'dark'
+  const badgeOnly = tone === 'badge'
+  // Both sit on teal or near-black, so both take the badge artwork — the colour wordmark
+  // loses its letterforms there. See the note at the top of this file.
+  const onDark = tone === 'dark' || badgeOnly
 
   return (
     <Link
       href="/"
       // The aria-label names the link, so every child below is decorative — that is why
       // the marks carry alt="" and the visible wordmark is not announced twice.
-      className={`group flex items-center rounded-lg pr-2 ${onDark ? 'gap-2.5' : 'gap-4'}`}
+      className={`group flex items-center rounded-lg ${badgeOnly ? '' : 'pr-2'} ${onDark ? 'gap-2.5' : 'gap-4'}`}
       aria-label={`${siteConfig.name}, ${siteConfig.city} — home`}
     >
       {onDark ? (
@@ -50,12 +60,13 @@ export function BrandMark({
             src="/brand/lims-badge.webp"
             alt=""
             aria-hidden="true"
-            width={compact ? 38 : 44}
-            height={compact ? 43 : 50}
+            width={badgeOnly ? 46 : compact ? 38 : 44}
+            height={badgeOnly ? 52 : compact ? 43 : 50}
             className={`block h-auto shrink-0 transition-transform group-hover:scale-105 ${
-              compact ? 'w-[38px]' : 'w-[44px]'
+              badgeOnly ? 'w-[46px]' : compact ? 'w-[38px]' : 'w-[44px]'
             }`}
           />
+          {!badgeOnly && (
           <span className="flex flex-col leading-none">
             <span
               className={[
@@ -75,6 +86,7 @@ export function BrandMark({
               {siteConfig.tagline.join(' · ')}
             </span>
           </span>
+          )}
         </>
       ) : (
         <>

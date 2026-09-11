@@ -17,7 +17,13 @@ import { contact } from '@/lib/site-config'
 export function MobileHeader() {
   return (
     <header className="sticky top-0 z-50 flex h-[65px] items-center justify-between gap-2 border-b border-white/10 bg-brand-teal px-4 shadow-md lg:hidden">
-      <BrandMark size="compact" tone="dark" />
+      {/*
+        The badge alone, no words. The round mark carries its own light disc so it reads
+        against the teal, which the colour wordmark does not — and at 65px the name was
+        the least useful thing in the row. It is still on every page title, in the
+        drawer, and in the footer, and the link's aria-label speaks it in full.
+      */}
+      <BrandMark tone="badge" />
 
       <div className="flex items-center gap-1">
         {/*
