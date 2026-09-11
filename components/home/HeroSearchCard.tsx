@@ -48,9 +48,6 @@ const DOCTOR_PHRASES = [
  * render, which defeats the memo around the matcher and re-runs the whole index scan
  * for every keystroke that did not change anything.
  */
-/** Shown before the animation starts, while focused, and under reduced motion. */
-const STATIC_HINT = 'Condition, speciality or doctor'
-
 const DOCTOR_KINDS = ['doctor'] as const
 const DEPARTMENT_KINDS = ['department'] as const
 
@@ -183,9 +180,9 @@ export function HeroSearchCard() {
               inputProps.onFocus()
             }}
             onBlur={() => setFocused(false)}
-            // The attribute keeps a plain, stable sentence for assistive tech and for
-            // anyone with reduced motion; the animated line is painted over it below.
-            placeholder="Condition, speciality or doctor"
+            // No placeholder attribute at all. The field is named by its sr-only
+            // <label> above, so nothing is lost to assistive technology, and with the
+            // attribute gone there is no plain sentence left to appear at any point.
             // ALWAYS transparent, never toggled. The overlay below owns every state of
             // this hint, so the native placeholder has nothing to reveal and there is no
             // swap between the two. Toggling it was visible as a flash of "Condition,
@@ -211,7 +208,20 @@ export function HeroSearchCard() {
                   <span className="ml-px inline-block animate-caret font-normal">|</span>
                 </>
               ) : (
-                STATIC_HINT
+                /*
+                  Hidden for everyone who will see the animation, and shown only to
+                  someone who never will.
+
+                  `motion-reduce:` is the whole point of this span. With the placeholder
+                  removed the field is blank until the first character types itself,
+                  which is right — but under prefers-reduced-motion the animation never
+                  runs at all, and that would leave a permanently empty box with no
+                  visible hint of what it takes. This costs nothing to anyone else: the
+                  span is display:none unless the reader has asked for reduced motion.
+                */
+                <span className="hidden motion-reduce:inline">
+                  Condition, speciality or doctor
+                </span>
               )}
             </span>
           )}
