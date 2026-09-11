@@ -64,5 +64,19 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+
+    /*
+     * The marquee needs stopping, not shortening.
+     *
+     * The blanket rule above collapses every animation to 0.01ms and one iteration,
+     * which for a translate loop means it JUMPS to its end state — the ribbon lands
+     * mid-scroll, already halfway through the duplicated track. Cancelling the
+     * animation outright leaves it at the start, which is the frame it was designed to
+     * be read at.
+     */
+    .animate-marquee-slow {
+      animation: none !important;
+      transform: none !important;
+    }
   }
 }

@@ -47,7 +47,16 @@ const config: Config = {
         ],
       },
       animation: {
-        'marquee-slow': 'marquee 28s linear infinite',
+        // 180s, down from 28s — roughly six and a half times slower. A full pass of the
+        // duplicated track takes three minutes, so at any glance the strip is barely
+        // moving; it reads as a slow drift rather than as scrolling text.
+        //
+        // Speed is the whole accessibility question for a marquee. Continuous horizontal
+        // motion in peripheral vision is a known vestibular trigger, and this sits on a
+        // hospital home page where some visitors are already unwell. Paired with the
+        // hover/focus pause in MarqueeRibbon and the reduced-motion cancel in
+        // globals.css, the motion is slow, stoppable and switch-off-able.
+        'marquee-slow': 'marquee 180s linear infinite',
         'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         beacon: 'beacon 1.8s ease-out infinite',
         caret: 'caret 1s step-end infinite',

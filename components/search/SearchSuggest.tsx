@@ -91,8 +91,16 @@ export function useSearchSuggest({
 
   // With nothing typed, the list shows where this reader went last time. It is the one
   // moment a search box can be useful before it has been used.
+  //
+  // History obeys `kinds` as well. Without this the hero card, set to "A doctor", would
+  // answer an empty field with whatever was last visited — a department or a page — and
+  // quietly contradict the toggle the reader just set.
+  const visibleRecent = useMemo(
+    () => (kinds ? recent.filter((item) => kinds.includes(item.kind)) : recent),
+    [recent, kinds],
+  )
   const showingRecent = query.trim().length < 2 && matches.length === 0
-  const suggestions = showingRecent ? recent : matches
+  const suggestions = showingRecent ? visibleRecent : matches
 
   const visible = open && suggestions.length > 0
 

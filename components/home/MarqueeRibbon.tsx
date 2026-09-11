@@ -25,7 +25,10 @@ export function MarqueeRibbon() {
 
       <div
         aria-hidden="true"
-        className="flex w-max animate-marquee-slow whitespace-nowrap [mask-image:linear-gradient(to_right,transparent_0%,white_8%,white_92%,transparent_100%)]"
+        // Pauses on hover and on focus-within. Motion you cannot stop is the part that
+        // makes people ill; a strip that halts the moment a pointer or the keyboard
+        // reaches it gives back control without a settings screen.
+        className="flex w-max animate-marquee-slow whitespace-nowrap [animation-play-state:running] [mask-image:linear-gradient(to_right,transparent_0%,white_8%,white_92%,transparent_100%)] hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]"
       >
         {[...names, ...names].map((name, index) => (
           <span

@@ -13,7 +13,7 @@
 // a `bg-brand-dark-base/45` floor rather than pure translucency, so the label text
 // clears 4.5:1 no matter which part of the photograph ends up behind it.
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SearchIcon } from '@/components/icons'
 import {
@@ -21,6 +21,42 @@ import {
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
+import { useTypewriter } from '@/components/search/useTypewriter'
+import type { SuggestionKind } from '@/lib/search'
+
+/**
+ * The placeholder types itself, and what it types follows the toggle above it.
+ *
+ * "A doctor" cycles real consultants; "A department" cycles real departments. The
+ * animation is therefore an answer to the question the toggle just asked, rather than
+ * decoration — someone who switched to Departments sees, without reading a word of
+ * help text, that this field takes department names.
+ *
+ * Every phrase resolves to a real page. A placeholder that suggests something the
+ * search cannot find teaches the wrong vocabulary.
+ */
+const DOCTOR_PHRASES = [
+  'Dr. Shweta Godara',
+  'Dr. Harshal Godara',
+  'Dr. Udit Choudhary',
+]
+
+/**
+ * Stable arrays, defined once at module scope.
+ *
+ * Building these inline would hand the suggestion hook a new array identity on every
+ * render, which defeats the memo around the matcher and re-runs the whole index scan
+ * for every keystroke that did not change anything.
+ */
+const DOCTOR_KINDS = ['doctor'] as const
+const DEPARTMENT_KINDS = ['department'] as const
+
+const DEPARTMENT_PHRASES = [
+  'Orthopaedics',
+  'Obstetrics & Gynaecology',
+  'Radiology & Imaging',
+  'Physiotherapy',
+]
 import { SERVICE_CATEGORIES, serviceHref, servicesByCategory } from '@/lib/services'
 
 type Target = 'doctors' | 'departments'
@@ -33,15 +69,13 @@ export function HeroSearchCard() {
   // different route prefixes, so a slug alone cannot say where it goes — resolving it
   // here through serviceHref() is what keeps a diagnostics pick out of /specialities.
   const [departmentHref, setDepartmentHref] = useState('')
+  const [focused, setFocused] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
-  // The toggle above the field already says which of the two the reader wants, so the
-  // suggestion list answers that question rather than offering both and making them
-  // choose twice.
-  const kinds = useMemo(
-    () => (target === 'doctors' ? (['doctor'] as const) : (['department'] as const)),
-    [target],
-  )
+  // The toggle is a filter, not a hint: "A doctor" offers consultants only and
+  // "A department" offers departments only, so the list can never answer with something
+  // the reader has just said they are not looking for.
+  const kinds = target === 'doctors' ? DOCTOR_KINDS : DEPARTMENT_KINDS
 
   const {
     suggestions,
@@ -53,12 +87,18 @@ export function HeroSearchCard() {
     choose,
     listId,
     inputProps,
-  } =
-    useSearchSuggest({ query, kinds: [...kinds] })
+  } = useSearchSuggest({ query, kinds: kinds as unknown as SuggestionKind[] })
 
   useCloseOnOutside(
     rootRef,
     useCallback(() => setOpen(false), [setOpen]),
+  )
+
+  // Stops the moment the field is focused or has content — the animation is a
+  // placeholder, never a value, so it must never be mistaken for text already typed.
+  const typed = useTypewriter(
+    target === 'doctors' ? DOCTOR_PHRASES : DEPARTMENT_PHRASES,
+    !focused && query.length === 0,
   )
 
   function handleSubmit(event: React.FormEvent) {
@@ -135,9 +175,31 @@ export function HeroSearchCard() {
               setOpen(true)
               setActive(-1)
             }}
+            onFocus={() => {
+              setFocused(true)
+              inputProps.onFocus()
+            }}
+            onBlur={() => setFocused(false)}
+            // The attribute keeps a plain, stable sentence for assistive tech and for
+            // anyone with reduced motion; the animated line is painted over it below.
             placeholder="Condition, speciality or doctor"
-            className="min-h-[44px] w-full rounded-xl bg-white/95 pl-9 pr-3 text-sm text-brand-dark-base shadow-inner placeholder:text-brand-dark-base/45 focus:bg-white"
+            className={[
+              'min-h-[44px] w-full rounded-xl bg-white/95 pl-9 pr-3 text-sm text-brand-dark-base shadow-inner focus:bg-white',
+              typed.length > 0
+                ? 'placeholder:text-transparent'
+                : 'placeholder:text-brand-dark-base/45',
+            ].join(' ')}
           />
+
+          {typed.length > 0 && (
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute left-9 top-1/2 -translate-y-1/2 truncate pr-3 text-sm text-brand-dark-base/45"
+            >
+              {typed}
+              <span className="ml-px inline-block animate-caret font-normal">|</span>
+            </span>
+          )}
         </div>
 
         {visible && (

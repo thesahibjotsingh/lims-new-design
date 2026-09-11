@@ -70,7 +70,14 @@ export function DesktopHero() {
       */}
       <div className="relative mx-auto grid max-w-7xl grid-cols-12 items-center gap-12 px-6 py-12 xl:py-14">
         {/* Copy column */}
-        <div className="col-span-7 space-y-7">
+        {/*
+          Six columns, not seven. Pulling the search card toward the middle with a
+          negative margin put it 48px over the copy column and it painted across the end
+          of "Services on one campus" — measured at 48px horizontal by 85px vertical
+          overlap. Narrowing the column moves the copy's own right edge instead, so the
+          card reaches the centre with nothing underneath it to cover.
+        */}
+        <div className="col-span-6 space-y-7">
           <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold text-white/90">
             <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-400" />
             {primaryLocation.addressLines.join(', ')}, {primaryLocation.city},{' '}
@@ -110,7 +117,12 @@ export function DesktopHero() {
             it cannot drift from the catalogue, and it says nothing about outcomes,
             satisfaction or volumes that LIMS has not published.
           */}
-          <dl className="flex gap-8 border-t border-white/15 pt-6">
+          {/*
+            Wraps rather than overflowing. The column is narrower than it was, and three
+            stats on one line is a layout that works until a label gets longer or the
+            catalogue count goes from one digit to two.
+          */}
+          <dl className="flex flex-wrap gap-x-8 gap-y-4 border-t border-white/15 pt-6">
             <HeroStat value={servicesByCategory('clinical').length} label="Clinical departments" />
             <HeroStat
               value={servicesByCategory('diagnostics').length}
@@ -129,13 +141,12 @@ export function DesktopHero() {
           the control on the same baseline as the statistics opposite it.
         */}
         {/*
-          Left-aligned in its column and pulled in further at xl, which lands the card
-          near the middle of the hero rather than against the right gutter. Two reasons:
-          it closes the empty channel that opened between the copy and the card, and it
-          keeps the panel off the portrait's face as the viewport widens and the crop
-          brings her further left.
+          Left-aligned at the start of its own column, which on a 6/6 split is the
+          middle of the hero. No negative margin: an overhang put the card over the copy
+          column and clipped the last statistic. Bottom-aligned so it stays clear of the
+          portrait's face, and on the same baseline as the statistics opposite it.
         */}
-        <div className="col-span-5 flex justify-start self-end xl:-ml-12">
+        <div className="col-span-6 flex justify-start self-end">
           <HeroSearchCard />
         </div>
       </div>

@@ -82,11 +82,13 @@ export function useTypewriter(phrases: string[], enabled: boolean): string {
 
     timer = setTimeout(step, TYPE_MS)
     return () => clearTimeout(timer)
-    // `phrases` is a module-level constant at both call sites, so it is stable; listing
-    // it here would only matter if a caller built the array inline, which would restart
-    // the animation on every render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running])
+
+    // `phrases` IS a dependency, and it has to be. The hero card swaps between two
+    // different lists when its doctor/department toggle flips, and without this the
+    // effect kept running the old list — switching to Departments carried on typing
+    // consultants' names. Every caller passes a module-level constant, so the identity
+    // changes exactly when the set changes and never on an ordinary re-render.
+  }, [running, phrases])
 
   return typed
 }
