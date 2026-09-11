@@ -101,20 +101,25 @@ export function TypewriterSearchBar() {
           // The real placeholder attribute stays the plain sentence, so assistive tech
           // and a reduced-motion user get a stable, meaningful hint.
           placeholder={STATIC_PLACEHOLDER}
-          className={[
-            'min-h-[44px] w-full rounded-xl bg-transparent pl-9 pr-2 text-sm text-brand-dark-base',
-            // Hide the native placeholder only while the animated one is showing.
-            idle ? 'placeholder:text-transparent' : 'placeholder:text-brand-dark-base/45',
-          ].join(' ')}
+          // Always transparent: the overlay below owns every state of this hint, so
+          // there is no swap between the two and no flash of the plain sentence before
+          // the first typed character arrives.
+          className="min-h-[44px] w-full rounded-xl bg-transparent pl-9 pr-2 text-sm text-brand-dark-base placeholder:text-transparent"
         />
 
-        {idle && (
+        {query.length === 0 && (
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute left-9 top-1/2 -translate-y-1/2 truncate text-sm text-brand-dark-base/45"
+            className="pointer-events-none absolute left-9 top-1/2 -translate-y-1/2 truncate pr-2 text-sm text-brand-dark-base/45"
           >
-            {typed}
-            <span className="ml-px inline-block animate-caret font-normal">|</span>
+            {typed.length > 0 ? (
+              <>
+                {typed}
+                <span className="ml-px inline-block animate-caret font-normal">|</span>
+              </>
+            ) : (
+              STATIC_PLACEHOLDER
+            )}
           </span>
         )}
       </div>

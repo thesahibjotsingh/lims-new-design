@@ -139,24 +139,30 @@ export function HeaderSearch() {
           aria-hidden={!expanded}
           className={[
             'min-w-0 flex-1 bg-transparent pl-5 text-sm text-brand-dark-base outline-none',
-            'transition-opacity duration-200',
-            // Hide the native placeholder only while the animated one is showing, or
-            // the two sit on top of each other.
-            typed.length > 0
-              ? 'placeholder:text-transparent'
-              : 'placeholder:text-brand-dark-base/45',
+            'transition-opacity duration-200 placeholder:text-transparent',
             expanded ? 'opacity-100' : 'pointer-events-none opacity-0',
           ].join(' ')}
         />
 
-        {expanded && typed.length > 0 && (
+        {/*
+          One element for both states, so the native placeholder never has to be revealed
+          and hidden again. Toggling it flashed the plain sentence on load, before the
+          first typed character arrived.
+        */}
+        {expanded && query.length === 0 && (
           <span
             aria-hidden="true"
             className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 truncate pr-14 text-sm text-brand-dark-base/45"
           >
-            {SEARCH_PREFIX}
-            {typed}
-            <span className="ml-px inline-block animate-caret font-normal">|</span>
+            {typed.length > 0 ? (
+              <>
+                {SEARCH_PREFIX}
+                {typed}
+                <span className="ml-px inline-block animate-caret font-normal">|</span>
+              </>
+            ) : (
+              STATIC_PLACEHOLDER
+            )}
           </span>
         )}
 

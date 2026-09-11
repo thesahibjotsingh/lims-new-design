@@ -48,6 +48,9 @@ const DOCTOR_PHRASES = [
  * render, which defeats the memo around the matcher and re-runs the whole index scan
  * for every keystroke that did not change anything.
  */
+/** Shown before the animation starts, while focused, and under reduced motion. */
+const STATIC_HINT = 'Condition, speciality or doctor'
+
 const DOCTOR_KINDS = ['doctor'] as const
 const DEPARTMENT_KINDS = ['department'] as const
 
@@ -183,21 +186,33 @@ export function HeroSearchCard() {
             // The attribute keeps a plain, stable sentence for assistive tech and for
             // anyone with reduced motion; the animated line is painted over it below.
             placeholder="Condition, speciality or doctor"
-            className={[
-              'min-h-[44px] w-full rounded-xl bg-white/95 pl-9 pr-3 text-sm text-brand-dark-base shadow-inner focus:bg-white',
-              typed.length > 0
-                ? 'placeholder:text-transparent'
-                : 'placeholder:text-brand-dark-base/45',
-            ].join(' ')}
+            // ALWAYS transparent, never toggled. The overlay below owns every state of
+            // this hint, so the native placeholder has nothing to reveal and there is no
+            // swap between the two. Toggling it was visible as a flash of "Condition,
+            // speciality or doctor" on load: the server renders with no animation yet,
+            // so the real placeholder painted for the frames before the first typed
+            // character arrived.
+            className="min-h-[44px] w-full rounded-xl bg-white/95 pl-9 pr-3 text-sm text-brand-dark-base shadow-inner placeholder:text-transparent focus:bg-white"
           />
 
-          {typed.length > 0 && (
+          {/*
+            One element for both states: the animated phrase once it is running, and the
+            plain sentence before it starts, while the field is focused, and whenever
+            reduced motion is on. Server and client render the same thing.
+          */}
+          {query.length === 0 && (
             <span
               aria-hidden="true"
               className="pointer-events-none absolute left-9 top-1/2 -translate-y-1/2 truncate pr-3 text-sm text-brand-dark-base/45"
             >
-              {typed}
-              <span className="ml-px inline-block animate-caret font-normal">|</span>
+              {typed.length > 0 ? (
+                <>
+                  {typed}
+                  <span className="ml-px inline-block animate-caret font-normal">|</span>
+                </>
+              ) : (
+                STATIC_HINT
+              )}
             </span>
           )}
         </div>
