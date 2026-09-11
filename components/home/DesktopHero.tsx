@@ -15,36 +15,60 @@
 //
 // Server component. The one interactive part is HeroSearchCard, a client leaf.
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { HeroSearchCard } from '@/components/home/HeroSearchCard'
 import { ArrowRightIcon, PhoneIcon } from '@/components/icons'
-import { heroImage } from '@/lib/media'
+import { heroBanner } from '@/lib/media'
 import { contact, primaryLocation, siteConfig } from '@/lib/site-config'
 import { SERVICES, servicesByCategory } from '@/lib/services'
 
 export function DesktopHero() {
   return (
-    <section className="relative hidden bg-gradient-to-b from-brand-teal via-brand-teal to-brand-teal-dark text-white lg:block">
+    <section className="relative isolate hidden overflow-hidden bg-brand-teal text-white lg:block">
       {/*
-        Decorative light. Both stops end at `transparent`, so the glow dies out inside
-        the section and needs no clipping — see the note at the top of this file.
-        brand-cyan is #168B99 and brand-copper is #D68060; they are written as rgba here
-        because a gradient stop needs an alpha channel, which a Tailwind colour token
-        cannot supply inside a background-image.
+        The banner covers the whole section, not a card inside it.
+
+        `bg-brand-teal` underneath is not redundant: the art is 2.33:1 and a tall
+        viewport crops its sides, so the base colour is what the edges fall back to
+        while the image decodes and wherever the cover crop cannot reach.
+
+        Plain <img> rather than next/image, per next.config.mjs — image optimisation is
+        off because Cloudflare Workers cannot run sharp, so next/image would add a
+        wrapper and buy nothing over a WebP that build_assets.py already sized.
+      */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={heroBanner.src}
+        alt={heroBanner.alt}
+        width={heroBanner.width}
+        height={heroBanner.height}
+        // The LCP element on the home page: eager and high priority, never lazy.
+        fetchPriority="high"
+        decoding="async"
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 h-full w-full object-cover object-[75%_center]"
+      />
+
+      {/*
+        A scrim anchored to the left, where the copy sits.
+
+        Measured on this art, white already reaches 8.2:1 over the left third and
+        4.89:1 mid-frame, so it passes unaided. The scrim is insurance against the next
+        banner: art gets swapped without anyone re-checking contrast, and a headline
+        that silently drops to 3:1 on a hospital home page is not a failure anyone
+        notices until it matters.
       */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage: [
-            'radial-gradient(58rem 34rem at 96% -6%, rgba(22, 139, 153, 0.38), rgba(22, 139, 153, 0) 68%)',
-            'radial-gradient(42rem 30rem at 6% 104%, rgba(214, 128, 96, 0.16), rgba(214, 128, 96, 0) 70%)',
-          ].join(', '),
-        }}
+        className="absolute inset-0 -z-10 bg-gradient-to-r from-brand-teal-dark/80 via-brand-teal-dark/35 to-transparent"
       />
-
-      <div className="relative mx-auto grid max-w-7xl grid-cols-12 items-center gap-12 px-6 py-20">
+      {/*
+        py-12, down from py-20. Eighty pixels of padding above the location pill read as
+        a gap between the navigation and the hero rather than as breathing room, because
+        the band behind it is one flat colour — there is nothing in that space for the
+        padding to separate. The copy column sets the section's height on its own.
+      */}
+      <div className="relative mx-auto grid max-w-7xl grid-cols-12 items-center gap-12 px-6 py-12 xl:py-14">
         {/* Copy column */}
         <div className="col-span-7 space-y-7">
           <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold text-white/90">
@@ -96,29 +120,23 @@ export function DesktopHero() {
           </dl>
         </div>
 
-        {/* Photography column */}
-        <div className="col-span-5">
-          <div className="relative">
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl shadow-2xl">
-              <Image
-                src={heroImage.src}
-                alt={heroImage.alt}
-                fill
-                priority
-                sizes="(max-width: 1024px) 0px, 40vw"
-                className="object-cover"
-              />
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 bg-gradient-to-t from-brand-dark-base/55 via-transparent to-transparent"
-              />
-            </div>
+        {/*
+          The search card, where the photo card used to be.
 
-            {/* The card straddles the seam. Nothing clips it. */}
-            <div className="absolute -left-24 bottom-8 z-20">
-              <HeroSearchCard />
-            </div>
-          </div>
+          Bottom-aligned rather than centred: the banner's subject stands in the upper
+          right of the frame, and a card centred in this column would sit across her
+          face. Dropping it to the foot of the column leaves the portrait clear and puts
+          the control on the same baseline as the statistics opposite it.
+        */}
+        {/*
+          Left-aligned in its column and pulled in further at xl, which lands the card
+          near the middle of the hero rather than against the right gutter. Two reasons:
+          it closes the empty channel that opened between the copy and the card, and it
+          keeps the panel off the portrait's face as the viewport widens and the crop
+          brings her further left.
+        */}
+        <div className="col-span-5 flex justify-start self-end xl:-ml-12">
+          <HeroSearchCard />
         </div>
       </div>
     </section>

@@ -131,6 +131,38 @@ BANNER_NAMES = {
 }
 
 
+# The home hero's full-bleed art. It shares the Placeholders folder with the page
+# banners but is not one: a page banner is a 600px-tall strip sized to the header band,
+# while this covers an entire viewport-width section and needs its native resolution.
+HERO_BANNER_STEM = "hero-banner"
+HERO_BANNER_W = 1920
+
+
+def build_hero_banner() -> int:
+    """assets-source/Placeholders/hero-banner.png -> public/hero-banner.webp
+
+    Width-capped and never upscaled. The source is 1916px wide, so on anything up to a
+    1920px viewport this is effectively native; beyond that the browser scales it up,
+    which on a soft-focus photographic background is invisible and far cheaper than
+    shipping a 4K image to every visitor.
+    """
+    src = SRC / "Placeholders" / f"{HERO_BANNER_STEM}.png"
+    if not src.exists():
+        return 0
+
+    im = Image.open(src).convert("RGB")
+    w, h = im.size
+    if w > HERO_BANNER_W:
+        im = im.resize((HERO_BANNER_W, round(h * HERO_BANNER_W / w)), Image.LANCZOS)
+
+    out = PUB / "hero-banner.webp"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    # 78 rather than the icons' 82: this is the largest thing on the home page and sets
+    # the LCP, and the difference is not visible on a defocused background.
+    im.save(out, "WEBP", quality=78, method=6)
+    return out.stat().st_size
+
+
 def build_banners() -> int:
     """assets-source/Placeholders/<name>.png -> public/banners/<name>.webp
 
@@ -146,6 +178,8 @@ def build_banners() -> int:
     unknown = []
 
     for src in sorted(folder.glob("*.png")):
+        if src.stem.lower() == HERO_BANNER_STEM:
+            continue  # full-bleed hero art, handled by build_hero_banner()
         name = BANNER_NAMES.get(src.stem.lower())
         if name is None:
             unknown.append(src.name)
@@ -269,6 +303,7 @@ def main():
 
     # ---- page banners ------------------------------------------------------------
     written += build_banners()
+    written += build_hero_banner()
 
     # ---- consultant portraits ----------------------------------------------------
     written += build_portraits()
