@@ -14,8 +14,9 @@
 import Link from 'next/link'
 import { BrandMark } from '@/components/layout/BrandMark'
 import { PrimaryNavBar } from '@/components/layout/PrimaryNavBar'
-import { CalendarIcon, PinIcon } from '@/components/icons'
-import { contact, primaryLocation, primaryNav } from '@/lib/site-config'
+import { CalendarIcon } from '@/components/icons'
+import { HeaderSearch } from '@/components/layout/HeaderSearch'
+import { contact, primaryNav } from '@/lib/site-config'
 
 export function DesktopHeader() {
   return (
@@ -32,15 +33,30 @@ export function DesktopHeader() {
         content both stay on the max-w-7xl measure, so the branding tier reads as the
         frame around the site rather than as the first row of it.
       */}
-      <div className="bg-white/95 backdrop-blur-md">
+      {/*
+        `relative z-20`, above the navigation ribbon's z-10.
+
+        The header search lives in this tier and its suggestion list hangs well below the
+        tier's own box. Without an explicit order the two tiers are unpositioned siblings
+        that paint in DOM order, so the ribbon painted last and its links showed through
+        the dropdown's white panel. Ordering the tiers is the fix; raising the z-index on
+        the dropdown alone would only move the problem to whatever is added next.
+      */}
+      <div className="relative z-20 bg-white/95 backdrop-blur-md">
         <div className="flex w-full items-center justify-between gap-8 px-6 py-2.5">
           <BrandMark />
 
           <div className="flex items-center gap-6">
-            <p className="hidden items-center gap-2 text-xs text-brand-dark-base/60 xl:flex">
-              <PinIcon className="h-4 w-4 shrink-0 text-brand-teal" />
-              {primaryLocation.addressLines.join(', ')}, {primaryLocation.city}
-            </p>
+            {/*
+              Search, where the location line used to sit.
+
+              The address is not lost: it is in the footer on every page, on /contact
+              under its own heading, and in the hero's location pill on the home page.
+              It was the one thing in this row a visitor never needed to act on, which
+              makes it the right thing to trade for the one control they reach for on
+              every page.
+            */}
+            <HeaderSearch />
 
             {/*
               Emergency only in the header. The appointments line is not dropped from
@@ -70,7 +86,9 @@ export function DesktopHeader() {
       </div>
 
       {/* Tier 2 — the navigation ribbon */}
-      <PrimaryNavBar items={primaryNav} />
+      <div className="relative z-10">
+        <PrimaryNavBar items={primaryNav} />
+      </div>
     </header>
   )
 }

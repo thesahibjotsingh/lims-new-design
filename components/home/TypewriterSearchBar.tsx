@@ -17,7 +17,7 @@
 //     back to a plain static placeholder, and the CSS media query in globals.css cannot
 //     do that job because this animation is driven by a timer, not by CSS.
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SearchIcon } from '@/components/icons'
 import {
@@ -25,6 +25,7 @@ import {
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
+import { useTypewriter } from '@/components/search/useTypewriter'
 
 const PHRASES = [
   'Orthopaedics',
@@ -36,17 +37,11 @@ const PHRASES = [
 
 const STATIC_PLACEHOLDER = 'Search doctors, departments or tests'
 
-const TYPE_MS = 70
-const ERASE_MS = 35
-const HOLD_MS = 1400
-
 export function TypewriterSearchBar() {
   const rootRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
-  const [typed, setTyped] = useState('')
-  const [animate, setAnimate] = useState(false)
 
   const {
     suggestions,
@@ -66,61 +61,10 @@ export function TypewriterSearchBar() {
     useCallback(() => setOpen(false), [setOpen]),
   )
 
-  // Start disabled and enable only after the media query is read on the client. The
-  // server cannot know the preference, and defaulting to "animate" would flash motion
-  // at a reduced-motion user for one frame before the effect corrected it.
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const apply = () => setAnimate(!media.matches)
-    apply()
-    media.addEventListener('change', apply)
-    return () => media.removeEventListener('change', apply)
-  }, [])
-
-  const phraseIndex = useRef(0)
-  const charIndex = useRef(0)
-  const erasing = useRef(false)
-
-  const idle = animate && !focused && query.length === 0
-
-  useEffect(() => {
-    if (!idle) {
-      setTyped('')
-      phraseIndex.current = 0
-      charIndex.current = 0
-      erasing.current = false
-      return
-    }
-
-    let timer: ReturnType<typeof setTimeout>
-
-    function step() {
-      const phrase = PHRASES[phraseIndex.current] ?? ''
-
-      if (!erasing.current) {
-        charIndex.current += 1
-        setTyped(phrase.slice(0, charIndex.current))
-        if (charIndex.current >= phrase.length) {
-          erasing.current = true
-          timer = setTimeout(step, HOLD_MS)
-          return
-        }
-        timer = setTimeout(step, TYPE_MS)
-        return
-      }
-
-      charIndex.current -= 1
-      setTyped(phrase.slice(0, charIndex.current))
-      if (charIndex.current <= 0) {
-        erasing.current = false
-        phraseIndex.current = (phraseIndex.current + 1) % PHRASES.length
-      }
-      timer = setTimeout(step, ERASE_MS)
-    }
-
-    timer = setTimeout(step, TYPE_MS)
-    return () => clearTimeout(timer)
-  }, [idle])
+  // The timing, the reduced-motion gate and the cleanup live in the shared hook, so
+  // this bar and the header search cannot drift apart.
+  const idle = !focused && query.length === 0
+  const typed = useTypewriter(PHRASES, idle)
 
   return (
     <div ref={rootRef} className="relative">

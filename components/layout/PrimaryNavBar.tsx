@@ -13,7 +13,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { isActiveHref } from '@/lib/is-active'
-import { ChevronDownIcon, SearchIcon } from '@/components/icons'
+import { ChevronDownIcon, HomeIcon, SearchIcon } from '@/components/icons'
 import type { NavItem } from '@/types'
 
 export function PrimaryNavBar({ items }: { items: NavItem[] }) {
@@ -71,7 +71,38 @@ export function PrimaryNavBar({ items }: { items: NavItem[] }) {
         className="mx-auto flex max-w-7xl items-stretch gap-1 px-6"
         onMouseLeave={scheduleClose}
       >
-        {items.map((item) => {
+        {/*
+        Home, as an icon rather than a ninth word.
+
+        Eight labels at 16px plus the condensed lockup already came to 1234px of a
+        1280px window; a "Home" label is another ~60px and would wrap the row at lg.
+        The house glyph is the one nav icon that needs no label to be understood, so it
+        buys the entry back for 40px. `aria-label` carries the name for screen readers,
+        and the active underline is the same one every other entry uses.
+
+        Rendered here rather than added to primaryNav in site-config, because that array
+        also drives the mobile drawer — and the mobile chrome already has Home in its
+        bottom tab bar, where a second one would be a duplicate.
+      */}
+      <div className="relative flex items-stretch">
+        <Link
+          href="/"
+          aria-label="Home"
+          aria-current={isActiveHref(pathname, '/') ? 'page' : undefined}
+          className="tap-target relative px-3 text-white/80 transition-colors hover:text-white"
+        >
+          <HomeIcon className="h-[18px] w-[18px]" />
+          <span
+            aria-hidden="true"
+            className={[
+              'absolute inset-x-2 bottom-0 h-[3px] rounded-t-full transition-opacity',
+              isActiveHref(pathname, '/') ? 'bg-brand-copper opacity-100' : 'opacity-0',
+            ].join(' ')}
+          />
+        </Link>
+      </div>
+
+      {items.map((item) => {
           const active = isActiveHref(pathname, item.href)
           const hasPanel = Boolean(item.children?.length) || Boolean(item.panel)
           const open = openLabel === item.label
