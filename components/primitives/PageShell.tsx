@@ -36,13 +36,19 @@ export function PageHeader({
 }) {
   return (
     <header
-      className={
+      className={[
+        // `isolate` is load-bearing, not decoration. It makes this header a stacking
+        // context, which is the only reason the banner's `-z-10` wrapper paints ABOVE
+        // the header's own background instead of behind it. Drop it and the art still
+        // loads, still lays out, and measures correctly in every geometric test — and
+        // is completely invisible, because an opaque background is painted over it.
+        'relative isolate',
         banner
           ? // No bottom border: the band is teal and the section under it is white, so
             // the colour change is the edge. A rule there only reads as a seam.
-            'relative bg-brand-teal text-white'
-          : 'relative border-b border-brand-teal/10 bg-brand-mist'
-      }
+            'bg-brand-teal text-white'
+          : 'border-b border-brand-teal/10 bg-brand-mist',
+      ].join(' ')}
     >
       {/*
         The banner gets its OWN clipping wrapper and the header does not clip.
