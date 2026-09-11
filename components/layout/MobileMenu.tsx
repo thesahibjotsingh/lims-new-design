@@ -120,34 +120,43 @@ export function MobileMenu() {
             className="absolute inset-y-0 right-0 flex w-[88%] max-w-sm flex-col bg-gradient-to-b from-brand-teal via-brand-teal to-brand-teal-dark shadow-2xl"
           >
             {/*
-              White, so the actual lockup can be used instead of the hospital's name set
-              as text. The artwork is dark navy and teal on transparent: on the teal
-              panel it loses its letterforms entirely, which is the whole reason
-              BrandMark has a separate badge for dark grounds. Giving the logo the one
-              white strip in the drawer is what lets it be the real logo.
+              No white strip — the gradient runs unbroken from the top of the panel.
+
+              That rules out the full colour lockup, whose dark navy letterforms
+              disappear against teal, so this takes the round badge instead. The badge
+              carries its own light disc and is the one mark in the set built to sit on
+              a dark ground; the hospital's name is in the page title, the footer and
+              this link's aria-label.
             */}
-            <div className="flex h-[65px] shrink-0 items-center justify-between gap-3 bg-white px-4">
+            <div className="flex h-[65px] shrink-0 items-center justify-between gap-3 px-4">
               <Link
                 href="/"
                 onClick={() => setOpen(false)}
                 aria-label={`${siteConfig.name}, ${siteConfig.city} — home`}
+                className="focus-ring-inverse rounded-full"
               >
                 <img
-                  src="/brand/lims-lockup.webp"
+                  src="/brand/lims-badge.webp"
                   alt=""
                   aria-hidden="true"
-                  width={640}
-                  height={320}
-                  className="block h-auto w-[150px] shrink-0"
+                  width={142}
+                  height={160}
+                  className="block h-auto w-[40px] shrink-0"
                 />
               </Link>
+              {/*
+                A ringed circle rather than a bare glyph. On the flat teal there is
+                nothing behind the X to give it an edge, and a lone stroke at this size
+                reads as decoration instead of a control — the ring is what says "button"
+                and it doubles as the 44px target boundary.
+              */}
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close navigation menu"
-                className="tap-target focus-ring rounded-full text-brand-dark-base/70 hover:bg-brand-mist"
+                className="tap-target focus-ring-inverse h-11 w-11 rounded-full border border-white/40 text-white/90 transition-colors hover:bg-white/10"
               >
-                <CloseIcon className="h-6 w-6" />
+                <CloseIcon className="h-5 w-5" strokeWidth={2} />
               </button>
             </div>
 
