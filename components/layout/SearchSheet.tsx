@@ -15,7 +15,7 @@
 // would be a fourth place for the three to drift apart from.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { createPortal, flushSync } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { CloseIcon, SearchIcon } from '@/components/icons'
 import {
@@ -75,14 +75,6 @@ export function SearchSheet() {
     return () => cancelAnimationFrame(id)
   }, [rendered, open])
 
-  // Focus once the sheet has actually arrived, not on mount. Focusing earlier pops
-  // the keyboard up while the sheet is still translated off-screen — the keyboard
-  // beats the material it belongs to into place.
-  useEffect(() => {
-    if (!entered) return
-    inputRef.current?.focus()
-  }, [entered])
-
   useEffect(() => {
     if (open) return
     setEntered(false)
@@ -137,7 +129,23 @@ export function SearchSheet() {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          // Mobile Safari (and most Android browsers) only raise the on-screen
+          // keyboard for a `.focus()` call that happens synchronously inside the
+          // same event handler as the tap that triggered it — not one deferred to
+          // a later frame, a transition-end, or a plain useEffect, all of which run
+          // after the browser has stopped treating this as "the" trusted gesture.
+          // `flushSync` forces the mount to commit to the DOM right here, in this
+          // call stack, so `inputRef.current` exists and the immediately-following
+          // `.focus()` still counts as gesture-driven. The visual slide-in is
+          // unaffected — `entered` still lags a frame behind for the transform to
+          // animate from, this only moves the FOCUS call earlier, not the motion.
+          flushSync(() => {
+            setOpen(true)
+            setRendered(true)
+          })
+          inputRef.current?.focus()
+        }}
         aria-label="Search doctors, departments and pages"
         aria-haspopup="dialog"
         aria-expanded={open}
