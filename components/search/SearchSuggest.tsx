@@ -37,7 +37,7 @@ const RECENT_MAX = 4
  * nothing here is sent anywhere, which matters on a hospital site where what somebody
  * searched for is itself sensitive.
  */
-function readRecent(): SearchSuggestion[] {
+export function readRecent(): SearchSuggestion[] {
   try {
     const raw = window.localStorage.getItem(RECENT_KEY)
     if (!raw) return []
