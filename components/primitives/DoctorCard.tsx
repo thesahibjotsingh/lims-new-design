@@ -180,7 +180,13 @@ export function DoctorPortraitCard({ doctor }: { doctor: Doctor }) {
     // plus a small lift. `has-[:focus-visible]` gives keyboard users the same highlight
     // when they tab onto any link inside — a hover-only highlight would leave them out.
     // The lift is motion-safe; the glow is not motion, so it stays under reduced motion.
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-lg ring-0 ring-brand-teal-light transition-[transform,box-shadow] duration-300 ease-out hover:shadow-[0_18px_48px_-8px_rgba(22,139,153,0.75)] hover:ring-2 motion-safe:hover:-translate-y-1 has-[:focus-visible]:shadow-[0_18px_48px_-8px_rgba(22,139,153,0.75)] has-[:focus-visible]:ring-2">
+    //
+    // `md:` on all of it: below md the card sits in the phone swipe rail, which clips
+    // horizontally so the next card reads as cut off (the whole affordance). That rail
+    // has no room for a ring plus a 48px glow — tapping a card there was blowing the
+    // effect past the rail's edge and clipping it against the viewport. Real hover only
+    // exists on desktop anyway, so the glow is desktop-only and mobile keeps the flat card.
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-lg ring-0 ring-brand-teal-light transition-[transform,box-shadow] duration-300 ease-out md:hover:shadow-[0_18px_48px_-8px_rgba(22,139,153,0.75)] md:hover:ring-2 md:motion-safe:hover:-translate-y-1 md:has-[:focus-visible]:shadow-[0_18px_48px_-8px_rgba(22,139,153,0.75)] md:has-[:focus-visible]:ring-2">
       {/*
         3:2 with `object-top`, the same crop DoctorCard uses: head and shoulders, which is
         the part that identifies someone, without four tall portraits pushing the names

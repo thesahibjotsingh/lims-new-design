@@ -35,9 +35,9 @@ export function PageHeader({
    */
   banner?: string
   /**
-   * After a pause, shrinks the banner to a slim strip holding the eyebrow and title so
-   * the content slides up. Desktop only, and abandoned the instant the reader does
-   * anything themselves — see HeroIntro.
+   * Shrinks the banner to a slim strip holding the eyebrow and title so the content
+   * slides up — after a pause, or as soon as the reader scrolls down — and keeps it
+   * shrunk for the rest of the visit. Desktop only; see HeroIntro.
    *
    * Requires `banner`: without art there is nothing to shrink.
    */

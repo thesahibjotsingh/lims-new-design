@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { DOCTORS, searchDoctors } from '@/lib/doctors'
-import { DoctorCard } from '@/components/primitives/DoctorCard'
+import { DoctorPortraitCard } from '@/components/primitives/DoctorCard'
 import { DoctorSearchBox } from '@/components/doctors/DoctorSearchBox'
 import { didYouMean } from '@/lib/search'
 import { PageHeader, Section } from '@/components/primitives/PageShell'
@@ -87,7 +87,7 @@ export default async function DoctorsPage({
           */
           <ul
             className="
-              grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3
+              grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4
               max-md:-mx-5 max-md:flex max-md:snap-x max-md:snap-mandatory
               max-md:gap-4 max-md:overflow-x-auto max-md:scroll-px-5 max-md:px-5
               max-md:pb-2 max-md:[-webkit-overflow-scrolling:touch]
@@ -97,7 +97,7 @@ export default async function DoctorsPage({
           >
             {doctors.map((doctor) => (
               <li key={doctor.id} className="max-md:w-[78%] max-md:shrink-0 max-md:snap-start">
-                <DoctorCard doctor={doctor} />
+                <DoctorPortraitCard doctor={doctor} />
               </li>
             ))}
           </ul>
