@@ -53,7 +53,7 @@ export default async function DoctorProfilePage({
       <PageHeader eyebrow={department} title={doctor.name}>
         <div className="mt-4 space-y-1.5">
           {doctor.qualifications && (
-            <p className="text-base font-medium text-brand-copper">{doctor.qualifications}</p>
+            <p className="text-base font-medium text-brand-copper-ink">{doctor.qualifications}</p>
           )}
           {doctor.designation && (
             <p className="text-base text-brand-dark-base/75">{doctor.designation}</p>

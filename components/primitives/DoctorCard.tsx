@@ -90,7 +90,7 @@ export function DoctorCard({ doctor }: { doctor: Doctor }) {
 
               {/* Post-nominals run long in India — wrap them, never truncate them. */}
               {doctor.qualifications && (
-                <p className="mt-0.5 text-xs font-medium text-brand-copper">
+                <p className="mt-0.5 text-xs font-medium text-brand-copper-ink">
                   {doctor.qualifications}
                 </p>
               )}
@@ -148,6 +148,125 @@ export function DoctorCard({ doctor }: { doctor: Doctor }) {
               <ArrowRightIcon className="h-3.5 w-3.5" strokeWidth={2.25} />
             </Link>
           </div>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+/**
+ * The home page's consultant card, built for a dark section. The same facts as
+ * DoctorCard, every one always visible — nothing waits for hover, which a phone cannot
+ * do — packed into roughly two-thirds of the height:
+ *
+ *   photo (3:2, department label on it) → name → credentials → reg. no. + profile link
+ *   → one full-width appointment button
+ *
+ * The name links to the profile too, so the profile needs a text link, not a second
+ * button competing with the appointment request.
+ */
+export function DoctorPortraitCard({ doctor }: { doctor: Doctor }) {
+  const portrait = doctor.portrait
+  // Every consultant on file has one or the other; joined so a doctor with both still
+  // gets a single line rather than two stacked sizes of grey.
+  const credentials = [doctor.qualifications, doctor.designation].filter(Boolean).join(' · ')
+
+  return (
+    // `relative` is load-bearing: it is the containing block for the sr-only link text.
+    // Without it those absolutely positioned spans escape the phone swipe rail's
+    // overflow clipping and give the whole page a horizontal scroll.
+    //
+    // Hover lights the card up: a teal-light ring and glow against the dark section,
+    // plus a small lift. `has-[:focus-visible]` gives keyboard users the same highlight
+    // when they tab onto any link inside — a hover-only highlight would leave them out.
+    // The lift is motion-safe; the glow is not motion, so it stays under reduced motion.
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-lg ring-0 ring-brand-teal-light transition-[transform,box-shadow] duration-300 ease-out hover:shadow-[0_18px_48px_-8px_rgba(22,139,153,0.75)] hover:ring-2 motion-safe:hover:-translate-y-1 has-[:focus-visible]:shadow-[0_18px_48px_-8px_rgba(22,139,153,0.75)] has-[:focus-visible]:ring-2">
+      {/*
+        3:2 with `object-top`, the same crop DoctorCard uses: head and shoulders, which is
+        the part that identifies someone, without four tall portraits pushing the names
+        and the button below the fold.
+      */}
+      <div className="relative aspect-[3/2] w-full overflow-hidden bg-brand-mist">
+        {portrait ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={portrait.src}
+            alt={portrait.alt}
+            width={portrait.width}
+            height={portrait.height}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
+          />
+        ) : (
+          // No photograph supplied: large initials, never a stock face — see the top of
+          // this file.
+          <span
+            aria-hidden="true"
+            className="grid h-full w-full place-items-center font-serif text-5xl font-bold text-brand-teal/60"
+          >
+            {initials(doctor.name)}
+          </span>
+        )}
+
+        {/*
+          The department rides on the photo instead of taking a line of the body. Plain
+          text, not a link: a 24px pill over a photograph is a poor tap target, and the
+          department is one click away on the profile.
+        */}
+        <span className="absolute bottom-2.5 left-2.5 max-w-[calc(100%-1.25rem)] truncate rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-brand-teal shadow-sm backdrop-blur-sm">
+          {serviceName(doctor.departmentSlug)}
+        </span>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        <div>
+          <h3 className="font-serif text-base font-bold leading-snug text-brand-dark-base">
+            <Link
+              href={`/doctors/${doctor.id}`}
+              className="transition-colors hover:text-brand-teal"
+            >
+              {doctor.name}
+            </Link>
+          </h3>
+          {/* Post-nominals run long in India — wrap them, never truncate them. */}
+          {credentials && (
+            <p className="mt-0.5 text-xs font-medium leading-snug text-brand-copper-ink">
+              {credentials}
+            </p>
+          )}
+        </div>
+
+        {/* `mt-auto` keeps the button on one baseline across a row of uneven credentials. */}
+        <div className="mt-auto space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-brand-teal/10 pt-3 text-xs">
+            {doctor.registrationNumber && (
+              <span className="flex items-center gap-1.5 text-brand-dark-base/60">
+                <ShieldIcon className="h-3.5 w-3.5 shrink-0 text-brand-teal" />
+                Reg.
+                <span className="font-semibold text-brand-dark-base/80">
+                  {registrationDisplay(doctor.registrationNumber)}
+                </span>
+              </span>
+            )}
+            <Link
+              href={`/doctors/${doctor.id}`}
+              className="inline-flex min-h-[24px] items-center gap-1 font-semibold text-brand-teal hover:underline"
+            >
+              View profile
+              {/* Four identical "View profile" links are indistinguishable read out of context. */}
+              <span className="sr-only">: {doctor.name}</span>
+              <ArrowRightIcon aria-hidden="true" className="h-3 w-3" strokeWidth={2.25} />
+            </Link>
+          </div>
+
+          <Link
+            href={`/appointments?doctor=${doctor.id}`}
+            className="tap-target focus-ring-inverse w-full rounded-full bg-brand-teal px-4 text-xs font-semibold text-white transition-colors hover:bg-brand-teal-dark"
+          >
+            Request appointment
+            <span className="sr-only"> with {doctor.name}</span>
+          </Link>
         </div>
       </div>
     </article>

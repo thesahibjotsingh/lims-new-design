@@ -59,10 +59,11 @@ const DESTINATIONS: Destination[] = [
 
 export function SiteIndex() {
   return (
-    <div className="border-t border-brand-teal/10 bg-white">
+    // Mist band — see ServiceArchitecture.
+    <div className="bg-brand-mist">
       <Section>
         <div className="mb-8 max-w-2xl">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-copper">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-copper-ink">
             Everything else
           </p>
           <h2 className="font-serif text-3xl font-bold tracking-tight text-brand-dark-base sm:text-4xl">

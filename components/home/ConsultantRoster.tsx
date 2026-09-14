@@ -5,19 +5,25 @@
 
 import Link from 'next/link'
 import { DOCTORS } from '@/lib/doctors'
-import { DoctorCard } from '@/components/primitives/DoctorCard'
+import { DoctorPortraitCard } from '@/components/primitives/DoctorCard'
 import { Section } from '@/components/primitives/PageShell'
 
 export function ConsultantRoster() {
   return (
-    <div className="border-t border-brand-teal/10 bg-brand-mist/60">
+    // The dark band between the two mist ones — see ServiceArchitecture. Dark so the
+    // white panels on the portrait cards read as floating rather than as more page.
+    <div className="bg-brand-teal-dark">
       <Section>
         <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-copper">
+            {/*
+              White at 75%, not copper: copper on teal-dark measures 3.9:1, under the
+              4.5:1 this size of text needs. Same call as the banner eyebrows in PageShell.
+            */}
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/75">
               Meet our consultants
             </p>
-            <h2 className="font-serif text-3xl font-bold tracking-tight text-brand-dark-base sm:text-4xl">
+            <h2 className="font-serif text-3xl font-bold tracking-tight text-white sm:text-4xl">
               Doctors at LIMS
             </h2>
           </div>
@@ -28,7 +34,7 @@ export function ConsultantRoster() {
           */}
           <Link
             href="/doctors"
-            className="tap-target self-start rounded-full border border-brand-teal/20 px-5 text-sm font-semibold text-brand-teal transition-colors hover:bg-white md:self-auto"
+            className="tap-target self-start rounded-full bg-white px-5 text-sm font-semibold text-brand-teal transition-colors hover:bg-brand-mist md:self-auto"
           >
             View the full roster &rarr;
           </Link>
@@ -62,7 +68,7 @@ export function ConsultantRoster() {
               key={doctor.id}
               className="max-md:w-[78%] max-md:shrink-0 max-md:snap-start"
             >
-              <DoctorCard doctor={doctor} />
+              <DoctorPortraitCard doctor={doctor} />
             </li>
           ))}
         </ul>
@@ -72,10 +78,13 @@ export function ConsultantRoster() {
           consultants for a fifteen-department hospital reads as a broken page; one
           that says the rest are still being published reads as an honest one.
         */}
-        <p className="mt-6 text-xs text-brand-dark-base/55">
+        <p className="mt-6 text-xs text-white/70">
           Consultant profiles are published as LIMS supplies them. For a department not
           listed here, please{' '}
-          <Link href="/contact" className="font-semibold text-brand-teal hover:underline">
+          <Link
+            href="/contact"
+            className="font-semibold text-white underline underline-offset-2 hover:no-underline"
+          >
             contact the hospital
           </Link>
           .

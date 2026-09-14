@@ -43,7 +43,7 @@ export function MobileBottomNav() {
               className={[
                 'tap-target flex-col gap-0.5 rounded-2xl px-2 text-[10px] font-semibold transition-colors',
                 accent
-                  ? 'text-brand-copper'
+                  ? 'text-brand-copper-ink'
                   : active
                     ? 'text-brand-teal'
                     : 'text-brand-dark-base/55',

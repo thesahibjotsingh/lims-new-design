@@ -149,7 +149,7 @@ export function PageHeader({
               <p
                 className={[
                   'mb-2 text-xs font-semibold uppercase tracking-[0.14em]',
-                  banner ? 'text-white/75' : 'text-brand-copper',
+                  banner ? 'text-white/75' : 'text-brand-copper-ink',
                 ].join(' ')}
               >
                 {eyebrow}

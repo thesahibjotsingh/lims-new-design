@@ -22,6 +22,13 @@ const config: Config = {
           'teal-light': '#168B99',
           copper: '#D68060',
           'copper-hover': '#C26E4E',
+          /**
+           * Copper for TEXT on light grounds. The brand copper measures 2.95:1 on white
+           * and copper-hover 3.73:1, both under the 4.5:1 small text needs. This holds
+           * 4.7:1 or better on white, mist, mist-subtle and ribbon. Fills, icons and
+           * text on dark grounds keep `copper`.
+           */
+          'copper-ink': '#9C5236',
           cyan: '#168B99',
           'dark-base': '#0B1416',
           mist: '#F2F8F8',
