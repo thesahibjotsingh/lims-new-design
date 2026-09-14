@@ -20,7 +20,7 @@
 // practice that means <li>, which is what every caller passes.
 
 import { Children, cloneElement, isValidElement, useId, useState } from 'react'
-import type { ReactElement, ReactNode } from 'react'
+import type { CSSProperties, ReactElement, ReactNode } from 'react'
 
 export function RevealMore({
   children,
@@ -42,6 +42,7 @@ export function RevealMore({
 
   const items = Children.toArray(children).filter(isValidElement) as ReactElement<{
     className?: string
+    style?: CSSProperties
   }>[]
   const hiddenCount = items.length - limit
 
