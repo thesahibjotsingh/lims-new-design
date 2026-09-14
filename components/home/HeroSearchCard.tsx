@@ -21,7 +21,8 @@ import {
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
-import { useTypewriter } from '@/components/search/useTypewriter'
+import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
+import { DEPARTMENT_SEARCH_PHRASES, DOCTOR_SEARCH_PHRASES } from '@/components/search/searchPhrases'
 import type { SuggestionKind } from '@/lib/search'
 
 /**
@@ -30,16 +31,9 @@ import type { SuggestionKind } from '@/lib/search'
  * "A doctor" cycles real consultants; "A department" cycles real departments. The
  * animation is therefore an answer to the question the toggle just asked, rather than
  * decoration — someone who switched to Departments sees, without reading a word of
- * help text, that this field takes department names.
- *
- * Every phrase resolves to a real page. A placeholder that suggests something the
- * search cannot find teaches the wrong vocabulary.
+ * help text, that this field takes department names. Same shared phrase lists every
+ * other typewriter field on the site draws from — see components/search/searchPhrases.ts.
  */
-const DOCTOR_PHRASES = [
-  'Dr. Shweta Godara',
-  'Dr. Harshal Godara',
-  'Dr. Udit Choudhary',
-]
 
 /**
  * Stable arrays, defined once at module scope.
@@ -50,13 +44,6 @@ const DOCTOR_PHRASES = [
  */
 const DOCTOR_KINDS = ['doctor'] as const
 const DEPARTMENT_KINDS = ['department'] as const
-
-const DEPARTMENT_PHRASES = [
-  'Orthopaedics',
-  'Obstetrics & Gynaecology',
-  'Radiology & Imaging',
-  'Physiotherapy',
-]
 import { SERVICE_CATEGORIES, serviceHref, servicesByCategory } from '@/lib/services'
 
 type Target = 'doctors' | 'departments'
@@ -92,13 +79,6 @@ export function HeroSearchCard() {
   useCloseOnOutside(
     rootRef,
     useCallback(() => setOpen(false), [setOpen]),
-  )
-
-  // Stops the moment the field is focused or has content — the animation is a
-  // placeholder, never a value, so it must never be mistaken for text already typed.
-  const typed = useTypewriter(
-    target === 'doctors' ? DOCTOR_PHRASES : DEPARTMENT_PHRASES,
-    !focused && query.length === 0,
   )
 
   function handleSubmit(event: React.FormEvent) {
@@ -198,32 +178,31 @@ export function HeroSearchCard() {
             reduced motion is on. Server and client render the same thing.
           */}
           {query.length === 0 && (
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute left-9 top-1/2 -translate-y-1/2 truncate pr-3 text-sm text-brand-dark-base/45"
-            >
-              {typed.length > 0 ? (
-                <>
-                  {typed}
-                  <span className="ml-px inline-block animate-caret font-normal">|</span>
-                </>
-              ) : (
-                /*
-                  Hidden for everyone who will see the animation, and shown only to
-                  someone who never will.
+            <TypewriterPlaceholder
+              phrases={target === 'doctors' ? DOCTOR_SEARCH_PHRASES : DEPARTMENT_SEARCH_PHRASES}
+              // Stops the moment the field is focused or has content — the animation
+              // is a placeholder, never a value, so it must never be mistaken for
+              // text already typed.
+              idle={!focused && query.length === 0}
+              /*
+                Hidden for everyone who will see the animation, and shown only to
+                someone who never will.
 
-                  `motion-reduce:` is the whole point of this span. With the placeholder
-                  removed the field is blank until the first character types itself,
-                  which is right — but under prefers-reduced-motion the animation never
-                  runs at all, and that would leave a permanently empty box with no
-                  visible hint of what it takes. This costs nothing to anyone else: the
-                  span is display:none unless the reader has asked for reduced motion.
-                */
+                `motion-reduce:` is the whole point of this fallback. With no native
+                `placeholder` attribute the field is blank until the first character
+                types itself, which is right — but under prefers-reduced-motion the
+                animation never runs at all, and that would leave a permanently empty
+                box with no visible hint of what it takes. This costs nothing to
+                anyone else: the span is display:none unless the reader has asked for
+                reduced motion.
+              */
+              fallback={
                 <span className="hidden motion-reduce:inline">
                   Condition, speciality or doctor
                 </span>
-              )}
-            </span>
+              }
+              className="pointer-events-none absolute left-9 top-1/2 -translate-y-1/2 truncate pr-3 text-sm text-brand-dark-base/45"
+            />
           )}
         </div>
 

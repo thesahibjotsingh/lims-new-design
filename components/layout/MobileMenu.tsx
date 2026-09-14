@@ -22,12 +22,17 @@ import {
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
+import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
+import { GENERAL_SEARCH_PHRASES } from '@/components/search/searchPhrases'
 import { contact, primaryNav, siteConfig } from '@/lib/site-config'
+
+const SEARCH_PLACEHOLDER = 'Search doctors, departments, pages'
 
 export function MobileMenu() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [searchFocused, setSearchFocused] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
 
   /*
@@ -255,33 +260,57 @@ export function MobileMenu() {
                   className="ml-3 h-[18px] w-[18px] shrink-0 text-brand-dark-base/40"
                   strokeWidth={2.4}
                 />
-                <input
-                  {...inputProps}
-                  id="drawer-search"
-                  type="search"
-                  value={query}
-                  onChange={(event) => {
-                    setQuery(event.target.value)
-                    setSuggestOpen(true)
-                    setActive(-1)
-                  }}
-                  placeholder="Search doctors, departments, pages"
-                  // 16px, or iOS Safari zooms the whole drawer when this is focused.
-                  className="min-h-[44px] min-w-0 flex-1 bg-transparent px-3 text-base text-brand-dark-base outline-none placeholder:text-brand-dark-base/45"
-                />
+                <div className="relative min-w-0 flex-1">
+                  <input
+                    {...inputProps}
+                    id="drawer-search"
+                    type="search"
+                    value={query}
+                    onChange={(event) => {
+                      setQuery(event.target.value)
+                      setSuggestOpen(true)
+                      setActive(-1)
+                    }}
+                    onFocus={() => {
+                      setSearchFocused(true)
+                      inputProps.onFocus()
+                    }}
+                    onBlur={() => setSearchFocused(false)}
+                    // The real placeholder attribute stays the plain sentence, so
+                    // assistive tech and a reduced-motion reader get a stable,
+                    // meaningful hint — the overlay below owns every state of the
+                    // visible hint, so this one stays transparent.
+                    placeholder={SEARCH_PLACEHOLDER}
+                    // 16px, or iOS Safari zooms the whole drawer when this is focused.
+                    className="min-h-[44px] w-full bg-transparent px-3 text-base text-brand-dark-base outline-none placeholder:text-transparent"
+                  />
+                  {query.length === 0 && (
+                    <TypewriterPlaceholder
+                      phrases={GENERAL_SEARCH_PHRASES}
+                      idle={!searchFocused && query.length === 0}
+                      staticText={SEARCH_PLACEHOLDER}
+                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 truncate pr-3 text-base text-brand-dark-base/45"
+                    />
+                  )}
+                </div>
               </div>
 
-              {visible && (
-                <SuggestionList
-                  suggestions={suggestions}
-                  active={active}
-                  setActive={setActive}
-                  choose={choose}
-                  listId={listId}
-                  showingRecent={showingRecent}
-                  className="left-3 right-3"
-                />
-              )}
+              {/*
+                Mounted for as long as the drawer itself is (it unmounts with the
+                whole drawer anyway on close) — `visible` alone drives the
+                fade/scale transition now instead of a hard unmount, so opening the
+                dropdown reads as unfolding from the field rather than popping in.
+              */}
+              <SuggestionList
+                suggestions={suggestions}
+                active={active}
+                setActive={setActive}
+                choose={choose}
+                listId={listId}
+                showingRecent={showingRecent}
+                visible={visible}
+                className="left-3 right-3"
+              />
             </div>
 
             <nav aria-label="All sections" className="flex-1 overflow-y-auto px-3 py-3">

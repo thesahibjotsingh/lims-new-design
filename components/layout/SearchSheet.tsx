@@ -23,6 +23,10 @@ import {
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
+import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
+import { GENERAL_SEARCH_PHRASES } from '@/components/search/searchPhrases'
+
+const SEARCH_PLACEHOLDER = 'Search doctors, departments, pages'
 
 export function SearchSheet() {
   const router = useRouter()
@@ -220,11 +224,10 @@ export function SearchSheet() {
                       ref={inputRef}
                       id="bottom-sheet-search"
                       type="search"
-                      // A real page under a bottom sheet, not a floating card over a
-                      // photo — nothing behind this field needs the placeholder to
-                      // do double duty as a typewriter, so it stays a plain static
-                      // hint like the drawer's own search field does.
-                      placeholder="Search doctors, departments, pages"
+                      // The real placeholder attribute stays the plain sentence, so
+                      // assistive tech and a reduced-motion reader get a stable,
+                      // meaningful hint — the overlay below owns every visible state.
+                      placeholder={SEARCH_PLACEHOLDER}
                       value={query}
                       onChange={(event) => {
                         setQuery(event.target.value)
@@ -232,8 +235,21 @@ export function SearchSheet() {
                         setActive(-1)
                       }}
                       // 16px, or iOS Safari zooms the whole sheet on focus.
-                      className="min-h-[48px] w-full rounded-xl border border-brand-teal/15 bg-white pl-9 pr-3 text-base text-brand-dark-base shadow-sm outline-none placeholder:text-brand-dark-base/45 focus:border-brand-teal/40"
+                      className="min-h-[48px] w-full rounded-xl border border-brand-teal/15 bg-white pl-9 pr-3 text-base text-brand-dark-base shadow-sm outline-none placeholder:text-transparent focus:border-brand-teal/40"
                     />
+                    {query.length === 0 && (
+                      <TypewriterPlaceholder
+                        phrases={GENERAL_SEARCH_PHRASES}
+                        // No `focused` gate here unlike the other search fields — this
+                        // one auto-focuses the instant the sheet opens (see the
+                        // trigger button's onClick), so gating on focus would mean it
+                        // never gets a chance to animate at all. Query content is
+                        // still what stops it, same as everywhere else.
+                        idle={query.length === 0}
+                        staticText={SEARCH_PLACEHOLDER}
+                        className="pointer-events-none absolute left-9 top-1/2 -translate-y-1/2 truncate pr-3 text-base text-brand-dark-base/45"
+                      />
+                    )}
                   </div>
 
                   {visible && (

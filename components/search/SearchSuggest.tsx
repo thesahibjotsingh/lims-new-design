@@ -195,6 +195,7 @@ export function SuggestionList({
   showingRecent = false,
   className = '',
   variant = 'floating',
+  visible = true,
 }: {
   suggestions: SearchSuggestion[]
   active: number
@@ -220,6 +221,15 @@ export function SuggestionList({
    * variants need genuinely different base classes, not one overridden by another.
    */
   variant?: 'floating' | 'inline'
+  /**
+   * 'floating' only. Callers keep this component mounted at all times now and
+   * toggle this instead of conditionally rendering it — the entrance/exit
+   * transition needs the element to still be there for the frame it animates out,
+   * which a React unmount doesn't give it. Ignored for 'inline', which callers
+   * still mount conditionally: it grows the container it sits in rather than
+   * floating over content, so there's nothing for it to teleport past.
+   */
+  visible?: boolean
 }) {
   return (
     <ul
@@ -228,9 +238,10 @@ export function SuggestionList({
       aria-label={showingRecent ? 'Recent searches' : 'Suggestions'}
       className={[
         variant === 'floating'
-          ? 'absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50'
+          ? 'suggestion-list-floating absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50'
           : 'relative mt-2',
         'overflow-hidden rounded-xl border border-brand-teal/15 bg-white py-1 text-left shadow-glass',
+        variant === 'floating' && !visible ? 'suggestion-list-hidden' : '',
         className,
       ].join(' ')}
     >

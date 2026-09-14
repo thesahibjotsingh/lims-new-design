@@ -45,17 +45,10 @@ import {
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
-import { useTypewriter } from '@/components/search/useTypewriter'
+import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
+import { GENERAL_SEARCH_PHRASES } from '@/components/search/searchPhrases'
 import { SERVICES } from '@/lib/services'
 import type { SearchSuggestion } from '@/lib/search'
-
-const PHRASES = [
-  'Orthopaedics',
-  'Dr. Shweta Godara',
-  'Ultrasound',
-  'Emergency services',
-  'Physiotherapy',
-]
 
 const STATIC_PLACEHOLDER = 'Search doctors, departments or tests'
 
@@ -94,9 +87,8 @@ export function TypewriterSearchBar() {
   )
 
   // The timing, the reduced-motion gate and the cleanup live in the shared hook, so
-  // this bar and the header search cannot drift apart.
+  // this bar and every other typewriter field on the site cannot drift apart.
   const idle = !focused && query.length === 0
-  const typed = useTypewriter(PHRASES, idle)
 
   const showingHistory = recentChips.length > 0
   // Normalized once, here, rather than branching per-chip in the JSX: recent chips
@@ -190,19 +182,12 @@ export function TypewriterSearchBar() {
           />
 
           {query.length === 0 && (
-            <span
-              aria-hidden="true"
+            <TypewriterPlaceholder
+              phrases={GENERAL_SEARCH_PHRASES}
+              idle={idle}
+              staticText={STATIC_PLACEHOLDER}
               className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 truncate pr-2 text-sm text-brand-dark-base/45"
-            >
-              {typed.length > 0 ? (
-                <>
-                  {typed}
-                  <span className="ml-px inline-block animate-caret font-normal">|</span>
-                </>
-              ) : (
-                STATIC_PLACEHOLDER
-              )}
-            </span>
+            />
           )}
         </div>
 

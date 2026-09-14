@@ -26,7 +26,8 @@ import {
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
-import { useTypewriter } from '@/components/search/useTypewriter'
+import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
+import { GENERAL_SEARCH_PHRASES } from '@/components/search/searchPhrases'
 
 /**
  * "Search for " is fixed and the rest types itself.
@@ -34,18 +35,11 @@ import { useTypewriter } from '@/components/search/useTypewriter'
  * The fixed half is what makes the moving half readable: the eye settles on a stable
  * left edge and only the last word changes, instead of the whole line reflowing. Every
  * phrase is a real destination on this site — a department, a named consultant, a test,
- * a page — so the animation doubles as a list of what the box can actually find.
+ * a page — so the animation doubles as a list of what the box can actually find. This is
+ * the only field with a fixed prefix; the phrases themselves are the same
+ * GENERAL_SEARCH_PHRASES every other general search field cycles.
  */
 const SEARCH_PREFIX = 'Search for '
-
-const PHRASES = [
-  'Orthopaedics',
-  'Dr. Shweta Godara',
-  'Ultrasound',
-  'health packages',
-  'visiting hours',
-  'Physiotherapy',
-]
 
 /** Shown to assistive tech and whenever motion is off. Stable, and says the same thing. */
 const STATIC_PLACEHOLDER = 'Search doctors, departments and pages'
@@ -68,10 +62,6 @@ export function HeaderSearch() {
     listId,
     inputProps,
   } = useSearchSuggest({ query })
-
-  // Only while the field is open, empty and unfocused-by-typing. A placeholder that
-  // keeps animating under a caret is the thing rule 1 in useTypewriter forbids.
-  const typed = useTypewriter(PHRASES, expanded && query.length === 0)
 
   const collapse = useCallback(() => {
     setExpanded(false)
@@ -150,20 +140,16 @@ export function HeaderSearch() {
           first typed character arrived.
         */}
         {expanded && query.length === 0 && (
-          <span
-            aria-hidden="true"
+          <TypewriterPlaceholder
+            phrases={GENERAL_SEARCH_PHRASES}
+            // Only while the field is open, empty and unfocused-by-typing. A
+            // placeholder that keeps animating under a caret is the thing rule 1
+            // in useTypewriter forbids.
+            idle={expanded && query.length === 0}
+            prefix={SEARCH_PREFIX}
+            staticText={STATIC_PLACEHOLDER}
             className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 truncate pr-14 text-sm text-brand-dark-base/45"
-          >
-            {typed.length > 0 ? (
-              <>
-                {SEARCH_PREFIX}
-                {typed}
-                <span className="ml-px inline-block animate-caret font-normal">|</span>
-              </>
-            ) : (
-              STATIC_PLACEHOLDER
-            )}
-          </span>
+          />
         )}
 
         <button
@@ -197,7 +183,7 @@ export function HeaderSearch() {
         </button>
       </div>
 
-      {expanded && visible && (
+      {expanded && (
         <SuggestionList
           suggestions={suggestions}
           active={active}
@@ -205,6 +191,13 @@ export function HeaderSearch() {
           choose={choose}
           listId={listId}
           showingRecent={showingRecent}
+          // Stays mounted for as long as the field itself is expanded; `visible`
+          // alone now drives the fade/scale transition (see suggestion-list-floating
+          // in globals.css) instead of a hard unmount, so it can animate out rather
+          // than vanish. Only unmounts outright when the whole search collapses,
+          // by which point `visible` has already gone false in the same state
+          // update that closed it — see HeaderSearch's `collapse()`.
+          visible={visible}
           // Anchored to the same right edge as the field, and given the field's width
           // rather than the 44px box's, or it would be a sliver under the icon.
           className="left-auto w-[20rem] xl:w-[24rem]"

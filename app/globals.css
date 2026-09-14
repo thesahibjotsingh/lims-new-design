@@ -94,6 +94,105 @@
       transition: none;
     }
   }
+
+  /*
+   * The floating suggestion dropdown (header search, the mobile drawer's search
+   * field). Same `allow-discrete` + `@starting-style` mechanism as `.reveal-item`
+   * above, for the same reason: `display` is a discrete property with no
+   * in-between values, so it needs `allow-discrete` to take part in a transition
+   * at all, and `@starting-style` supplies the "before" frame for the moment it
+   * leaves `none` — a transition can't otherwise see that frame, because the
+   * element wasn't in the render tree one frame earlier.
+   *
+   * `transform-origin: top` because this list is anchored to the field it drops
+   * from — it should read as unfolding out of the field, not growing from its own
+   * centre. Unsupported browsers just get the old instant pop — no worse than
+   * before this existed.
+   */
+  .suggestion-list-floating {
+    transform-origin: top;
+    opacity: 1;
+    transform: scale(1);
+    transition:
+      opacity 160ms var(--ease-out),
+      transform 160ms var(--ease-out),
+      display 160ms allow-discrete;
+  }
+
+  .suggestion-list-floating.suggestion-list-hidden {
+    display: none;
+    opacity: 0;
+    transform: scale(0.97);
+  }
+
+  @starting-style {
+    .suggestion-list-floating:not(.suggestion-list-hidden) {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+
+  /*
+   * The desktop nav's mega-menu panel (PrimaryNavBar). Same mechanism as
+   * .suggestion-list-floating just above — see that comment for how
+   * allow-discrete/@starting-style make a `display` swap transition at all.
+   * 150ms rather than the dropdown's 160/200ms: this is hover-driven and shown
+   * many times in a browsing session, so it stays at the fast end of the
+   * dropdown budget rather than the slow end.
+   */
+  .mega-panel {
+    transform-origin: top;
+    opacity: 1;
+    transform: scale(1);
+    transition:
+      opacity 150ms var(--ease-out),
+      transform 150ms var(--ease-out),
+      display 150ms allow-discrete;
+  }
+
+  .mega-panel.mega-panel-hidden {
+    display: none;
+    opacity: 0;
+    transform: scale(0.97);
+  }
+
+  @starting-style {
+    .mega-panel:not(.mega-panel-hidden) {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+
+  /*
+   * The mobile drawer's <details> sections (Specialities, Services, Patient
+   * care, Contact Us) — MobileMenu.tsx. Progressive enhancement only: at the
+   * time this was written, `::details-content` + `interpolate-size` ships in
+   * Chromium and is still landing elsewhere. Unsupported browsers keep the
+   * native instant open/close they always had — this rule simply doesn't match
+   * anything there, not a broken transition.
+   *
+   * `interpolate-size: allow-keywords` is what makes `auto` a legal transition
+   * endpoint at all; without it `height` can only animate between two `<length>`
+   * values, and content height is exactly the thing this component doesn't want
+   * to hardcode (post-nominals and department lists wrap to different heights
+   * per doctor, per section).
+   */
+  details {
+    interpolate-size: allow-keywords;
+  }
+
+  details::details-content {
+    height: 0;
+    overflow: clip;
+    transition:
+      height 200ms var(--ease-out),
+      content-visibility 200ms allow-discrete;
+    transition-behavior: allow-discrete;
+  }
+
+  details[open]::details-content {
+    height: auto;
+  }
 }
 
 @layer utilities {
@@ -108,7 +207,8 @@
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
-    *::after {
+    *::after,
+    *::details-content {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;

@@ -20,9 +20,14 @@ import {
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
+import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
+import { DOCTOR_SEARCH_PHRASES } from '@/components/search/searchPhrases'
+
+const PLACEHOLDER = 'Name, speciality or department'
 
 export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }) {
   const [query, setQuery] = useState(defaultQuery)
+  const [focused, setFocused] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
   const {
@@ -54,21 +59,39 @@ export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }
         <label htmlFor="doctor-search" className="sr-only">
           Search doctors by name, speciality or department
         </label>
-        <input
-          {...inputProps}
-          id="doctor-search"
-          type="search"
-          name="q"
-          value={query}
-          onChange={(event) => {
-            setQuery(event.target.value)
-            setOpen(true)
-            setActive(-1)
-          }}
-          placeholder="Name, speciality or department"
-          // 16px on mobile, or iOS Safari zooms the page on focus and never zooms back.
-          className="min-h-[44px] flex-1 rounded-xl border border-brand-teal/20 bg-white px-4 text-sm text-brand-dark-base placeholder:text-brand-dark-base/45 max-md:text-base"
-        />
+        <div className="relative flex-1">
+          <input
+            {...inputProps}
+            id="doctor-search"
+            type="search"
+            name="q"
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value)
+              setOpen(true)
+              setActive(-1)
+            }}
+            onFocus={() => {
+              setFocused(true)
+              inputProps.onFocus()
+            }}
+            onBlur={() => setFocused(false)}
+            // The real placeholder attribute stays the plain sentence, so assistive
+            // tech and a reduced-motion reader get a stable, meaningful hint — the
+            // overlay below owns every visible state.
+            placeholder={PLACEHOLDER}
+            // 16px on mobile, or iOS Safari zooms the page on focus and never zooms back.
+            className="min-h-[44px] w-full rounded-xl border border-brand-teal/20 bg-white px-4 text-sm text-brand-dark-base placeholder:text-transparent max-md:text-base"
+          />
+          {query.length === 0 && (
+            <TypewriterPlaceholder
+              phrases={DOCTOR_SEARCH_PHRASES}
+              idle={!focused && query.length === 0}
+              staticText={PLACEHOLDER}
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 truncate pr-4 text-sm text-brand-dark-base/45"
+            />
+          )}
+        </div>
         <button
           type="submit"
           // Copper, not teal. This box sits inside the banner header, which is now

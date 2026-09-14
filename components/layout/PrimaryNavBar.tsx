@@ -14,7 +14,11 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { isActiveHref } from '@/lib/is-active'
 import { ChevronDownIcon, HomeIcon, SearchIcon } from '@/components/icons'
+import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
+import { DOCTOR_SEARCH_PHRASES } from '@/components/search/searchPhrases'
 import type { NavItem } from '@/types'
+
+const DOCTOR_SEARCH_PLACEHOLDER = 'Name, speciality or department'
 
 export function PrimaryNavBar({ items }: { items: NavItem[] }) {
   const pathname = usePathname()
@@ -159,10 +163,18 @@ export function PrimaryNavBar({ items }: { items: NavItem[] }) {
                 </button>
               )}
 
-              {hasPanel && open && (
+              {hasPanel && (
                 <div
                   onMouseEnter={cancelClose}
-                  className="absolute left-0 top-full z-50 w-[320px] rounded-2xl border border-brand-teal/10 bg-white p-2 shadow-glass"
+                  // Stays mounted whenever this item has a panel at all; `open`
+                  // alone now drives the fade/scale transition (mega-panel in
+                  // globals.css) instead of a hard unmount, so it reads as
+                  // unfolding out of the trigger link above it rather than
+                  // popping into existence.
+                  className={[
+                    'mega-panel absolute left-0 top-full z-50 w-[320px] rounded-2xl border border-brand-teal/10 bg-white p-2 shadow-glass',
+                    open ? '' : 'mega-panel-hidden',
+                  ].join(' ')}
                 >
                   {item.panel === 'doctor-search' ? (
                     <DoctorSearchPanel onDone={() => setOpenLabel(null)} />
@@ -211,6 +223,7 @@ export function PrimaryNavBar({ items }: { items: NavItem[] }) {
 function DoctorSearchPanel({ onDone }: { onDone: () => void }) {
   const router = useRouter()
   const [query, setQuery] = useState('')
+  const [focused, setFocused] = useState(false)
 
   return (
     <form
@@ -236,9 +249,19 @@ function DoctorSearchPanel({ onDone }: { onDone: () => void }) {
           value={query}
           autoComplete="off"
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Name, speciality or department"
-          className="min-h-[44px] w-full rounded-xl border border-brand-teal/15 bg-brand-mist/60 pl-9 pr-3 text-sm text-brand-dark-base placeholder:text-brand-dark-base/45 focus:bg-white"
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={DOCTOR_SEARCH_PLACEHOLDER}
+          className="min-h-[44px] w-full rounded-xl border border-brand-teal/15 bg-brand-mist/60 pl-9 pr-3 text-sm text-brand-dark-base placeholder:text-transparent focus:bg-white"
         />
+        {query.length === 0 && (
+          <TypewriterPlaceholder
+            phrases={DOCTOR_SEARCH_PHRASES}
+            idle={!focused && query.length === 0}
+            staticText={DOCTOR_SEARCH_PLACEHOLDER}
+            className="pointer-events-none absolute left-9 top-1/2 -translate-y-1/2 truncate pr-3 text-sm text-brand-dark-base/45"
+          />
+        )}
       </div>
       <button
         type="submit"
