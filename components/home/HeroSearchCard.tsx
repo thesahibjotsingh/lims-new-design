@@ -120,7 +120,7 @@ export function HeroSearchCard() {
     <form
       onSubmit={handleSubmit}
       aria-labelledby="hero-search-heading"
-      className="w-full max-w-sm space-y-3 rounded-2xl border border-white/25 bg-brand-dark-base/45 p-5 text-left shadow-glass backdrop-blur-xl"
+      className="w-full max-w-sm space-y-3 rounded-2xl border border-white/25 bg-brand-dark-base/45 p-5 text-left shadow-glass backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-brand-dark-base/95 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
     >
       <h2 id="hero-search-heading" className="text-sm font-semibold text-white">
         Find care at LIMS

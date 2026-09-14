@@ -49,12 +49,26 @@ export function RevealMore({
     <>
       <ul id={listId} className={className}>
         {items.map((item, index) => {
-          if (expanded || index < limit) return item
+          if (index < limit) return item
+          // Cloned unconditionally past `limit`, not just while collapsed: the
+          // element needs to carry `.reveal-item` in BOTH states so the class swap
+          // on expand/collapse is a transition, not a remount — cloning only the
+          // hidden branch (as before) would recreate the item on every toggle and
+          // lose the fade.
           return cloneElement(item, {
             key: item.key ?? index,
-            // `md:block` and not `md:list-item`: these <li> are grid items, and
-            // restoring `display:list-item` would put a marker box back.
-            className: [item.props.className, 'hidden md:block'].filter(Boolean).join(' '),
+            className: [
+              item.props.className,
+              'reveal-item',
+              expanded ? '' : 'reveal-item-hidden',
+            ]
+              .filter(Boolean)
+              .join(' '),
+            // Staggered by position among the revealed items, capped so a long list
+            // doesn't drag the fade out — the button's own label already told the
+            // reader how many are coming, this is just enough offset to read as a
+            // reveal instead of a teleport.
+            style: { transitionDelay: `${Math.min((index - limit) * 40, 200)}ms` },
           })
         })}
       </ul>

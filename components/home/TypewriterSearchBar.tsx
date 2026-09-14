@@ -75,7 +75,7 @@ export function TypewriterSearchBar() {
         const trimmed = query.trim()
         router.push(trimmed ? `/doctors?q=${encodeURIComponent(trimmed)}` : '/doctors')
       }}
-      className="flex items-center gap-2 rounded-2xl border border-white/40 bg-white/85 p-2 shadow-glass backdrop-blur-xl"
+      className="flex items-center gap-2 rounded-2xl border border-white/40 bg-white/85 p-2 shadow-glass backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-white/95 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
     >
       <label htmlFor="mobile-hero-search" className="sr-only">
         {STATIC_PLACEHOLDER}

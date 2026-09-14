@@ -14,6 +14,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { isActiveHref } from '@/lib/is-active'
 import { CalendarIcon, GridIcon, HomeIcon, StethoscopeIcon } from '@/components/icons'
+import { SearchSheet } from '@/components/layout/SearchSheet'
 
 const TABS = [
   { label: 'Home', href: '/', Icon: HomeIcon },
@@ -26,10 +27,20 @@ export function MobileBottomNav() {
   const pathname = usePathname()
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center pb-[env(safe-area-inset-bottom)] lg:hidden">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center gap-2.5 pb-[env(safe-area-inset-bottom)] lg:hidden">
+      {/*
+        Search floats as its OWN circle beside the pill, not a fifth slot inside it —
+        see SearchSheet's own comment for why. Sized to match the pill's own height
+        (h-12, the same 48px `.tap-target` floor everything else on this bar uses) so
+        the two read as one family of controls despite being visually separate, the
+        way Apple's own search-beside-tabs pattern keeps both at one height.
+
+        The pill's own max-width comes down from max-w-md to max-w-[19rem] to leave
+        room for the circle beside it without either one crowding a 375px phone.
+      */}
       <nav
         aria-label="Quick navigation"
-        className="pointer-events-auto mx-4 mb-4 flex w-full max-w-md items-center justify-around rounded-full border border-white/40 bg-white/75 px-2 py-1.5 shadow-glass backdrop-blur-xl"
+        className="pointer-events-auto mb-4 flex w-full max-w-[19rem] items-center justify-around rounded-full border border-white/40 bg-white/75 px-2 py-1.5 shadow-glass backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-white/95 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
       >
         {TABS.map(({ label, href, Icon, ...rest }) => {
           const accent = 'accent' in rest && rest.accent
@@ -42,11 +53,11 @@ export function MobileBottomNav() {
               aria-current={active ? 'page' : undefined}
               className={[
                 'tap-target flex-col gap-0.5 rounded-2xl px-2 text-[10px] font-semibold transition-colors',
-                accent
-                  ? 'text-brand-copper-ink'
-                  : active
-                    ? 'text-brand-teal'
-                    : 'text-brand-dark-base/55',
+                // Teal is the resting state now, copper marks where you are — the
+                // same relationship Book's always-copper badge already set up, so
+                // landing on a plain tab reads as "this is now the emphasised one"
+                // rather than introducing a second, unrelated meaning for copper.
+                accent || active ? 'text-brand-copper-ink' : 'text-brand-teal',
               ].join(' ')}
             >
               {accent ? (
@@ -61,14 +72,16 @@ export function MobileBottomNav() {
               )}
               <span>{label}</span>
               {/*
-                Active state is icon weight + colour + a dot, not colour alone.
-                A colour-blind user gets the dot and the heavier stroke.
+                Active state is icon weight + colour + an underline, not colour
+                alone. A colour-blind user gets the underline and the heavier
+                stroke. Copper, not teal — it marks the same "selected" the label
+                and icon just switched to, rather than adding a third colour.
               */}
               {!accent && (
                 <span
                   aria-hidden="true"
                   className={[
-                    'h-1 w-1 rounded-full bg-brand-teal transition-opacity',
+                    'h-0.5 w-5 rounded-full bg-brand-copper transition-opacity',
                     active ? 'opacity-100' : 'opacity-0',
                   ].join(' ')}
                 />
@@ -77,6 +90,10 @@ export function MobileBottomNav() {
           )
         })}
       </nav>
+
+      <div className="mb-4">
+        <SearchSheet />
+      </div>
     </div>
   )
 }

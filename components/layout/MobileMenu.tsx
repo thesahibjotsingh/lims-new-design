@@ -13,6 +13,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { CloseIcon, MenuIcon, SearchIcon } from '@/components/icons'
@@ -28,6 +29,51 @@ export function MobileMenu() {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const searchRef = useRef<HTMLDivElement>(null)
+
+  /*
+   * Three states carry the panel through an animated open AND close, where `open`
+   * alone only ever carried one:
+   *
+   *  - `open` is the intent — set the instant a trigger fires, and everything that
+   *    already read it (aria-expanded, the Escape listener, the route-change
+   *    effect below) keeps doing exactly that.
+   *  - `rendered` is "in the DOM at all". Mounting flips it true immediately;
+   *    unmounting waits for the exit transition, which `open` alone can't express —
+   *    conditionally rendering straight off `open` is what gave the old version no
+   *    exit animation, because the panel was gone the instant `open` went false.
+   *  - `entered` is the visual position. It lags `rendered` by one animation frame
+   *    on the way in — mounting already at the open transform gives the browser
+   *    nothing to transition FROM — and drops immediately on the way out, which is
+   *    what actually plays the slide-closed.
+   */
+  const [rendered, setRendered] = useState(false)
+  const [entered, setEntered] = useState(false)
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+    setRendered(true)
+  }, [open])
+
+  useEffect(() => {
+    if (!rendered || !open) return
+    const id = requestAnimationFrame(() => setEntered(true))
+    return () => cancelAnimationFrame(id)
+  }, [rendered, open])
+
+  useEffect(() => {
+    if (open) return
+    setEntered(false)
+    if (!rendered) return
+    // Backstop for the case the transition never fires at all — closed again
+    // before it ever finished opening, so no property actually changes. 500ms
+    // matches the panel's own transition-duration; prefers-reduced-motion has
+    // already collapsed that to near-zero globally by the time this fires.
+    closeTimerRef.current = setTimeout(() => setRendered(false), 500)
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
+    }
+  }, [open, rendered])
 
   const {
     suggestions,
@@ -60,14 +106,18 @@ export function MobileMenu() {
 
   // Lock the page behind the drawer. Without this the body scrolls under an open
   // overlay on iOS, which reads as the page having jumped when you close it.
+  //
+  // Keyed on `rendered`, not `open`: releasing the lock the instant `open` goes
+  // false would let the page scroll for the half-second the panel is still
+  // visibly sliding shut over it.
   useEffect(() => {
-    if (!open) return
+    if (!rendered) return
     const previous = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
       document.body.style.overflow = previous
     }
-  }, [open])
+  }, [rendered])
 
   useEffect(() => {
     if (!open) return
@@ -91,17 +141,39 @@ export function MobileMenu() {
         <MenuIcon className="h-6 w-6" />
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-[60] lg:hidden">
+      {rendered &&
+        createPortal(
+          // Portalled to <body>, not left nested in MobileHeader. MobileHeader is
+          // `sticky` with its own z-index, which makes it a stacking context — a
+          // fixed child stays TRAPPED inside that context for paint order, no matter
+          // how high its own z-index goes. MobileBottomNav renders straight into
+          // <body>, later in the DOM, at the same z-50: same z-index, later DOM wins
+          // the tie, so the pill painted over this drawer's bottom edge regardless of
+          // this drawer's z-[60]. Escaping to <body> puts the drawer in the same
+          // stacking context as the pill, where z-[60] actually wins.
+          <div className="fixed inset-0 z-[60] lg:hidden">
           <button
             type="button"
             tabIndex={-1}
             aria-hidden="true"
             onClick={() => setOpen(false)}
-            className="absolute inset-0 h-full w-full cursor-default bg-brand-dark-base/60 backdrop-blur-sm"
+            className={[
+              'absolute inset-0 h-full w-full cursor-default bg-brand-dark-base/60 backdrop-blur-sm',
+              // Reduced transparency: solid instead of see-through, no blur to compute.
+              '[@media(prefers-reduced-transparency:reduce)]:bg-brand-dark-base/90 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none',
+              'transition-opacity duration-500 ease-[var(--ease-out)]',
+              entered ? 'opacity-100' : 'opacity-0',
+            ].join(' ')}
           />
 
           <div
+            // The panel is the one element whose transform actually moves, so its
+            // transitionend is what tells us the exit has finished — the timer
+            // above is only a backstop for the case where nothing changes at all.
+            onTransitionEnd={(event) => {
+              if (event.target !== event.currentTarget) return
+              if (!open) setRendered(false)
+            }}
             id="mobile-menu-panel"
             role="dialog"
             aria-modal="true"
@@ -117,7 +189,13 @@ export function MobileMenu() {
               emergency button, so the one red control on the panel sits on the deepest
               ground and gains contrast rather than losing it.
             */
-            className="absolute inset-y-0 right-0 flex w-[88%] max-w-sm flex-col bg-gradient-to-b from-brand-teal via-brand-teal to-brand-teal-dark shadow-2xl"
+            className={[
+              'absolute inset-y-0 right-0 flex w-[88%] max-w-sm flex-col bg-gradient-to-b from-brand-teal via-brand-teal to-brand-teal-dark shadow-2xl',
+              // Percentage translate, not a pixel value: it moves the panel clear of
+              // the viewport by its own width whatever that resolves to at max-w-sm.
+              'transition-transform duration-500 ease-[var(--ease-drawer)]',
+              entered ? 'translate-x-0' : 'translate-x-full',
+            ].join(' ')}
           >
             {/*
               No white strip — the gradient runs unbroken from the top of the panel.
@@ -212,7 +290,16 @@ export function MobileMenu() {
                   item.children?.length ? (
                     <li key={item.label}>
                       <details className="group rounded-xl border border-white/15 bg-white/[0.07]">
-                        <summary className="tap-target focus-ring-inverse cursor-pointer list-none justify-between px-4 text-sm font-semibold text-white [&::-webkit-details-marker]:hidden">
+                        {/*
+                          `flex w-full` overrides .tap-target's own `inline-flex`
+                          — a utility class placed here wins the cascade over a
+                          components-layer one, same as the press-feedback fix in
+                          globals.css. Without it the summary shrinks to fit
+                          "Specialities ▾", leaving the right ~60% of this visibly
+                          full-width card dead to touch: tappable card, untappable
+                          card front.
+                        */}
+                        <summary className="tap-target focus-ring-inverse flex w-full cursor-pointer list-none px-4 text-sm font-semibold text-white [&::-webkit-details-marker]:hidden">
                           <span className="flex w-full items-center justify-between">
                             {item.label}
                             <span
@@ -261,7 +348,13 @@ export function MobileMenu() {
               </ul>
             </nav>
 
-            <div className="shrink-0 space-y-2 border-t border-white/15 p-3">
+            {/*
+              `pb-[max(...)]` rather than plain p-3: the safe-area inset is what
+              clears a gesture-bar phone's home indicator. Without it, this row sits
+              exactly where that indicator lives — the one part of the screen a swipe
+              lands on instead of a tap.
+            */}
+            <div className="shrink-0 space-y-2 border-t border-white/15 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
               <a
                 href={`tel:${contact.primary}`}
                 className="tap-target focus-ring-inverse w-full rounded-xl bg-brand-emergency px-4 text-sm font-bold text-white"
@@ -276,8 +369,9 @@ export function MobileMenu() {
               </a>
             </div>
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </>
   )
 }

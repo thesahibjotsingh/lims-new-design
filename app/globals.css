@@ -5,6 +5,10 @@
 @layer base {
   :root {
     color-scheme: light;
+    /* Strong ease-out for UI motion — the built-in CSS easings read as too weak. */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    /* iOS-like drawer curve, for anything that slides in as a panel or sheet. */
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   html {
@@ -40,9 +44,55 @@
    * Applied to the element itself rather than a wrapper so the target is the thing
    * the finger lands on. `inline-flex` + centring keeps a short label ("Book") from
    * sitting at the top-left of a 44px box.
+   *
+   * The press state lives in @layer utilities below, not here — see the comment
+   * there for why.
    */
   .tap-target {
     @apply inline-flex items-center justify-center min-h-[44px] min-w-[44px];
+  }
+
+  /*
+   * RevealMore's hidden tiles, below md. `display` sits in the transition list
+   * alongside opacity/transform — `allow-discrete` is what lets a *discrete*
+   * property (no in-between values) still take part in a transition at all, and
+   * `@starting-style` supplies the "before" frame for the moment display leaves
+   * `none`, which a transition can't otherwise see because the element doesn't
+   * exist in the render tree the frame before that. Unsupported browsers just get
+   * the old instant cut — no worse than before this existed.
+   */
+  .reveal-item {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+      opacity 200ms var(--ease-out),
+      transform 200ms var(--ease-out),
+      display 200ms allow-discrete;
+  }
+
+  .reveal-item.reveal-item-hidden {
+    display: none;
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  @starting-style {
+    .reveal-item:not(.reveal-item-hidden) {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+
+  /* Always on and static from md up — matches the old `md:block`, unconditionally. */
+  @media (min-width: 768px) {
+    .reveal-item,
+    .reveal-item.reveal-item-hidden {
+      display: block;
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
   }
 }
 
@@ -78,5 +128,33 @@
       animation: none !important;
       transform: none !important;
     }
+  }
+
+  /*
+   * Press feedback for every tap target, site-wide.
+   *
+   * This has to live here, in @layer utilities, not next to .tap-target's sizing rule
+   * in @layer components. Nearly every real button also carries Tailwind's
+   * `transition-colors` utility for its hover state, and CSS transition longhands
+   * replace rather than merge — whichever rule sets transition-property last wins
+   * outright, not both. A components-layer rule loses that fight unconditionally,
+   * because Tailwind always injects @layer utilities after @layer components. Listing
+   * transform alongside the colour properties here, in the layer that wins, is what
+   * makes the press and the hover colour animate together instead of one silently
+   * overriding the other.
+   *
+   * `:active` is a real press event on touch, so this needs no separate pointer
+   * gating the way a `:hover` effect would. `scale()` rather than a colour or shadow
+   * change so it scales the label and any icon inside along with it, which is what
+   * makes it read as a physical press rather than a colour flicker.
+   */
+  .tap-target {
+    transition-property: transform, color, background-color, border-color, box-shadow;
+    transition-duration: 160ms;
+    transition-timing-function: var(--ease-out);
+  }
+
+  .tap-target:active {
+    transform: scale(0.97);
   }
 }

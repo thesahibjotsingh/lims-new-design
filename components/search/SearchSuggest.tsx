@@ -194,6 +194,7 @@ export function SuggestionList({
   listId,
   showingRecent = false,
   className = '',
+  variant = 'floating',
 }: {
   suggestions: SearchSuggestion[]
   active: number
@@ -203,13 +204,35 @@ export function SuggestionList({
   /** Labels the list as history rather than as matches for what was typed. */
   showingRecent?: boolean
   className?: string
+  /**
+   * 'floating' (default): absolutely positioned below the field, overlaying
+   * whatever sits underneath — right for the desktop hero card, the mobile hero
+   * bar and the drawer, all of which have real content below the field that must
+   * not be shoved down every keystroke.
+   *
+   * 'inline': a normal-flow block that grows the field's own container instead of
+   * overlaying it. Made for SearchSheet, whose sheet is anchored to the bottom of
+   * the viewport with a short field near the bottom edge — a floating list there
+   * renders mostly below the visible screen, not overlaying content so much as
+   * disappearing past it. Not a Tailwind class swap on the shared base string:
+   * `absolute` and `static` are the same specificity, so whichever one Tailwind's
+   * own stylesheet happens to emit later wins regardless of prop order — the two
+   * variants need genuinely different base classes, not one overridden by another.
+   */
+  variant?: 'floating' | 'inline'
 }) {
   return (
     <ul
       id={listId}
       role="listbox"
       aria-label={showingRecent ? 'Recent searches' : 'Suggestions'}
-      className={`absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 overflow-hidden rounded-xl border border-brand-teal/15 bg-white py-1 text-left shadow-glass ${className}`}
+      className={[
+        variant === 'floating'
+          ? 'absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50'
+          : 'relative mt-2',
+        'overflow-hidden rounded-xl border border-brand-teal/15 bg-white py-1 text-left shadow-glass',
+        className,
+      ].join(' ')}
     >
       {showingRecent && (
         <li
