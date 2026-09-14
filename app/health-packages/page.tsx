@@ -18,6 +18,7 @@ export default function HealthPackagesPage() {
     <>
       <PageHeader
         banner="/banners/health-packages.webp"
+        cinematic
         eyebrow="Patient services"
         title="Health check packages"
         intro="Preventive health checks bundled as fixed packages."

@@ -41,6 +41,7 @@ export default async function DoctorsPage({
     <>
       <PageHeader
         banner="/banners/find-a-doctor.webp"
+        cinematic
         eyebrow="Consultant roster"
         title="Find a doctor"
         intro="Search by name, qualification, speciality or department."

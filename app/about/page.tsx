@@ -13,6 +13,7 @@ export default function AboutPage() {
     <>
       <PageHeader
         banner="/banners/about.webp"
+        cinematic
         eyebrow="About"
         title={siteConfig.name}
         intro={siteConfig.description}

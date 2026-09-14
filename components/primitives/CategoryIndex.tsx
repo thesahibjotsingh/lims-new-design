@@ -52,6 +52,7 @@ export function CategoryIndex({
         title={definition.pageTitle}
         intro={definition.blurb}
         banner={CATEGORY_BANNERS[category]}
+        cinematic
       />
 
       <Section>

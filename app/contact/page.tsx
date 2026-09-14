@@ -14,6 +14,7 @@ export default function ContactPage() {
     <>
       <PageHeader
         banner="/banners/contact.webp"
+        cinematic
         eyebrow="Get in touch"
         title="Contact LIMS Hisar"
         intro="Both published hospital numbers, and where to find us."

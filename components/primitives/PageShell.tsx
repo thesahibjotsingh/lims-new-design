@@ -5,6 +5,7 @@
 // spacing, measure or heading level.
 
 import Link from 'next/link'
+import { HeroIntro } from '@/components/primitives/HeroIntro'
 import type { ReactNode } from 'react'
 
 export function PageHeader({
@@ -13,6 +14,7 @@ export function PageHeader({
   intro,
   icon,
   banner,
+  cinematic = false,
   children,
 }: {
   eyebrow?: string
@@ -32,8 +34,17 @@ export function PageHeader({
    * a banner on a mist background would show a hard teal edge where the art begins.
    */
   banner?: string
+  /**
+   * After a pause, shrinks the banner to a slim strip holding the eyebrow and title so
+   * the content slides up. Desktop only, and abandoned the instant the reader does
+   * anything themselves — see HeroIntro.
+   *
+   * Requires `banner`: without art there is nothing to shrink.
+   */
+  cinematic?: boolean
   children?: ReactNode
 }) {
+  const cinematicBanner = Boolean(banner && cinematic)
   return (
     <header
       className={[
@@ -42,7 +53,9 @@ export function PageHeader({
         // the header's own background instead of behind it. Drop it and the art still
         // loads, still lays out, and measures correctly in every geometric test — and
         // is completely invisible, because an opaque background is painted over it.
-        'relative isolate',
+        //
+        // `group/banner` is what HeroIntro's `data-collapsed` hooks into.
+        'group/banner relative isolate',
         banner
           ? // No bottom border: the band is teal and the section under it is white, so
             // the colour change is the edge. A rule there only reads as a seam.
@@ -69,6 +82,10 @@ export function PageHeader({
             subject, off the bottom it cuts them at the waist. There is no anchor that
             makes a 3:1 picture fill a 5:1 hole.
 
+            When the banner collapses, the height is pinned to what it was at full size
+            (`--banner-h`, set by HeroIntro) and the picture stays centred, so the slim
+            strip crops a window through the art rather than shrinking it.
+
             So the image is sized to the band's HEIGHT (`h-full w-auto`) and pinned to
             the right. Nothing is cropped vertically. The strip of band left over on the
             left is brand-teal, which is what the empty left side of every one of these
@@ -88,7 +105,7 @@ export function PageHeader({
             aria-hidden="true"
             width={1800}
             height={600}
-            className="absolute inset-y-0 right-0 h-full w-auto max-w-none object-cover object-[right_top]"
+            className="absolute right-0 top-1/2 h-full w-auto max-w-none -translate-y-1/2 object-cover object-[right_top] group-data-[collapsed]/banner:h-[var(--banner-h)]"
           />
           {/*
             Opaque teal on the left fading out to the right. This is what makes the
@@ -106,6 +123,11 @@ export function PageHeader({
         className={[
           'mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:py-14',
           banner ? 'flex min-h-[220px] flex-col justify-center lg:min-h-[300px] 2xl:min-h-[360px]' : '',
+          // The collapsed strip. Transitions are declared only in the collapsed state so
+          // the band animates shut but snaps open when HeroIntro resets it.
+          cinematicBanner
+            ? 'group-data-[collapsed]/banner:min-h-[7rem] group-data-[collapsed]/banner:py-5 group-data-[collapsed]/banner:transition-[min-height,padding] group-data-[collapsed]/banner:duration-700 group-data-[collapsed]/banner:ease-[cubic-bezier(0.22,1,0.36,1)]'
+            : '',
         ]
           .filter(Boolean)
           .join(' ')}
@@ -142,18 +164,26 @@ export function PageHeader({
               {title}
             </h1>
             {intro && (
-              <p
-                className={[
-                  'mt-4 max-w-2xl text-base leading-relaxed',
-                  banner ? 'text-white/80' : 'text-brand-dark-base/70',
-                ].join(' ')}
-              >
-                {intro}
-              </p>
+              // Rows 1fr → 0fr is what lets the intro fold away smoothly on collapse; a
+              // height transition cannot animate to or from `auto`.
+              <div className="grid grid-rows-[1fr] group-data-[collapsed]/banner:grid-rows-[0fr] group-data-[collapsed]/banner:opacity-0 group-data-[collapsed]/banner:transition-[grid-template-rows,opacity] group-data-[collapsed]/banner:duration-700 group-data-[collapsed]/banner:ease-[cubic-bezier(0.22,1,0.36,1)]">
+                <div className="min-h-0 overflow-hidden">
+                  <p
+                    className={[
+                      'mt-4 max-w-2xl text-base leading-relaxed',
+                      banner ? 'text-white/80' : 'text-brand-dark-base/70',
+                    ].join(' ')}
+                  >
+                    {intro}
+                  </p>
+                </div>
+              </div>
             )}
           </div>
         </div>
         {children}
+
+        {cinematicBanner && <HeroIntro />}
       </div>
     </header>
   )
