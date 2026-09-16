@@ -35,7 +35,20 @@
 //
 //     Pipeline: assets-source/doctors/dr-<id>.png -> public/doctors/<id>.webp, written
 //     by scripts/build_assets.py as a 4:5 crop at 800x1000. Drop the real photographs
-//     in under the same names, re-run the script, and nothing in this file changes.
+//     in under the same names and re-run the script — but DO re-measure `focusY` below
+//     for the new file; it won't carry over.
+//
+//  5. `portrait.focusY` is the vertical object-position (0-100, 0 = top of the 4:5
+//     image) that keeps the consultant's hair in frame when DoctorCard crops this
+//     source down to its 3:2 card — see the crop comment in
+//     components/primitives/DoctorCard.tsx for why one shared value can't work for
+//     every photo. Every source here has the subject framed at a different height (one
+//     has the hairline touching the very top edge, another has visible ceiling above
+//     the head down to 17% of the frame), so this has to be measured per photograph,
+//     not guessed: open the file, find the pixel row the hairline sits at as a percentage
+//     of the image height, and set focusY a few points above it so a sliver of headroom
+//     survives the crop. Left unset, it defaults to 50 (centred) — safe for a photo
+//     nobody has checked yet, but check it before shipping one.
 //
 // Phase 3 moves this behind the CMS or HIS loader. The shape stays the same.
 
@@ -58,6 +71,9 @@ export const DOCTORS: Doctor[] = [
       alt: 'Portrait of Dr. Udit Choudhary',
       width: 800,
       height: 1000,
+      // Hairline sits at the very top edge of this crop (0%) — see the focusY note
+      // below DOCTORS.
+      focusY: 0,
     },
   },
   {
@@ -73,6 +89,7 @@ export const DOCTORS: Doctor[] = [
       alt: 'Portrait of Dr. Shweta Godara',
       width: 800,
       height: 1000,
+      focusY: 30,
     },
   },
   {
@@ -87,6 +104,7 @@ export const DOCTORS: Doctor[] = [
       alt: 'Portrait of Dr. Vikash Raj',
       width: 800,
       height: 1000,
+      focusY: 18,
     },
   },
   {
@@ -101,6 +119,7 @@ export const DOCTORS: Doctor[] = [
       alt: 'Portrait of Dr. Harshal Godara',
       width: 800,
       height: 1000,
+      focusY: 12,
     },
   },
 ]

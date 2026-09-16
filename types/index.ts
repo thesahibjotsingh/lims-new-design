@@ -186,6 +186,14 @@ export interface ImageAsset {
   alt: string
   width: number
   height: number
+  /**
+   * CSS `object-position` vertical value (0-100) for an `object-cover` crop that's
+   * shorter than the source image. Optional because most images render at their own
+   * aspect ratio; it matters only where a fixed-aspect box crops a taller source —
+   * currently doctor portraits, see the comment on DOCTORS in lib/doctors.ts. Defaults
+   * to 50 (centred) when omitted.
+   */
+  focusY?: number
 }
 
 export interface NavItem {
