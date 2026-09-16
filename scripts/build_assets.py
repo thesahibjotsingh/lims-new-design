@@ -291,6 +291,13 @@ def main():
         ("lims-logo.png", "lims-mark.webp", 420),      # mark + LIMS, white backgrounds
         ("mobile-logo.png", "lims-lockup.webp", 640),  # full lockup with institute name
         ("lims-favicon.png", "lims-badge.webp", 160),  # round badge, reads on teal
+        # Icon + "LIMS" wordmark, institute-name subtitle already cropped out — the
+        # mobile header is 65px tall at rest, which has room for a compact lockup but
+        # not for a second line of tiny text under it. Pre-cropped rather than cropped
+        # here: the subtitle sits close enough to the wordmark's own baseline that a
+        # generic alpha-bbox trim can't separate them, this needed picking an actual
+        # pixel boundary in the source art.
+        ("lims-lockup-compact.png", "lims-header.webp", 640),
         # The emergency siren. Already a finished red disc, so it is used on its own —
         # it must not be nested inside another coloured circle.
         ("beacon.png", "beacon.webp", 160),

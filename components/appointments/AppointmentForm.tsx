@@ -115,7 +115,7 @@ export function AppointmentForm({
     return (
       <div
         role="status"
-        className="rounded-2xl border border-emerald-600/20 bg-emerald-50 p-6"
+        className="status-panel rounded-2xl border border-emerald-600/20 bg-emerald-50 p-6"
       >
         <h2 className="font-serif text-xl font-bold text-emerald-900">
           Request received
@@ -142,7 +142,7 @@ export function AppointmentForm({
       {(status.kind === 'unavailable' || status.kind === 'error') && (
         <div
           role="alert"
-          className="rounded-2xl border border-brand-copper/30 bg-brand-copper/10 p-5"
+          className="status-panel rounded-2xl border border-brand-copper/30 bg-brand-copper/10 p-5"
         >
           <h2 className="font-serif text-lg font-bold text-brand-dark-base">
             Please call the hospital
@@ -201,7 +201,7 @@ export function AppointmentForm({
           id="appt-doctor"
           name="doctorId"
           defaultValue={initialDoctorId}
-          className="min-h-[44px] w-full rounded-xl border border-brand-teal/20 bg-white px-3 text-sm"
+          className="min-h-[44px] w-full rounded-xl border border-brand-teal/20 bg-white px-3 text-sm transition-colors focus:border-brand-teal/50"
         >
           <option value="">No preference</option>
           {doctorOptions.map((option) => (
@@ -221,7 +221,7 @@ export function AppointmentForm({
           id="appt-department"
           name="departmentSlug"
           defaultValue={initialDepartmentSlug}
-          className="min-h-[44px] w-full rounded-xl border border-brand-teal/20 bg-white px-3 text-sm"
+          className="min-h-[44px] w-full rounded-xl border border-brand-teal/20 bg-white px-3 text-sm transition-colors focus:border-brand-teal/50"
         >
           <option value="">Not sure / general</option>
           {serviceGroups.map((group) => (
@@ -246,7 +246,7 @@ export function AppointmentForm({
           name="notes"
           rows={3}
           maxLength={2000}
-          className="w-full rounded-xl border border-brand-teal/20 bg-white px-3 py-2.5 text-sm"
+          className="w-full rounded-xl border border-brand-teal/20 bg-white px-3 py-2.5 text-sm transition-colors focus:border-brand-teal/50"
         />
         {/*
           No "describe your symptoms" prompt. This form is not a clinical intake and
@@ -310,8 +310,10 @@ function Field({
         aria-invalid={error ? true : undefined}
         aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined}
         className={[
-          'min-h-[44px] w-full rounded-xl border bg-white px-3 text-sm',
-          error ? 'border-brand-emergency' : 'border-brand-teal/20',
+          'min-h-[44px] w-full rounded-xl border bg-white px-3 text-sm transition-colors',
+          error
+            ? 'border-brand-emergency focus:border-brand-emergency'
+            : 'border-brand-teal/20 focus:border-brand-teal/50',
         ].join(' ')}
         {...rest}
       />

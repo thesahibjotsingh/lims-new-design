@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation'
 import { DOCTORS, getDoctor, registrationDisplay } from '@/lib/doctors'
 import { serviceHrefBySlug, serviceName } from '@/lib/services'
 import { AwaitingContent, PageHeader, Section } from '@/components/primitives/PageShell'
-import { ShieldIcon } from '@/components/icons'
+import { initials } from '@/components/primitives/DoctorCard'
+import { PhoneIcon, ShieldIcon } from '@/components/icons'
 import { contact } from '@/lib/site-config'
 
 export function generateStaticParams() {
@@ -77,8 +78,60 @@ export default async function DoctorProfilePage({
       </PageHeader>
 
       <Section>
+        {/*
+          The identity strip. A photograph, finally — the profile page was the one
+          surface on the site that named a consultant without ever showing them.
+          Real photo when LIMS has supplied one, the same honest monogram DoctorCard
+          falls back to otherwise; see rule 4 at the top of lib/doctors.ts. The
+          registration number and years of experience move up here from the Details
+          panel below — the two facts worth a glance before reading anything else —
+          rather than existing twice on the page.
+        */}
+        <div className="scroll-reveal mb-8 flex items-center gap-4 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm">
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-brand-mist sm:h-20 sm:w-20">
+            {doctor.portrait ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={doctor.portrait.src}
+                alt={doctor.portrait.alt}
+                width={doctor.portrait.width}
+                height={doctor.portrait.height}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover object-top"
+              />
+            ) : (
+              <span
+                aria-hidden="true"
+                className="grid h-full w-full place-items-center font-serif text-xl font-bold text-brand-teal/60 sm:text-2xl"
+              >
+                {initials(doctor.name)}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-1 flex-wrap items-center gap-x-5 gap-y-1.5 text-sm">
+            {doctor.registrationNumber && (
+              <span className="flex items-center gap-1.5 text-brand-dark-base/70">
+                <ShieldIcon className="h-4 w-4 shrink-0 text-brand-teal" aria-hidden="true" />
+                Reg. no.{' '}
+                <span className="font-semibold text-brand-dark-base">
+                  {registrationDisplay(doctor.registrationNumber)}
+                </span>
+              </span>
+            )}
+            {typeof doctor.experienceYears === 'number' && (
+              <span className="text-brand-dark-base/70">
+                <span className="font-semibold text-brand-dark-base">
+                  {doctor.experienceYears} years
+                </span>{' '}
+                experience
+              </span>
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
+          <div className="scroll-reveal space-y-6 lg:col-span-2">
             {doctor.about ? (
               <div>
                 <h2 className="mb-3 font-serif text-2xl font-bold text-brand-dark-base">
@@ -98,7 +151,7 @@ export default async function DoctorProfilePage({
             )}
           </div>
 
-          <aside className="space-y-4 rounded-2xl border border-brand-teal/10 bg-brand-mist/50 p-6">
+          <aside className="scroll-reveal space-y-4 rounded-2xl border border-brand-teal/10 bg-brand-mist/50 p-6">
             <h2 className="font-serif text-lg font-bold text-brand-dark-base">Details</h2>
             <dl className="space-y-3 text-sm">
               <div>
@@ -119,26 +172,11 @@ export default async function DoctorProfilePage({
                 </dd>
               </div>
 
-              {doctor.registrationNumber && (
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wider text-brand-dark-base/50">
-                    Medical council registration
-                  </dt>
-                  <dd className="mt-0.5 flex items-center gap-2 font-semibold text-brand-dark-base/80">
-                    <ShieldIcon className="h-4 w-4 shrink-0 text-brand-teal" />
-                    {registrationDisplay(doctor.registrationNumber)}
-                  </dd>
-                </div>
-              )}
-
-              {typeof doctor.experienceYears === 'number' && (
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wider text-brand-dark-base/50">
-                    Experience
-                  </dt>
-                  <dd className="mt-0.5">{doctor.experienceYears} years</dd>
-                </div>
-              )}
+              {/*
+                Registration and years of experience live in the identity strip
+                above now, not here — see that block's comment. Department and
+                languages are what's left worth a dedicated line.
+              */}
 
               {doctor.languages?.length ? (
                 <div>
@@ -150,6 +188,38 @@ export default async function DoctorProfilePage({
               ) : null}
             </dl>
           </aside>
+        </div>
+
+        {/*
+          Not "24x7" — see the note on `contact` in lib/site-config.ts. The two
+          published numbers' hours are an unconfirmed assumption, so nothing on
+          this site claims round-the-clock cover until LIMS confirms it.
+        */}
+        <div className="scroll-reveal mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-brand-mist p-5">
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-brand-emergency shadow-sm"
+            >
+              <PhoneIcon className="h-4 w-4" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-brand-dark-base">
+                Need urgent care instead?
+              </p>
+              <p className="text-xs text-brand-dark-base/60">
+                The emergency line goes straight to the hospital, no appointment
+                needed.
+              </p>
+            </div>
+          </div>
+          <a
+            href={`tel:${contact.primary}`}
+            aria-label={`Call the emergency line, ${contact.primaryDisplay}`}
+            className="tap-target focus-ring-inverse shrink-0 rounded-full bg-brand-emergency px-5 text-xs font-bold text-white hover:bg-brand-emergency/90"
+          >
+            Call {contact.primaryDisplay}
+          </a>
         </div>
       </Section>
     </>

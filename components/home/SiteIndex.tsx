@@ -62,11 +62,11 @@ export function SiteIndex() {
     // Mist band — see ServiceArchitecture.
     <div className="bg-brand-mist">
       <Section>
-        <div className="mb-8 max-w-2xl">
+        <div className="scroll-reveal mb-8 max-w-2xl">
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-copper-ink">
             Everything else
           </p>
-          <h2 className="font-serif text-3xl font-bold tracking-tight text-brand-dark-base sm:text-4xl">
+          <h2 className="text-balance font-serif text-3xl font-bold tracking-tight text-brand-dark-base sm:text-4xl">
             The rest of the site
           </h2>
           <p className="mt-3 text-base leading-relaxed text-brand-dark-base/70">
@@ -84,7 +84,7 @@ export function SiteIndex() {
             <li key={destination.href}>
               <Link
                 href={destination.href}
-                className="group flex h-full flex-col gap-2 rounded-2xl border border-brand-teal/10 bg-white p-5 shadow-sm transition-all hover:border-brand-teal/25 hover:shadow-md"
+                className="press group flex h-full flex-col gap-2 rounded-2xl border border-brand-teal/10 bg-white p-5 shadow-sm transition-all hover:border-brand-teal/25 hover:shadow-md"
               >
                 <span className="flex items-start justify-between gap-3">
                   <span className="font-serif text-base font-bold leading-snug text-brand-dark-base group-hover:text-brand-teal">

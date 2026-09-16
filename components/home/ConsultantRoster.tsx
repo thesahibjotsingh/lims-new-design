@@ -14,7 +14,7 @@ export function ConsultantRoster() {
     // white panels on the portrait cards read as floating rather than as more page.
     <div className="bg-brand-teal-dark">
       <Section>
-        <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div className="scroll-reveal mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             {/*
               White at 75%, not copper: copper on teal-dark measures 3.9:1, under the
@@ -23,7 +23,7 @@ export function ConsultantRoster() {
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/75">
               Meet our consultants
             </p>
-            <h2 className="font-serif text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <h2 className="text-balance font-serif text-3xl font-bold tracking-tight text-white sm:text-4xl">
               Doctors at LIMS
             </h2>
           </div>

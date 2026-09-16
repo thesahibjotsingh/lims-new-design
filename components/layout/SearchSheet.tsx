@@ -28,11 +28,49 @@ import { GENERAL_SEARCH_PHRASES } from '@/components/search/searchPhrases'
 
 const SEARCH_PLACEHOLDER = 'Search doctors, departments, pages'
 
+/**
+ * Progressive resistance for the one direction a drag on this handle shouldn't just
+ * move the sheet 1:1 — pulling UP past the sheet's own resting position. A hard clamp
+ * there reads as hitting a wall; this reads as there being something (barely) more to
+ * pull against, the same soft boundary a real scroll view gives you.
+ */
+function rubberband(overshoot: number, dimension: number, constant = 0.55): number {
+  return (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot))
+}
+
 export function SearchSheet() {
   const router = useRouter()
   const [query, setQuery] = useState('')
   const rootRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  /*
+   * Pull-down-to-dismiss on the grabber handle.
+   *
+   * `dragY` is the panel's live offset in px below its resting (open) position — 0
+   * at rest, positive while being dragged down, briefly larger than the viewport
+   * while following through on a release that dismisses. It is applied as an inline
+   * `transform`, not a Tailwind class, because it has to track the pointer at
+   * arbitrary pixel values every frame, not jump between two fixed states.
+   *
+   * `dragging` kills the CSS transition while the pointer is down — direct
+   * manipulation has to be 1:1 with zero lag, and a transition here would make the
+   * sheet visibly chase the finger instead of sitting glued to it (see the
+   * Apple-design skill's "Direct manipulation" and "Response" sections). The
+   * transition comes back the instant the pointer lifts, so the settle (snap back
+   * or follow through and close) is still animated.
+   */
+  const [dragY, setDragY] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  // `startY` is fixed for the whole gesture — every live position reads against it.
+  // `history` is a SEPARATE, deliberately short rolling window used only to compute
+  // velocity at release; capping it matters there (an old sample from a pause at the
+  // start of a long drag would otherwise understate how fast the release itself was)
+  // but must never feed the position math, which needs the true, unmoving origin.
+  const dragRef = useRef<{ startY: number; history: { y: number; t: number }[] } | null>(
+    null,
+  )
+  const panelRef = useRef<HTMLDivElement>(null)
 
   // Same three-state shape as MobileMenu's drawer, for the same reason: `open` is
   // intent, `rendered` keeps the sheet mounted for the exit transition, `entered`
@@ -66,6 +104,78 @@ export function SearchSheet() {
 
   function closeSheet() {
     setOpen(false)
+  }
+
+  function onHandlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    // Best-effort: capture is what keeps pointermove reporting once the finger
+    // drifts off this ~40px handle, which a real drag of any size will do
+    // immediately. Some engines throw here for pointer ids they don't recognise
+    // as an active session — without the pointer captured the gesture degrades
+    // to "only tracks while directly over the handle" rather than failing.
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId)
+    } catch {
+      // Fall through — see above.
+    }
+    dragRef.current = { startY: event.clientY, history: [{ y: event.clientY, t: performance.now() }] }
+    setDragging(true)
+  }
+
+  function onHandlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    const drag = dragRef.current
+    if (!drag) return
+    const raw = event.clientY - drag.startY
+    const height = panelRef.current?.getBoundingClientRect().height ?? window.innerHeight
+    // Free 1:1 downward (toward dismiss); rubber-banded if they pull the other way.
+    setDragY(raw >= 0 ? raw : -rubberband(-raw, height))
+
+    drag.history.push({ y: event.clientY, t: performance.now() })
+    if (drag.history.length > 6) drag.history.shift()
+  }
+
+  function onHandlePointerEnd(event: React.PointerEvent<HTMLDivElement>) {
+    const drag = dragRef.current
+    dragRef.current = null
+    setDragging(false)
+    if (!drag) return
+
+    const first = drag.history[0]
+    const last = drag.history[drag.history.length - 1]
+    const dt = (last.t - first.t) / 1000
+    // Ignore the timing noise from a near-instant sample pair rather than let it
+    // produce a spurious four-digit velocity.
+    const velocity = dt > 0.005 ? (last.y - first.y) / dt : 0 // px/s, +down
+
+    const height = panelRef.current?.getBoundingClientRect().height ?? window.innerHeight
+    // Distance and velocity are independent, either one enough on its own — nearly
+    // half the sheet dragged down commits regardless of how slowly it got there, and
+    // a real downward flick commits from only a few px in. (An earlier version of
+    // this blended velocity into the distance check via Apple's own momentum-
+    // projection formula; testing it showed even a slow, 40px, clearly-not-trying-
+    // to-dismiss drag already projected past the threshold — that formula is tuned
+    // for flicks on a scrolling list, where velocities run to the hundreds of px/s,
+    // not for a deliberate small nudge on a modal's grabber.)
+    const dismiss = dragY > 0 && (dragY > height * 0.45 || velocity > 600)
+
+    if (dismiss) {
+      // Keep following through from wherever the pointer left off, instead of
+      // snapping back to the resting position first and only then animating shut —
+      // that snap-first is exactly the "jump to the target value" the Apple-design
+      // skill calls out. `entered` will flip false on the next render, but dragY
+      // already being non-zero is what the transform below reads from now on, so
+      // there is nothing for that flip to visibly change.
+      setDragY(window.innerHeight + 40)
+      closeSheet()
+    } else {
+      setDragY(0)
+    }
+
+    try {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    } catch {
+      // Never had it, or the browser already released it on its own — either way
+      // there is nothing left to release.
+    }
   }
 
   useEffect(() => {
@@ -178,6 +288,7 @@ export function SearchSheet() {
             />
 
             <div
+              ref={panelRef}
               onTransitionEnd={(event) => {
                 if (event.target !== event.currentTarget) return
                 if (!open) setRendered(false)
@@ -185,19 +296,44 @@ export function SearchSheet() {
               role="dialog"
               aria-modal="true"
               aria-label="Search"
+              style={{
+                // dragY carries every state now — resting open (0), resting closed
+                // (offscreen), and everything in between while a drag is live — see
+                // the comment on the dragY declaration above for why this can't stay
+                // a Tailwind translate-y-0/translate-y-full class pair.
+                transform: `translateY(${dragging || dragY !== 0 ? dragY : entered ? 0 : window.innerHeight + 40}px)`,
+                transition: dragging ? 'none' : 'transform 500ms var(--ease-drawer)',
+              }}
               className={[
                 // Capped and scrollable, not just auto-height: the suggestion list
                 // below the field is position:absolute, so with no cap here it was
                 // rendering past the bottom of the viewport — invisible the moment
                 // you typed anything. `overflow-y-auto` on THIS box is what clips
                 // and scrolls it back into reach instead.
-                'absolute inset-x-0 bottom-0 max-h-[75vh] overflow-y-auto rounded-t-3xl border-t border-white/40 bg-white/90 p-5 shadow-glass backdrop-blur-xl',
+                'absolute inset-x-0 bottom-0 max-h-[75vh] overflow-y-auto rounded-t-3xl border-t border-white/40 bg-white/90 p-5 pt-2 shadow-glass backdrop-blur-xl',
                 '[@media(prefers-reduced-transparency:reduce)]:bg-white/98 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none',
                 'pb-[max(1.25rem,env(safe-area-inset-bottom))]',
-                'transition-transform duration-500 ease-[var(--ease-drawer)]',
-                entered ? 'translate-y-0' : 'translate-y-full',
               ].join(' ')}
             >
+              {/*
+                The grabber. Purely a drag handle and a visual "this can be pulled
+                down" cue — aria-hidden because the sheet stays fully dismissible
+                without it, via the close button below and Escape. touch-none is
+                load-bearing: without it, a touch starting here is ambiguous between
+                "drag the sheet" and "scroll the page", and iOS resolves that
+                ambiguity by scrolling, not by handing the gesture to this handler.
+              */}
+              <div
+                aria-hidden="true"
+                onPointerDown={onHandlePointerDown}
+                onPointerMove={onHandlePointerMove}
+                onPointerUp={onHandlePointerEnd}
+                onPointerCancel={onHandlePointerEnd}
+                className="-mx-5 -mt-2 mb-2 flex touch-none select-none justify-center px-5 pb-3 pt-3 [cursor:grab] active:[cursor:grabbing]"
+              >
+                <span className="h-1.5 w-10 rounded-full bg-brand-dark-base/20" />
+              </div>
+
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-brand-dark-base">
                   Search LIMS
@@ -247,7 +383,7 @@ export function SearchSheet() {
                         // still what stops it, same as everywhere else.
                         idle={query.length === 0}
                         staticText={SEARCH_PLACEHOLDER}
-                        className="pointer-events-none absolute left-9 top-1/2 -translate-y-1/2 truncate pr-3 text-base text-brand-dark-base/45"
+                        className="pointer-events-none absolute left-9 right-0 top-1/2 -translate-y-1/2 truncate pr-3 text-base text-brand-dark-base/45"
                       />
                     )}
                   </div>

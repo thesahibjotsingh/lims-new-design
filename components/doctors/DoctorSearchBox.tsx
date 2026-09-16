@@ -15,6 +15,7 @@
 // two hero search inputs.
 
 import { useCallback, useRef, useState } from 'react'
+import { SearchIcon } from '@/components/icons'
 import {
   SuggestionList,
   useCloseOnOutside,
@@ -60,6 +61,16 @@ export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }
           Search doctors by name, speciality or department
         </label>
         <div className="relative flex-1">
+          {/*
+            Every other search field on the site leads with this icon (the hero bar,
+            the drawer, the bottom-sheet) — this was the one left without it, which
+            made it read as a different control rather than the same search reused
+            in a fourth place.
+          */}
+          <SearchIcon
+            aria-hidden="true"
+            className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-dark-base/40"
+          />
           <input
             {...inputProps}
             id="doctor-search"
@@ -81,14 +92,14 @@ export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }
             // overlay below owns every visible state.
             placeholder={PLACEHOLDER}
             // 16px on mobile, or iOS Safari zooms the page on focus and never zooms back.
-            className="min-h-[44px] w-full rounded-xl border border-brand-teal/20 bg-white px-4 text-sm text-brand-dark-base placeholder:text-transparent max-md:text-base"
+            className="min-h-[44px] w-full rounded-xl border border-brand-teal/20 bg-white py-2 pl-10 pr-4 text-sm text-brand-dark-base shadow-sm placeholder:text-transparent max-md:text-base"
           />
           {query.length === 0 && (
             <TypewriterPlaceholder
               phrases={DOCTOR_SEARCH_PHRASES}
               idle={!focused && query.length === 0}
               staticText={PLACEHOLDER}
-              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 truncate pr-4 text-sm text-brand-dark-base/45"
+              className="pointer-events-none absolute left-10 right-0 top-1/2 -translate-y-1/2 truncate pr-4 text-sm text-brand-dark-base/45"
             />
           )}
         </div>
@@ -96,7 +107,7 @@ export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }
           type="submit"
           // Copper, not teal. This box sits inside the banner header, which is now
           // brand teal — a teal button on a teal band is an invisible control.
-          className="tap-target focus-ring-inverse rounded-xl bg-brand-copper px-6 text-sm font-semibold text-white hover:bg-brand-copper-hover"
+          className="tap-target focus-ring-inverse rounded-xl bg-brand-copper px-6 text-sm font-semibold text-white shadow-sm hover:bg-brand-copper-hover"
         >
           Search
         </button>

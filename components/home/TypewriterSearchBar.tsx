@@ -186,7 +186,7 @@ export function TypewriterSearchBar() {
               phrases={GENERAL_SEARCH_PHRASES}
               idle={idle}
               staticText={STATIC_PLACEHOLDER}
-              className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 truncate pr-2 text-sm text-brand-dark-base/45"
+              className="pointer-events-none absolute left-0 right-0 top-1/2 -translate-y-1/2 truncate pr-2 text-sm text-brand-dark-base/45"
             />
           )}
         </div>

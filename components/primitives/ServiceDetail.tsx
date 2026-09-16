@@ -54,7 +54,7 @@ export function ServiceDetail({ service }: { service: ClinicalService }) {
 
       <Section>
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
-          <div className="space-y-8 lg:col-span-2">
+          <div className="scroll-reveal space-y-8 lg:col-span-2">
             {doctors.length > 0 ? (
               <div>
                 <h2 className="mb-4 font-serif text-2xl font-bold text-brand-dark-base">
@@ -83,7 +83,7 @@ export function ServiceDetail({ service }: { service: ClinicalService }) {
             </AwaitingContent>
           </div>
 
-          <aside className="space-y-4">
+          <aside className="scroll-reveal space-y-4">
             <h2 className="font-serif text-lg font-bold text-brand-dark-base">
               Other {category.name.toLowerCase()}
             </h2>
@@ -92,7 +92,7 @@ export function ServiceDetail({ service }: { service: ClinicalService }) {
                 <li key={sibling.slug}>
                   <Link
                     href={serviceHref(sibling)}
-                    className="flex min-h-[44px] items-center rounded-lg px-3 text-sm text-brand-dark-base/75 transition-colors hover:bg-brand-mist hover:text-brand-teal"
+                    className="flex min-h-[44px] items-center rounded-lg px-3 text-sm text-brand-dark-base/75 transition-colors hover:bg-brand-mist hover:text-brand-teal active:bg-brand-mist active:text-brand-teal"
                   >
                     {sibling.name}
                   </Link>

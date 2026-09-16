@@ -57,7 +57,7 @@ export function CategoryIndex({
 
       <Section>
         {needle && (
-          <p className="mb-5 text-sm text-brand-dark-base/70">
+          <p className="scroll-reveal mb-5 text-sm text-brand-dark-base/70">
             {services.length === 0 ? (
               <>
                 Nothing under {definition.pageTitle.toLowerCase()} matches{' '}
@@ -76,7 +76,9 @@ export function CategoryIndex({
         )}
 
         {services.length > 0 ? (
-          <ServiceGrid services={services} />
+          <div className="scroll-reveal">
+            <ServiceGrid services={services} />
+          </div>
         ) : (
           /*
             "No results" has to offer a next step. A dead end on a hospital site is

@@ -19,11 +19,11 @@ export function ServiceArchitecture() {
     // dissolving into it. The colour change is the edge — no rule between bands.
     <div className="bg-brand-mist">
       <Section>
-        <div className="mb-8 max-w-2xl">
+        <div className="scroll-reveal mb-8 max-w-2xl">
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-copper-ink">
             What LIMS offers
           </p>
-          <h2 className="font-serif text-3xl font-bold tracking-tight text-brand-dark-base sm:text-4xl">
+          <h2 className="text-balance font-serif text-3xl font-bold tracking-tight text-brand-dark-base sm:text-4xl">
             {SERVICES.length} services on one campus
           </h2>
           <p className="mt-3 text-base leading-relaxed text-brand-dark-base/70">

@@ -25,11 +25,13 @@
 // position has no server-renderable equivalent. The beacon is still a CSS animation
 // and the drawer is still its own client leaf.
 
+/* eslint-disable @next/next/no-img-element */
+
 import { useEffect, useState } from 'react'
-import { BrandMark } from '@/components/layout/BrandMark'
+import Link from 'next/link'
 import { MobileMenu } from '@/components/layout/MobileMenu'
 import { PhoneIcon } from '@/components/icons'
-import { contact } from '@/lib/site-config'
+import { contact, siteConfig } from '@/lib/site-config'
 
 /** Scroll distance, in px, over which the header goes from resting to fully collapsed. */
 const COLLAPSE_RANGE = 70
@@ -75,18 +77,49 @@ export function MobileHeader() {
 
   return (
     <header
-      className="sticky top-0 z-50 flex items-center justify-between gap-2 bg-brand-teal px-4 lg:hidden"
+      className={[
+        'sticky top-0 z-50 flex items-center justify-between gap-2 px-4 lg:hidden',
+        // A translucent material, not an opaque strip — page content actually
+        // scrolls underneath this sticky bar, so it should read as a floating
+        // layer over that content the way the bottom-nav pill already does,
+        // rather than a fixed coloured band. Kept high-opacity (90%) rather than
+        // matching the bottom pill's lighter 75%: this bar carries the emergency
+        // control and the brand mark, which is exactly the "heavier material for
+        // structural chrome" case the Apple-design skill's materials section
+        // draws a line under. White, not teal — see the note on lims-header.webp
+        // below for why this bar switched grounds entirely.
+        'bg-white/90 backdrop-blur-xl',
+        '[@media(prefers-reduced-transparency:reduce)]:bg-white [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none',
+      ].join(' ')}
       style={{ height: `${height}px` }}
     >
       {/*
-        Transform-scale, not a smaller BrandMark size prop: `size="compact"` would
-        swap in different fixed artwork dimensions at a fixed breakpoint, not track a
-        continuous value, and `transform` is the one property here cheap enough to
-        recompute on every scroll frame without triggering layout.
+        Transform-scale, not a smaller image at a fixed breakpoint: `transform` is
+        the one property here cheap enough to recompute on every scroll frame
+        without triggering layout.
+
+        lims-header.webp is the icon + "LIMS" wordmark, cropped from the full
+        lockup with the institute-name subtitle removed — see the comment on it in
+        scripts/build_assets.py. It carries its own colour and shading, unlike the
+        old flat navy wordmark BrandMark's `tone="dark"` was built to avoid on a
+        dark ground, which is what lets this header show the real lockup instead
+        of falling back to the bare badge.
       */}
-      <div style={{ transform: `scale(${badgeScale})`, transformOrigin: 'left center' }}>
-        <BrandMark tone="badge" />
-      </div>
+      <Link
+        href="/"
+        aria-label={`${siteConfig.name}, ${siteConfig.city} — home`}
+        className="press shrink-0 rounded-lg"
+        style={{ transform: `scale(${badgeScale})`, transformOrigin: 'left center' }}
+      >
+        <img
+          src="/brand/lims-header.webp"
+          alt=""
+          aria-hidden="true"
+          width={640}
+          height={238}
+          className="block h-10 w-auto"
+        />
+      </Link>
 
       <div className="flex items-center gap-1">
         {/*

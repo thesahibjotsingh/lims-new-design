@@ -50,7 +50,7 @@ export default async function DoctorsPage({
       </PageHeader>
 
       <Section>
-        <p className="mb-5 text-sm text-brand-dark-base/65">
+        <p className="scroll-reveal mb-5 text-sm text-brand-dark-base/65">
           {query ? (
             <>
               {doctors.length} of {DOCTORS.length}{' '}

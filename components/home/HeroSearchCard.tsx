@@ -201,7 +201,7 @@ export function HeroSearchCard() {
                   Condition, speciality or doctor
                 </span>
               }
-              className="pointer-events-none absolute left-9 top-1/2 -translate-y-1/2 truncate pr-3 text-sm text-brand-dark-base/45"
+              className="pointer-events-none absolute left-9 right-0 top-1/2 -translate-y-1/2 truncate pr-3 text-sm text-brand-dark-base/45"
             />
           )}
         </div>

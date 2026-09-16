@@ -85,7 +85,11 @@ const config: Config = {
         },
       },
       boxShadow: {
-        glass: '0 20px 45px -20px rgba(11, 20, 22, 0.45)',
+        // Tinted toward the brand teal rather than generic black — every surface this
+        // sits under (the floating search card, the bottom-nav pill) already floats on
+        // teal or on a photograph, so a teal-tinted shadow reads as the surface's own
+        // cast shadow instead of a stock drop-shadow laid on top of it.
+        glass: '0 20px 45px -20px rgba(15, 91, 102, 0.4)',
       },
     },
   },

@@ -141,7 +141,10 @@ export function MobileMenu() {
         aria-expanded={open}
         aria-controls="mobile-menu-panel"
         aria-label="Open navigation menu"
-        className="tap-target focus-ring-inverse rounded-full text-white/90 hover:bg-white/10"
+        // Dark-on-white now, not white-on-teal — MobileHeader's bar is white, and
+        // the standard copper focus ring already reads fine there, so this drops
+        // `focus-ring-inverse` along with the colour.
+        className="tap-target rounded-full text-brand-teal hover:bg-brand-mist"
       >
         <MenuIcon className="h-6 w-6" />
       </button>
@@ -289,7 +292,7 @@ export function MobileMenu() {
                       phrases={GENERAL_SEARCH_PHRASES}
                       idle={!searchFocused && query.length === 0}
                       staticText={SEARCH_PLACEHOLDER}
-                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 truncate pr-3 text-base text-brand-dark-base/45"
+                      className="pointer-events-none absolute left-3 right-0 top-1/2 -translate-y-1/2 truncate pr-3 text-base text-brand-dark-base/45"
                     />
                   )}
                 </div>

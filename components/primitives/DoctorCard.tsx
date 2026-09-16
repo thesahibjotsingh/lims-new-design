@@ -257,7 +257,7 @@ export function DoctorPortraitCard({ doctor }: { doctor: Doctor }) {
             )}
             <Link
               href={`/doctors/${doctor.id}`}
-              className="inline-flex min-h-[24px] items-center gap-1 font-semibold text-brand-teal hover:underline"
+              className="press inline-flex min-h-[24px] items-center gap-1 font-semibold text-brand-teal hover:underline"
             >
               View profile
               {/* Four identical "View profile" links are indistinguishable read out of context. */}
@@ -280,7 +280,7 @@ export function DoctorPortraitCard({ doctor }: { doctor: Doctor }) {
 }
 
 /** "Dr. Shweta Godara" -> "SG". Salutations are dropped; they are not initials. */
-function initials(name: string): string {
+export function initials(name: string): string {
   return name
     .replace(/^(Dr|Prof|Mr|Ms|Mrs)\.?\s+/i, '')
     .split(/\s+/)

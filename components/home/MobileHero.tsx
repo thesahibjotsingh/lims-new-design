@@ -40,7 +40,7 @@ export function MobileHero() {
           />
 
           <div className="absolute inset-x-0 bottom-0 px-4 pb-9">
-            <h1 className="font-serif text-3xl font-bold leading-tight text-white">
+            <h1 className="font-serif text-3xl font-bold leading-tight tracking-tight text-white">
               World class care,
               <br />
               close to home.
@@ -64,7 +64,7 @@ export function MobileHero() {
             <li key={action.href}>
               <Link
                 href={action.href}
-                className="flex min-h-[96px] flex-col items-center justify-center gap-2 rounded-2xl border border-brand-teal/10 bg-brand-mist px-2 py-3 text-center transition-colors active:bg-brand-mist-subtle"
+                className="press flex min-h-[96px] flex-col items-center justify-center gap-2 rounded-2xl border border-brand-teal/10 bg-brand-mist px-2 py-3 text-center active:bg-brand-mist-subtle"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img

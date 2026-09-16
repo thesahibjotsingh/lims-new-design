@@ -148,7 +148,7 @@ export function HeaderSearch() {
             idle={expanded && query.length === 0}
             prefix={SEARCH_PREFIX}
             staticText={STATIC_PLACEHOLDER}
-            className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 truncate pr-14 text-sm text-brand-dark-base/45"
+            className="pointer-events-none absolute left-5 right-0 top-1/2 -translate-y-1/2 truncate pr-14 text-sm text-brand-dark-base/45"
           />
         )}
 

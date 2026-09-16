@@ -1,10 +1,16 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { AwaitingContent, PageHeader, Section } from '@/components/primitives/PageShell'
+import { ServiceGrid } from '@/components/primitives/ServiceGrid'
+import { getCategory, servicesByCategory } from '@/lib/services'
 
 export const metadata: Metadata = {
   title: 'Health check packages',
   description: 'Health check packages at LIMS Hisar.',
 }
+
+const diagnostics = servicesByCategory('diagnostics')
+const diagnosticsCategory = getCategory('diagnostics')
 
 /*
  * Deliberately empty of content.
@@ -29,6 +35,32 @@ export default function HealthPackagesPage() {
           indicative prices the hospital never quoted, this page waits for the real ones
           &mdash; please call to ask what is available.
         </AwaitingContent>
+
+        {/*
+          Not filler. A package is usually a bundle of individual tests, and those
+          individual tests already have real, published pages — this is a genuine
+          next step for someone who landed here, not a placeholder standing in for
+          the packages themselves.
+        */}
+        <div className="scroll-reveal mt-10">
+          <h2 className="font-serif text-xl font-bold text-brand-dark-base">
+            The tests themselves are already bookable
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-brand-dark-base/70">
+            While the bundled package list is still coming, {diagnostics.length}{' '}
+            individual diagnostics and imaging services are already published — book
+            one directly, or call to ask what a package would cover.
+          </p>
+          <div className="mt-5">
+            <ServiceGrid services={diagnostics} mobileLimit={3} />
+          </div>
+          <Link
+            href={diagnosticsCategory.basePath}
+            className="tap-target mt-4 inline-flex rounded-full border border-brand-teal/20 px-5 text-sm font-semibold text-brand-teal transition-colors hover:bg-brand-mist"
+          >
+            Browse all diagnostics &rarr;
+          </Link>
+        </div>
       </Section>
     </>
   )

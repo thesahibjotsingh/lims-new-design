@@ -79,7 +79,7 @@ export default async function AppointmentsPage({
           </div>
 
           <aside className="space-y-5 lg:col-span-2">
-            <div className="rounded-2xl border border-brand-emergency/20 bg-brand-emergency/5 p-6">
+            <div className="scroll-reveal rounded-2xl border border-brand-emergency/20 bg-brand-emergency/5 p-6">
               <h2 className="font-serif text-lg font-bold text-brand-dark-base">
                 In an emergency, do not use this form
               </h2>
@@ -97,7 +97,7 @@ export default async function AppointmentsPage({
               </a>
             </div>
 
-            <div className="rounded-2xl border border-brand-teal/10 bg-brand-mist/60 p-6">
+            <div className="scroll-reveal rounded-2xl border border-brand-teal/10 bg-brand-mist/60 p-6">
               <h2 className="font-serif text-lg font-bold text-brand-dark-base">
                 Where to come
               </h2>

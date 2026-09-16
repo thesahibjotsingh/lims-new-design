@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { AwaitingContent, PageHeader, Section } from '@/components/primitives/PageShell'
+import { DocumentIcon } from '@/components/icons'
 
 export const metadata: Metadata = {
   title: 'Patient portal',
@@ -17,7 +18,10 @@ export default function PortalPage() {
         intro="Access to diagnostic reports and visit records."
       />
       <Section>
-        <AwaitingContent what="The portal is not live yet">
+        <AwaitingContent
+          what="The portal is not live yet"
+          icon={<DocumentIcon className="h-6 w-6" />}
+        >
           Online access to reports is planned but not available. Reports are collected
           from the hospital or sent by the department that carried out the test.
         </AwaitingContent>

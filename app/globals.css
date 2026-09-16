@@ -257,4 +257,86 @@
   .tap-target:active {
     transform: scale(0.97);
   }
+
+  /*
+   * Press feedback for elements that already own their own display/layout
+   * (multi-line quick-action tiles, grid tiles) and so can't take
+   * .tap-target's bundled inline-flex/sizing rules. Same instant
+   * scale-down as .tap-target, decoupled from its sizing so both can be
+   * composed independently. Placed after `@tailwind utilities` in source
+   * order for the same reason documented on .tap-target above: this
+   * transition-property list has to be the one that wins.
+   */
+  .press {
+    transition-property: transform, box-shadow, border-color, background-color;
+    transition-duration: 160ms;
+    transition-timing-function: var(--ease-out);
+  }
+
+  .press:active {
+    transform: scale(0.97);
+  }
+
+  /*
+   * Section entrance, tied to the reader's own scroll position rather than a
+   * fixed timer — the native `animation-timeline: view()` primitive, so this
+   * costs no JavaScript and no IntersectionObserver. Gated behind
+   * `@supports`: a browser without it never sees the `opacity: 0` starting
+   * frame at all, so the element just stays at its normal, fully-visible
+   * resting state — the same fallback shape as the `details` progressive
+   * enhancement above, not a broken transition.
+   */
+  @supports (animation-timeline: view()) {
+    .scroll-reveal {
+      animation-name: scroll-reveal-in;
+      animation-duration: auto;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 25%;
+    }
+
+    @keyframes scroll-reveal-in {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-reveal {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+
+  /*
+   * Mount-in for a panel that appears conditionally — a form's success/error/
+   * unavailable state, none of which exist in the DOM one frame earlier the way
+   * .reveal-item's hide/show toggle does. `@starting-style` is what supplies a
+   * "before" frame for an element on the very render it first appears, which a
+   * plain CSS transition cannot do on its own (there is nothing to transition
+   * FROM if the element didn't exist a frame ago). Same mechanism as the
+   * suggestion dropdown above, applied to a mount instead of a display toggle.
+   */
+  .status-panel {
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+      opacity 300ms var(--ease-out),
+      transform 300ms var(--ease-out);
+  }
+
+  @starting-style {
+    .status-panel {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
 }

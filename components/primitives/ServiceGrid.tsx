@@ -31,7 +31,7 @@ export function ServiceGrid({
     <li key={service.slug}>
       <Link
         href={serviceHref(service)}
-        className="group flex min-h-[76px] items-center gap-3.5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm transition-all hover:border-brand-teal/25 hover:shadow-md"
+        className="press group flex min-h-[76px] items-center gap-3.5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm transition-all hover:border-brand-teal/25 hover:shadow-md"
       >
         <ServiceIcon slug={service.slug} size={44} />
 

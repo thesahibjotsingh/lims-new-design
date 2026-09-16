@@ -46,7 +46,7 @@ export function BrandMark({
       href="/"
       // The aria-label names the link, so every child below is decorative — that is why
       // the marks carry alt="" and the visible wordmark is not announced twice.
-      className={`group flex items-center rounded-lg ${badgeOnly ? '' : 'pr-2'} ${onDark ? 'gap-2.5' : 'gap-4'}`}
+      className={`press group flex items-center rounded-lg ${badgeOnly ? '' : 'pr-2'} ${onDark ? 'gap-2.5' : 'gap-4'}`}
       aria-label={`${siteConfig.name}, ${siteConfig.city} — home`}
     >
       {onDark ? (

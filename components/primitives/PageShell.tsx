@@ -157,7 +157,7 @@ export function PageHeader({
             )}
             <h1
               className={[
-                'font-serif text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl',
+                'text-balance font-serif text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl',
                 banner ? 'text-white' : 'text-brand-dark-base',
               ].join(' ')}
             >
@@ -214,12 +214,28 @@ export function Section({
 export function AwaitingContent({
   what,
   children,
+  icon,
 }: {
   what: string
   children?: ReactNode
+  /**
+   * Optional — every existing call site renders exactly as before without it. Apple's
+   * own empty states (Mail's "No Messages", Photos' "No Photos") anchor the same shape
+   * of message with a large glyph rather than text alone; this is that anchor, for the
+   * pages where a specific one actually fits the content that's missing.
+   */
+  icon?: ReactNode
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-brand-teal/25 bg-brand-mist/60 p-6">
+    <div className="scroll-reveal rounded-2xl border border-dashed border-brand-teal/25 bg-brand-mist/60 p-6">
+      {icon && (
+        <span
+          aria-hidden="true"
+          className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-white text-brand-teal shadow-sm"
+        >
+          {icon}
+        </span>
+      )}
       <h2 className="font-serif text-lg font-bold text-brand-dark-base">{what}</h2>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-brand-dark-base/70">
         {children ?? (
