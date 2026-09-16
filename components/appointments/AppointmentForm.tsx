@@ -15,7 +15,7 @@
 // into the client bundle.
 
 import { useState } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
 interface Option {
   value: string

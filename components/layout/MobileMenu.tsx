@@ -14,9 +14,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useLocale, useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
+import { usePathname } from '@/i18n/navigation'
 import { CloseIcon, MenuIcon, SearchIcon } from '@/components/icons'
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
 import {
   SuggestionList,
   useCloseOnOutside,
@@ -25,11 +27,17 @@ import {
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
 import { GENERAL_SEARCH_PHRASES } from '@/components/search/searchPhrases'
 import { contact, primaryNav, siteConfig } from '@/lib/site-config'
-
-const SEARCH_PLACEHOLDER = 'Search doctors, departments, pages'
+import { translatedNavLabel, translatedOverviewLabel, slugFromHref } from '@/lib/nav-i18n'
+import { translatedServiceName } from '@/lib/services-i18n'
+import type { Locale } from '@/i18n/routing'
 
 export function MobileMenu() {
   const pathname = usePathname()
+  const locale = useLocale() as Locale
+  const t = useTranslations('nav')
+  const tMenu = useTranslations('menu')
+  const tSearch = useTranslations('search')
+  const searchPlaceholder = tSearch('drawerPlaceholder')
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [searchFocused, setSearchFocused] = useState(false)
@@ -140,7 +148,7 @@ export function MobileMenu() {
         onClick={() => setOpen(true)}
         aria-expanded={open}
         aria-controls="mobile-menu-panel"
-        aria-label="Open navigation menu"
+        aria-label={tMenu('openLabel')}
         // Dark-on-white now, not white-on-teal — MobileHeader's bar is white, and
         // the standard copper focus ring already reads fine there, so this drops
         // `focus-ring-inverse` along with the colour.
@@ -239,7 +247,7 @@ export function MobileMenu() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Close navigation menu"
+                aria-label={tMenu('closeLabel')}
                 className="tap-target focus-ring-inverse h-11 w-11 rounded-full border border-white/40 text-white/90 transition-colors hover:bg-white/10"
               >
                 <CloseIcon className="h-5 w-5" strokeWidth={2} />
@@ -255,7 +263,7 @@ export function MobileMenu() {
             */}
             <div ref={searchRef} className="relative shrink-0 px-3 pb-1 pt-3">
               <label htmlFor="drawer-search" className="sr-only">
-                Search doctors, departments and pages
+                {searchPlaceholder}
               </label>
               <div className="flex items-center rounded-xl bg-white/95 shadow-sm focus-within:bg-white">
                 <SearchIcon
@@ -283,7 +291,7 @@ export function MobileMenu() {
                     // assistive tech and a reduced-motion reader get a stable,
                     // meaningful hint — the overlay below owns every state of the
                     // visible hint, so this one stays transparent.
-                    placeholder={SEARCH_PLACEHOLDER}
+                    placeholder={searchPlaceholder}
                     // 16px, or iOS Safari zooms the whole drawer when this is focused.
                     className="min-h-[44px] w-full bg-transparent px-3 text-base text-brand-dark-base outline-none placeholder:text-transparent"
                   />
@@ -291,7 +299,7 @@ export function MobileMenu() {
                     <TypewriterPlaceholder
                       phrases={GENERAL_SEARCH_PHRASES}
                       idle={!searchFocused && query.length === 0}
-                      staticText={SEARCH_PLACEHOLDER}
+                      staticText={searchPlaceholder}
                       className="pointer-events-none absolute left-3 right-0 top-1/2 -translate-y-1/2 truncate pr-3 text-base text-brand-dark-base/45"
                     />
                   )}
@@ -316,6 +324,15 @@ export function MobileMenu() {
               />
             </div>
 
+            {/*
+              Language, right under search — the other control someone opens
+              this drawer for specifically, not buried at the foot of a list
+              of unrelated department links.
+            */}
+            <div className="flex shrink-0 justify-center px-3 pb-2">
+              <LanguageSwitcher variant="dark" />
+            </div>
+
             <nav aria-label="All sections" className="flex-1 overflow-y-auto px-3 py-3">
               <ul className="space-y-1">
                 {primaryNav.map((item) =>
@@ -333,7 +350,7 @@ export function MobileMenu() {
                         */}
                         <summary className="tap-target focus-ring-inverse flex w-full cursor-pointer list-none px-4 text-sm font-semibold text-white [&::-webkit-details-marker]:hidden">
                           <span className="flex w-full items-center justify-between">
-                            {item.label}
+                            {translatedNavLabel(item, t)}
                             <span
                               aria-hidden="true"
                               className="text-white/70 transition-transform group-open:rotate-180"
@@ -349,7 +366,7 @@ export function MobileMenu() {
                                 href={child.href}
                                 className="flex min-h-[44px] items-center rounded-lg px-3 text-sm text-white/80 hover:bg-white/10"
                               >
-                                {child.label}
+                                {translatedServiceName(slugFromHref(child.href), locale)}
                               </Link>
                             </li>
                           ))}
@@ -359,7 +376,7 @@ export function MobileMenu() {
                                 href={item.href}
                                 className="flex min-h-[44px] items-center rounded-lg px-3 text-sm font-semibold text-brand-copper hover:bg-white/10"
                               >
-                                {item.overviewLabel} &rarr;
+                                {translatedOverviewLabel(item, t)} &rarr;
                               </Link>
                             </li>
                           )}
@@ -372,7 +389,7 @@ export function MobileMenu() {
                         href={item.href}
                         className="flex min-h-[44px] items-center rounded-xl border border-white/15 bg-white/[0.07] px-4 text-sm font-semibold text-white hover:bg-white/15"
                       >
-                        {item.label}
+                        {translatedNavLabel(item, t)}
                       </Link>
                     </li>
                   ),
@@ -391,13 +408,13 @@ export function MobileMenu() {
                 href={`tel:${contact.primary}`}
                 className="tap-target focus-ring-inverse w-full rounded-xl bg-brand-emergency px-4 text-sm font-bold text-white"
               >
-                Emergency &middot; {contact.primaryDisplay}
+                {tMenu('emergencyLine')} &middot; {contact.primaryDisplay}
               </a>
               <a
                 href={`tel:${contact.secondary}`}
                 className="tap-target w-full rounded-xl border border-white/30 px-4 text-sm font-semibold text-white"
               >
-                Appointments &middot; {contact.secondaryDisplay}
+                {tMenu('appointmentsLine')} &middot; {contact.secondaryDisplay}
               </a>
             </div>
           </div>

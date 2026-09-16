@@ -4,7 +4,8 @@
 // hand-written footer link list is how a site ends up with a department in the footer
 // that was renamed six months ago and now 404s.
 
-import Link from 'next/link'
+import { getLocale, getTranslations } from 'next-intl/server'
+import { Link } from '@/i18n/navigation'
 import {
   centresNav,
   contact,
@@ -13,11 +14,18 @@ import {
   primaryLocation,
   siteConfig,
 } from '@/lib/site-config'
-import { getCategory } from '@/lib/services'
+import { getCategory, servicesByCategory } from '@/lib/services'
+import { translatedCategoryName, translatedServiceName } from '@/lib/services-i18n'
+import { translatedNavLabel, slugFromHref } from '@/lib/nav-i18n'
 import { PhoneIcon, PinIcon } from '@/components/icons'
+import type { Locale } from '@/i18n/routing'
 import type { NavItem } from '@/types'
 
-export function Footer() {
+export async function Footer() {
+  const locale = (await getLocale()) as Locale
+  const t = await getTranslations('nav')
+  const tFooter = await getTranslations('footer')
+
   return (
     <footer className="border-t border-white/10 bg-brand-dark-base text-white/80">
       <div className="mx-auto max-w-7xl px-6 py-14">
@@ -60,16 +68,25 @@ export function Footer() {
           </div>
 
           <FooterColumn
-            heading={getCategory('clinical').name}
+            heading={translatedCategoryName('clinical', locale)}
             items={centresNav}
             moreHref={getCategory('clinical').basePath}
-            moreLabel="All 15 departments"
+            moreLabel={tFooter('allDepartments', {
+              count: servicesByCategory('clinical').length,
+            })}
+            locale={locale}
           />
           <FooterColumn
-            heading={getCategory('diagnostics').name}
+            heading={translatedCategoryName('diagnostics', locale)}
             items={diagnosticsNav}
+            locale={locale}
           />
-          <FooterColumn heading="Patient services" items={patientServicesNav} />
+          <FooterColumn
+            heading={tFooter('patientServices')}
+            items={patientServicesNav}
+            locale={locale}
+            navT={t}
+          />
         </div>
 
         <div className="mt-12 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between">
@@ -96,16 +113,29 @@ export function Footer() {
   )
 }
 
+/**
+ * `navT`, when passed, means "these items are plain NavItems (no catalogue
+ * slug behind them) — resolve labels via lib/nav-i18n.ts's href map" (the
+ * patientServicesNav column). Without it, items are treated as real
+ * services and resolved via translatedServiceName from their slug
+ * (centresNav/diagnosticsNav) — the two are different data sources dressed
+ * as the same NavItem shape, so they need different resolvers, not one
+ * that guesses which it got.
+ */
 function FooterColumn({
   heading,
   items,
   moreHref,
   moreLabel,
+  locale,
+  navT,
 }: {
   heading: string
   items: NavItem[]
   moreHref?: string
   moreLabel?: string
+  locale: Locale
+  navT?: (key: string) => string
 }) {
   return (
     <div>
@@ -117,7 +147,7 @@ function FooterColumn({
               href={item.href}
               className="flex min-h-[44px] items-center text-white/55 transition-colors hover:text-brand-copper"
             >
-              {item.label}
+              {navT ? translatedNavLabel(item, navT) : translatedServiceName(slugFromHref(item.href), locale)}
             </Link>
           </li>
         ))}

@@ -10,8 +10,8 @@
 // lives in the leaf that needs it, not in a client wrapper around the whole chrome.
 
 import { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { Link } from '@/i18n/navigation'
+import { usePathname, useRouter } from '@/i18n/navigation'
 import { isActiveHref } from '@/lib/is-active'
 import { ChevronDownIcon, HomeIcon, SearchIcon } from '@/components/icons'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'

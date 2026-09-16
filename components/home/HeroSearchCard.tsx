@@ -14,7 +14,7 @@
 // clears 4.5:1 no matter which part of the photograph ends up behind it.
 
 import { useCallback, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { SearchIcon } from '@/components/icons'
 import {
   SuggestionList,

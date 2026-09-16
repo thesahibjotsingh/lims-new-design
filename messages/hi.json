@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "translationNotice": "इस पृष्ठ का स्वचालित अनुवाद किया गया है और अभी तक LIMS द्वारा इसकी समीक्षा नहीं की गई है। सटीक चिकित्सा जानकारी के लिए कृपया यह पृष्ठ अंग्रेज़ी में देखें या अस्पताल को कॉल करें।",
+    "viewInEnglish": "अंग्रेज़ी में देखें",
+    "dismiss": "बंद करें"
+  },
+  "languageSwitcher": {
+    "label": "भाषा",
+    "en": "English",
+    "hi": "हिंदी",
+    "pa": "ਪੰਜਾਬੀ"
+  },
+  "nav": {
+    "home": "होम",
+    "specialities": "विशेषज्ञताएं",
+    "findADoctor": "डॉक्टर खोजें",
+    "services": "सेवाएं",
+    "healthPackages": "स्वास्थ्य पैकेज",
+    "patientCare": "रोगी देखभाल",
+    "healthLibrary": "स्वास्थ्य पुस्तकालय",
+    "aboutLims": "LIMS के बारे में",
+    "contactUs": "संपर्क करें",
+    "allSpecialities": "सभी विशेषज्ञताएं",
+    "allDiagnostics": "सभी डायग्नोस्टिक्स और इमेजिंग",
+    "allPatientServices": "सभी रोगी सेवाएं",
+    "locationsDirections": "स्थान और दिशा-निर्देश",
+    "bookAppointment": "अपॉइंटमेंट बुक करें",
+    "insuranceBilling": "बीमा और बिलिंग",
+    "visitorInformation": "आगंतुक जानकारी",
+    "patientPortal": "रोगी पोर्टल"
+  },
+  "bottomNav": {
+    "home": "होम",
+    "doctors": "डॉक्टर",
+    "departments": "विभाग",
+    "book": "बुक करें"
+  },
+  "search": {
+    "placeholder": "डॉक्टर, विभाग या जांच खोजें",
+    "drawerPlaceholder": "डॉक्टर, विभाग, पेज खोजें",
+    "doctorPlaceholder": "नाम, विशेषज्ञता या विभाग",
+    "searchButton": "खोजें",
+    "searchDoctors": "डॉक्टर खोजें",
+    "consultantRosterLabel": "परामर्शदाता सूची खोजें",
+    "recentSearches": "आपकी हाल की खोजों के आधार पर",
+    "popularDepartments": "लोकप्रिय विभाग",
+    "aDoctor": "डॉक्टर",
+    "aDepartment": "विभाग",
+    "findCareHeading": "LIMS में देखभाल खोजें",
+    "conditionLabel": "स्थिति, विशेषज्ञता या डॉक्टर का नाम",
+    "searchLims": "LIMS खोजें"
+  },
+  "menu": {
+    "openLabel": "नेविगेशन मेनू खोलें",
+    "closeLabel": "नेविगेशन मेनू बंद करें",
+    "emergencyLine": "आपातकाल",
+    "appointmentsLine": "अपॉइंटमेंट"
+  },
+  "emergency": {
+    "callLine": "आपातकालीन लाइन पर कॉल करें, {number}"
+  },
+  "footer": {
+    "allDepartments": "सभी {count} विभाग",
+    "patientServices": "रोगी सेवाएं"
+  },
+  "home": {
+    "heroTitleLine1": "विश्व स्तरीय देखभाल,",
+    "heroTitleLine2": "आपके घर के पास।",
+    "description": "जिंदल चौक, हिसार, हरियाणा में मल्टी-स्पेशियलिटी अस्पताल — आपातकालीन देखभाल, सर्जरी, ऑर्थोपेडिक्स, प्रसूति एवं स्त्री रोग, साथ ही उसी परिसर में डायग्नोस्टिक्स, इमेजिंग और पैथोलॉजी।",
+    "bookAppointment": "अपॉइंटमेंट बुक करें",
+    "findADoctor": "डॉक्टर खोजें",
+    "healthPackages": "स्वास्थ्य पैकेज",
+    "bookAnAppointment": "अपॉइंटमेंट बुक करें",
+    "emergencyCall": "आपातकाल: {number}",
+    "whatLimsOffers": "LIMS क्या प्रदान करता है",
+    "servicesHeading": "एक ही परिसर में {count} सेवाएं",
+    "servicesIntro": "इन्हें इस आधार पर समूहीकृत किया गया है कि आप इन तक कैसे पहुँचते हैं: वे विभाग जहाँ आप परामर्श लेते हैं या भर्ती होते हैं, वे जांच और स्कैन जिनके लिए आपको भेजा जाता है, और वे सेवाएं जो आपके उपचार के साथ चलती हैं।",
+    "viewAll": "सभी देखें",
+    "meetConsultants": "हमारे परामर्शदाताओं से मिलें",
+    "doctorsAtLims": "LIMS के डॉक्टर",
+    "viewFullRoster": "पूरी सूची देखें",
+    "rosterNote": "परामर्शदाता प्रोफ़ाइल वैसे ही प्रकाशित की जाती हैं जैसे LIMS उन्हें उपलब्ध कराता है। यदि यहाँ कोई विभाग सूचीबद्ध नहीं है, तो कृपया अस्पताल से संपर्क करें।",
+    "contactTheHospital": "अस्पताल से संपर्क करें",
+    "everythingElse": "बाकी सब कुछ",
+    "restOfSite": "साइट के बाकी हिस्से",
+    "restOfSiteIntro": "विभाग, डायग्नोस्टिक्स, रोगी सेवाएं और परामर्शदाता सूची ऊपर दी गई हैं। ये मुख्य मेनू के शेष भाग हैं।"
+  }
+}

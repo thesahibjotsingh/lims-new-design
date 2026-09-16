@@ -1,22 +1,18 @@
-// Plain next/link, deliberately not the locale-aware one from @/i18n/navigation.
-// This file renders with no matched [locale] segment at all — an entirely
-// unrecognised locale prefix (/fr/anything), the one case next-intl's own
-// routing can't resolve — so there is no locale in scope for that Link to read.
-// app/[locale]/not-found.tsx is the 404 every real 404 inside a valid locale
-// hits instead, and it uses the locale-aware Link correctly.
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { PageHeader, Section } from '@/components/primitives/PageShell'
 import { contact } from '@/lib/site-config'
 import { SERVICE_CATEGORIES } from '@/lib/services'
 
 /*
- * A 404 with somewhere to go.
+ * A 404 with somewhere to go — the locale-aware version of app/not-found.tsx.
  *
- * Someone landing here was looking for a department, a doctor or a phone number, so the
- * page offers all three rather than an apology. The phone number matters most: a dead
- * end on a hospital site is where a patient stops looking for care.
+ * This is the 404 that actually fires for almost every real dead link: a
+ * mistyped or stale URL under a valid locale segment (/doctors/old-slug,
+ * /hi/services/old-slug). Root app/not-found.tsx only fires for a locale
+ * segment next-intl can't resolve at all, which is why it can't share this
+ * file — it has no locale in scope for the Link below to read.
  */
-export default function NotFound() {
+export default function LocaleNotFound() {
   return (
     <>
       <PageHeader

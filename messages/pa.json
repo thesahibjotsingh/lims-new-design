@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "translationNotice": "ਇਸ ਪੰਨੇ ਦਾ ਸਵੈਚਾਲਿਤ ਅਨੁਵਾਦ ਕੀਤਾ ਗਿਆ ਹੈ ਅਤੇ ਅਜੇ ਤੱਕ LIMS ਦੁਆਰਾ ਇਸਦੀ ਸਮੀਖਿਆ ਨਹੀਂ ਕੀਤੀ ਗਈ। ਸਹੀ ਡਾਕਟਰੀ ਜਾਣਕਾਰੀ ਲਈ ਕਿਰਪਾ ਕਰਕੇ ਇਹ ਪੰਨਾ ਅੰਗਰੇਜ਼ੀ ਵਿੱਚ ਵੇਖੋ ਜਾਂ ਹਸਪਤਾਲ ਨੂੰ ਕਾਲ ਕਰੋ।",
+    "viewInEnglish": "ਅੰਗਰੇਜ਼ੀ ਵਿੱਚ ਵੇਖੋ",
+    "dismiss": "ਬੰਦ ਕਰੋ"
+  },
+  "languageSwitcher": {
+    "label": "ਭਾਸ਼ਾ",
+    "en": "English",
+    "hi": "हिंदी",
+    "pa": "ਪੰਜਾਬੀ"
+  },
+  "nav": {
+    "home": "ਹੋਮ",
+    "specialities": "ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ",
+    "findADoctor": "ਡਾਕਟਰ ਲੱਭੋ",
+    "services": "ਸੇਵਾਵਾਂ",
+    "healthPackages": "ਸਿਹਤ ਪੈਕੇਜ",
+    "patientCare": "ਮਰੀਜ਼ ਦੇਖਭਾਲ",
+    "healthLibrary": "ਸਿਹਤ ਲਾਇਬ੍ਰੇਰੀ",
+    "aboutLims": "LIMS ਬਾਰੇ",
+    "contactUs": "ਸਾਡੇ ਨਾਲ ਸੰਪਰਕ ਕਰੋ",
+    "allSpecialities": "ਸਾਰੀਆਂ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ",
+    "allDiagnostics": "ਸਾਰੇ ਡਾਇਗਨੌਸਟਿਕਸ ਅਤੇ ਇਮੇਜਿੰਗ",
+    "allPatientServices": "ਸਾਰੀਆਂ ਮਰੀਜ਼ ਸੇਵਾਵਾਂ",
+    "locationsDirections": "ਟਿਕਾਣੇ ਅਤੇ ਦਿਸ਼ਾ-ਨਿਰਦੇਸ਼",
+    "bookAppointment": "ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰੋ",
+    "insuranceBilling": "ਬੀਮਾ ਅਤੇ ਬਿਲਿੰਗ",
+    "visitorInformation": "ਮੁਲਾਕਾਤੀ ਜਾਣਕਾਰੀ",
+    "patientPortal": "ਮਰੀਜ਼ ਪੋਰਟਲ"
+  },
+  "bottomNav": {
+    "home": "ਹੋਮ",
+    "doctors": "ਡਾਕਟਰ",
+    "departments": "ਵਿਭਾਗ",
+    "book": "ਬੁੱਕ ਕਰੋ"
+  },
+  "search": {
+    "placeholder": "ਡਾਕਟਰ, ਵਿਭਾਗ ਜਾਂ ਟੈਸਟ ਖੋਜੋ",
+    "drawerPlaceholder": "ਡਾਕਟਰ, ਵਿਭਾਗ, ਪੰਨੇ ਖੋਜੋ",
+    "doctorPlaceholder": "ਨਾਮ, ਵਿਸ਼ੇਸ਼ਤਾ ਜਾਂ ਵਿਭਾਗ",
+    "searchButton": "ਖੋਜੋ",
+    "searchDoctors": "ਡਾਕਟਰ ਖੋਜੋ",
+    "consultantRosterLabel": "ਸਲਾਹਕਾਰ ਸੂਚੀ ਖੋਜੋ",
+    "recentSearches": "ਤੁਹਾਡੀਆਂ ਹਾਲੀਆ ਖੋਜਾਂ ਦੇ ਆਧਾਰ 'ਤੇ",
+    "popularDepartments": "ਪ੍ਰਸਿੱਧ ਵਿਭਾਗ",
+    "aDoctor": "ਡਾਕਟਰ",
+    "aDepartment": "ਵਿਭਾਗ",
+    "findCareHeading": "LIMS ਵਿੱਚ ਦੇਖਭਾਲ ਲੱਭੋ",
+    "conditionLabel": "ਸਥਿਤੀ, ਵਿਸ਼ੇਸ਼ਤਾ ਜਾਂ ਡਾਕਟਰ ਦਾ ਨਾਮ",
+    "searchLims": "LIMS ਖੋਜੋ"
+  },
+  "menu": {
+    "openLabel": "ਨੈਵੀਗੇਸ਼ਨ ਮੀਨੂ ਖੋਲ੍ਹੋ",
+    "closeLabel": "ਨੈਵੀਗੇਸ਼ਨ ਮੀਨੂ ਬੰਦ ਕਰੋ",
+    "emergencyLine": "ਐਮਰਜੈਂਸੀ",
+    "appointmentsLine": "ਮੁਲਾਕਾਤਾਂ"
+  },
+  "emergency": {
+    "callLine": "ਐਮਰਜੈਂਸੀ ਲਾਈਨ 'ਤੇ ਕਾਲ ਕਰੋ, {number}"
+  },
+  "footer": {
+    "allDepartments": "ਸਾਰੇ {count} ਵਿਭਾਗ",
+    "patientServices": "ਮਰੀਜ਼ ਸੇਵਾਵਾਂ"
+  },
+  "home": {
+    "heroTitleLine1": "ਵਿਸ਼ਵ ਪੱਧਰੀ ਦੇਖਭਾਲ,",
+    "heroTitleLine2": "ਤੁਹਾਡੇ ਘਰ ਦੇ ਨੇੜੇ।",
+    "description": "ਜਿੰਦਲ ਚੌਕ, ਹਿਸਾਰ, ਹਰਿਆਣਾ ਵਿੱਚ ਮਲਟੀ-ਸਪੈਸ਼ਲਿਟੀ ਹਸਪਤਾਲ — ਐਮਰਜੈਂਸੀ ਦੇਖਭਾਲ, ਸਰਜਰੀ, ਆਰਥੋਪੀਡਿਕਸ, ਪ੍ਰਸੂਤੀ ਅਤੇ ਇਸਤਰੀ ਰੋਗ, ਨਾਲ ਹੀ ਉਸੇ ਕੈਂਪਸ ਵਿੱਚ ਡਾਇਗਨੌਸਟਿਕਸ, ਇਮੇਜਿੰਗ ਅਤੇ ਪੈਥੋਲੋਜੀ।",
+    "bookAppointment": "ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰੋ",
+    "findADoctor": "ਡਾਕਟਰ ਲੱਭੋ",
+    "healthPackages": "ਸਿਹਤ ਪੈਕੇਜ",
+    "bookAnAppointment": "ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰੋ",
+    "emergencyCall": "ਐਮਰਜੈਂਸੀ: {number}",
+    "whatLimsOffers": "LIMS ਕੀ ਪੇਸ਼ਕਸ਼ ਕਰਦਾ ਹੈ",
+    "servicesHeading": "ਇੱਕੋ ਕੈਂਪਸ ਵਿੱਚ {count} ਸੇਵਾਵਾਂ",
+    "servicesIntro": "ਇਹਨਾਂ ਨੂੰ ਇਸ ਆਧਾਰ 'ਤੇ ਸਮੂਹਬੱਧ ਕੀਤਾ ਗਿਆ ਹੈ ਕਿ ਤੁਸੀਂ ਇਹਨਾਂ ਤੱਕ ਕਿਵੇਂ ਪਹੁੰਚਦੇ ਹੋ: ਉਹ ਵਿਭਾਗ ਜਿੱਥੇ ਤੁਸੀਂ ਸਲਾਹ ਲੈਂਦੇ ਹੋ ਜਾਂ ਦਾਖਲ ਹੁੰਦੇ ਹੋ, ਉਹ ਟੈਸਟ ਅਤੇ ਸਕੈਨ ਜਿਨ੍ਹਾਂ ਲਈ ਤੁਹਾਨੂੰ ਭੇਜਿਆ ਜਾਂਦਾ ਹੈ, ਅਤੇ ਉਹ ਸੇਵਾਵਾਂ ਜੋ ਤੁਹਾਡੇ ਇਲਾਜ ਨਾਲ ਚੱਲਦੀਆਂ ਹਨ।",
+    "viewAll": "ਸਾਰੇ ਵੇਖੋ",
+    "meetConsultants": "ਸਾਡੇ ਸਲਾਹਕਾਰਾਂ ਨੂੰ ਮਿਲੋ",
+    "doctorsAtLims": "LIMS ਦੇ ਡਾਕਟਰ",
+    "viewFullRoster": "ਪੂਰੀ ਸੂਚੀ ਵੇਖੋ",
+    "rosterNote": "ਸਲਾਹਕਾਰ ਪ੍ਰੋਫਾਈਲਾਂ ਉਸੇ ਤਰ੍ਹਾਂ ਪ੍ਰਕਾਸ਼ਿਤ ਕੀਤੀਆਂ ਜਾਂਦੀਆਂ ਹਨ ਜਿਵੇਂ LIMS ਇਹਨਾਂ ਨੂੰ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ। ਜੇ ਇੱਥੇ ਕੋਈ ਵਿਭਾਗ ਸੂਚੀਬੱਧ ਨਹੀਂ ਹੈ, ਤਾਂ ਕਿਰਪਾ ਕਰਕੇ ਹਸਪਤਾਲ ਨਾਲ ਸੰਪਰਕ ਕਰੋ।",
+    "contactTheHospital": "ਹਸਪਤਾਲ ਨਾਲ ਸੰਪਰਕ ਕਰੋ",
+    "everythingElse": "ਬਾਕੀ ਸਭ ਕੁਝ",
+    "restOfSite": "ਸਾਈਟ ਦਾ ਬਾਕੀ ਹਿੱਸਾ",
+    "restOfSiteIntro": "ਵਿਭਾਗ, ਡਾਇਗਨੌਸਟਿਕਸ, ਮਰੀਜ਼ ਸੇਵਾਵਾਂ ਅਤੇ ਸਲਾਹਕਾਰ ਸੂਚੀ ਉੱਪਰ ਹਨ। ਇਹ ਮੁੱਖ ਮੀਨੂ ਦੇ ਬਾਕੀ ਭਾਗ ਹਨ।"
+  }
+}

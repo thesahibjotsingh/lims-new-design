@@ -15,7 +15,7 @@
 //
 // Server component. The one interactive part is HeroSearchCard, a client leaf.
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { HeroSearchCard } from '@/components/home/HeroSearchCard'
 import { ArrowRightIcon, PhoneIcon } from '@/components/icons'
 import { heroBanner } from '@/lib/media'

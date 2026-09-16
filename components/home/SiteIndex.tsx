@@ -18,7 +18,7 @@
 // like a live section and lands on a placeholder wastes the visitor's tap; one that
 // says "not published yet" lets them skip it and call instead.
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { ArrowRightIcon } from '@/components/icons'
 import { RevealMore } from '@/components/primitives/RevealMore'
 import { Section } from '@/components/primitives/PageShell'

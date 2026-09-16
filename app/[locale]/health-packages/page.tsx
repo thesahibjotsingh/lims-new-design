@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { AwaitingContent, PageHeader, Section } from '@/components/primitives/PageShell'
 import { ServiceGrid } from '@/components/primitives/ServiceGrid'
 import { getCategory, servicesByCategory } from '@/lib/services'

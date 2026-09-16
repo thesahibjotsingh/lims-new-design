@@ -7,7 +7,7 @@
 // one is a department you are referred to, the other is a test you are sent for. The
 // grouping is the navigation. See the note at the top of lib/services.ts.
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { SERVICE_CATEGORIES, SERVICES, servicesByCategory } from '@/lib/services'
 import { ServiceGrid } from '@/components/primitives/ServiceGrid'
 import { Section } from '@/components/primitives/PageShell'

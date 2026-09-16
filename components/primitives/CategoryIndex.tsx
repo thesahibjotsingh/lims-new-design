@@ -7,7 +7,7 @@
 // Filtering matches `alsoKnownAs` as well as the name: someone who typed "Orthopedics"
 // from their referral slip should find "Ortho & Joint Replacement".
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { getCategory, servicesByCategory } from '@/lib/services'
 import { ServiceGrid } from '@/components/primitives/ServiceGrid'
 import { PageHeader, Section } from '@/components/primitives/PageShell'

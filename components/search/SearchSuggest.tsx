@@ -16,7 +16,7 @@
 // a faster route to a specific destination.
 
 import { useEffect, useId, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { SearchIcon } from '@/components/icons'
 import { suggestSearch } from '@/lib/search'
 import type { SearchSuggestion, SuggestionKind } from '@/lib/search'

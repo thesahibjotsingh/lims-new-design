@@ -16,7 +16,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal, flushSync } from 'react-dom'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { CloseIcon, SearchIcon } from '@/components/icons'
 import {
   SuggestionList,

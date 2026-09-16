@@ -10,21 +10,26 @@
 // indicator on a notched device. The layout reserves matching space at the foot of
 // <main>, so the pill never covers the last paragraph of a page.
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
+import { usePathname } from '@/i18n/navigation'
 import { isActiveHref } from '@/lib/is-active'
 import { CalendarIcon, GridIcon, HomeIcon, StethoscopeIcon } from '@/components/icons'
 import { SearchSheet } from '@/components/layout/SearchSheet'
 
+// `labelKey` into messages/*.json's `bottomNav` namespace, not the literal
+// label — this array is module scope, outside the component, so it can't
+// call the translation hook itself.
 const TABS = [
-  { label: 'Home', href: '/', Icon: HomeIcon },
-  { label: 'Doctors', href: '/doctors', Icon: StethoscopeIcon },
-  { label: 'Departments', href: '/specialities', Icon: GridIcon },
-  { label: 'Book', href: '/appointments', Icon: CalendarIcon, accent: true },
+  { labelKey: 'home', href: '/', Icon: HomeIcon },
+  { labelKey: 'doctors', href: '/doctors', Icon: StethoscopeIcon },
+  { labelKey: 'departments', href: '/specialities', Icon: GridIcon },
+  { labelKey: 'book', href: '/appointments', Icon: CalendarIcon, accent: true },
 ] as const
 
 export function MobileBottomNav() {
   const pathname = usePathname()
+  const t = useTranslations('bottomNav')
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center gap-2.5 pb-[env(safe-area-inset-bottom)] lg:hidden">
@@ -42,7 +47,7 @@ export function MobileBottomNav() {
         aria-label="Quick navigation"
         className="pointer-events-auto mb-4 flex w-full max-w-[19rem] items-center justify-around rounded-full border border-white/40 bg-white/75 px-2 py-1.5 shadow-glass backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-white/95 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
       >
-        {TABS.map(({ label, href, Icon, ...rest }) => {
+        {TABS.map(({ labelKey, href, Icon, ...rest }) => {
           const accent = 'accent' in rest && rest.accent
           const active = isActiveHref(pathname, href)
 
@@ -70,7 +75,7 @@ export function MobileBottomNav() {
               ) : (
                 <Icon className="h-5 w-5" strokeWidth={active ? 2.25 : 1.75} />
               )}
-              <span>{label}</span>
+              <span>{t(labelKey)}</span>
               {/*
                 Active state is icon weight + colour + an underline, not colour
                 alone. A colour-blind user gets the underline and the heavier

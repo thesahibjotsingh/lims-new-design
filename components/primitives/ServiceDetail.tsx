@@ -8,7 +8,7 @@
 // and they come from LIMS or they do not exist. Where they are missing the page says
 // so and offers the phone, which is a page a patient can act on.
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { getCategory, serviceHref, servicesByCategory } from '@/lib/services'
 import { getDoctorsByDepartment } from '@/lib/doctors'
 import { DoctorCard } from '@/components/primitives/DoctorCard'

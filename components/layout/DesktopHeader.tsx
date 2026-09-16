@@ -11,14 +11,20 @@
 // Server component. The only interactivity — the dropdowns and the doctor search — is
 // pushed into PrimaryNavBar, so none of this markup ships as JavaScript.
 
-import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
+import { Link } from '@/i18n/navigation'
 import { BrandMark } from '@/components/layout/BrandMark'
 import { PrimaryNavBar } from '@/components/layout/PrimaryNavBar'
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
 import { CalendarIcon } from '@/components/icons'
 import { HeaderSearch } from '@/components/layout/HeaderSearch'
 import { contact, primaryNav } from '@/lib/site-config'
 
-export function DesktopHeader() {
+export async function DesktopHeader() {
+  const tMenu = await getTranslations('menu')
+  const tEmergency = await getTranslations('emergency')
+  const tNav = await getTranslations('nav')
+
   return (
     <header className="sticky top-0 z-50 hidden w-full lg:block">
       {/* Tier 1 — branding, contact, appointment CTA */}
@@ -69,7 +75,8 @@ export function DesktopHeader() {
               confirms, the number itself is verbatim.
             */}
             <ContactLine
-              label="Emergency"
+              label={tMenu('emergencyLine')}
+              ariaLabel={tEmergency('callLine', { number: contact.primaryDisplay })}
               href={`tel:${contact.primary}`}
               display={contact.primaryDisplay}
             />
@@ -79,8 +86,19 @@ export function DesktopHeader() {
               className="tap-target focus-ring-inverse gap-2 rounded-full bg-brand-copper px-6 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-copper-hover"
             >
               <CalendarIcon className="h-4 w-4" />
-              Book Appointment
+              {tNav('bookAppointment')}
             </Link>
+
+            {/*
+              A visible border, not just a gap — three prior controls (search,
+              emergency, book) all read as "one thing to do", and language is
+              a different kind of choice. The rule is what says "these are two
+              groups", the way the drawer's own language row is spaced away
+              from the nav list below it for the same reason.
+            */}
+            <div className="border-l border-brand-teal/10 pl-6">
+              <LanguageSwitcher />
+            </div>
           </div>
         </div>
       </div>
@@ -102,19 +120,17 @@ export function DesktopHeader() {
  */
 function ContactLine({
   label,
+  ariaLabel,
   href,
   display,
 }: {
   label: string
+  ariaLabel: string
   href: string
   display: string
 }) {
   return (
-    <a
-      href={href}
-      className="group flex items-center gap-3"
-      aria-label={`Call the ${label.toLowerCase()} line, ${display}`}
-    >
+    <a href={href} className="group flex items-center gap-3" aria-label={ariaLabel}>
       {/*
         The siren artwork is a finished red disc in its own right, so it is placed
         directly — wrapping it in another coloured circle would double the disc.

@@ -1,0 +1,88 @@
+{
+  "meta": {
+    "translationNotice": "This page has been translated automatically and has not yet been reviewed by LIMS. For precise medical information, please view this page in English or call the hospital.",
+    "viewInEnglish": "View in English",
+    "dismiss": "Dismiss"
+  },
+  "languageSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "hi": "हिंदी",
+    "pa": "ਪੰਜਾਬੀ"
+  },
+  "nav": {
+    "home": "Home",
+    "specialities": "Specialities",
+    "findADoctor": "Find a doctor",
+    "services": "Services",
+    "healthPackages": "Health packages",
+    "patientCare": "Patient care",
+    "healthLibrary": "Health library",
+    "aboutLims": "About LIMS",
+    "contactUs": "Contact Us",
+    "allSpecialities": "All specialities",
+    "allDiagnostics": "All diagnostics & imaging",
+    "allPatientServices": "All patient services",
+    "locationsDirections": "Locations & directions",
+    "bookAppointment": "Book an appointment",
+    "insuranceBilling": "Insurance & billing",
+    "visitorInformation": "Visitor information",
+    "patientPortal": "Patient portal"
+  },
+  "bottomNav": {
+    "home": "Home",
+    "doctors": "Doctors",
+    "departments": "Departments",
+    "book": "Book"
+  },
+  "search": {
+    "placeholder": "Search doctors, departments or tests",
+    "drawerPlaceholder": "Search doctors, departments, pages",
+    "doctorPlaceholder": "Name, speciality or department",
+    "searchButton": "Search",
+    "searchDoctors": "Search doctors",
+    "consultantRosterLabel": "Search the consultant roster",
+    "recentSearches": "Based on your recent searches",
+    "popularDepartments": "Popular departments",
+    "aDoctor": "A doctor",
+    "aDepartment": "A department",
+    "findCareHeading": "Find care at LIMS",
+    "conditionLabel": "Condition, speciality or doctor name",
+    "searchLims": "Search LIMS"
+  },
+  "menu": {
+    "openLabel": "Open navigation menu",
+    "closeLabel": "Close navigation menu",
+    "emergencyLine": "Emergency",
+    "appointmentsLine": "Appointments"
+  },
+  "emergency": {
+    "callLine": "Call the emergency line, {number}"
+  },
+  "footer": {
+    "allDepartments": "All {count} departments",
+    "patientServices": "Patient services"
+  },
+  "home": {
+    "heroTitleLine1": "World class care,",
+    "heroTitleLine2": "close to home.",
+    "description": "Multi-speciality hospital at Jindal Chowk, Hisar, Haryana — emergency care, surgery, orthopaedics, obstetrics and gynaecology, with diagnostics, imaging and pathology on the same campus.",
+    "bookAppointment": "Book appointment",
+    "findADoctor": "Find a doctor",
+    "healthPackages": "Health packages",
+    "bookAnAppointment": "Book an appointment",
+    "emergencyCall": "Emergency: {number}",
+    "whatLimsOffers": "What LIMS offers",
+    "servicesHeading": "{count} services on one campus",
+    "servicesIntro": "Grouped by how you get to them: departments you consult or are admitted under, tests and scans you are referred for, and the services that run alongside your treatment.",
+    "viewAll": "View all",
+    "meetConsultants": "Meet our consultants",
+    "doctorsAtLims": "Doctors at LIMS",
+    "viewFullRoster": "View the full roster",
+    "rosterNote": "Consultant profiles are published as LIMS supplies them. For a department not listed here, please contact the hospital.",
+    "contactTheHospital": "contact the hospital",
+    "everythingElse": "Everything else",
+    "restOfSite": "The rest of the site",
+    "restOfSiteIntro": "Departments, diagnostics, patient services and the consultant roster are above. These are the remaining sections in the main menu."
+  }
+}

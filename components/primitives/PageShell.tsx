@@ -4,7 +4,7 @@
 // twenty-six service pages, the directory and the standing pages cannot drift apart in
 // spacing, measure or heading level.
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { HeroIntro } from '@/components/primitives/HeroIntro'
 import type { ReactNode } from 'react'
 

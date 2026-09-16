@@ -3,7 +3,7 @@
 // The named consultants LIMS has supplied. Four, at time of writing — and the section
 // says four rather than padding the row out to a tidy six with invented people.
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { DOCTORS } from '@/lib/doctors'
 import { DoctorPortraitCard } from '@/components/primitives/DoctorCard'
 import { Section } from '@/components/primitives/PageShell'

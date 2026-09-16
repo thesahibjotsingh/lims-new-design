@@ -23,7 +23,7 @@
 //  3. Desktop only. Below 1024px the banner is already compact.
 
 import { useEffect, useRef } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname } from '@/i18n/navigation'
 
 /** How long the banner holds at full size before it shrinks on its own. */
 const HOLD_MS = 3000

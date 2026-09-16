@@ -28,7 +28,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import { MobileMenu } from '@/components/layout/MobileMenu'
 import { PhoneIcon } from '@/components/icons'
 import { contact, siteConfig } from '@/lib/site-config'
@@ -37,6 +38,8 @@ import { contact, siteConfig } from '@/lib/site-config'
 const COLLAPSE_RANGE = 70
 
 export function MobileHeader() {
+  const t = useTranslations('menu')
+  const tEmergency = useTranslations('emergency')
   const [scrollY, setScrollY] = useState(0)
   const [reduceMotion, setReduceMotion] = useState(false)
 
@@ -136,7 +139,7 @@ export function MobileHeader() {
         */}
         <a
           href={`tel:${contact.primary}`}
-          aria-label={`Call the emergency line, ${contact.primaryDisplay}`}
+          aria-label={tEmergency('callLine', { number: contact.primaryDisplay })}
           className="tap-target focus-ring-inverse relative gap-2 rounded-full bg-brand-emergency px-3.5 text-xs font-bold text-white shadow-sm"
         >
           <span className="relative flex h-2.5 w-2.5 shrink-0">
@@ -154,7 +157,7 @@ export function MobileHeader() {
             className="overflow-hidden whitespace-nowrap"
             style={{ maxWidth: `${labelMaxWidth}px`, opacity: labelOpacity }}
           >
-            Emergency
+            {t('emergencyLine')}
           </span>
         </a>
 

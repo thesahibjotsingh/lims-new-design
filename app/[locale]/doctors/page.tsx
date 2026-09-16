@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { DOCTORS, searchDoctors } from '@/lib/doctors'
 import { DoctorPortraitCard } from '@/components/primitives/DoctorCard'
 import { DoctorSearchBox } from '@/components/doctors/DoctorSearchBox'

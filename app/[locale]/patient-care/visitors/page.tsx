@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { AwaitingContent, PageHeader, Section } from '@/components/primitives/PageShell'
 import { PhoneIcon, PinIcon } from '@/components/icons'
 import { contact, primaryLocation } from '@/lib/site-config'

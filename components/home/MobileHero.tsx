@@ -11,7 +11,7 @@
 // tiles are plain links, so they cost no JavaScript.
 
 import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { TypewriterSearchBar } from '@/components/home/TypewriterSearchBar'
 import { heroImageMobile } from '@/lib/media'
 import { mobileQuickActions, primaryLocation, siteConfig } from '@/lib/site-config'

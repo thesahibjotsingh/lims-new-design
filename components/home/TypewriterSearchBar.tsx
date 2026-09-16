@@ -37,7 +37,7 @@
 //     site where what somebody searched for is itself sensitive.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { SearchIcon } from '@/components/icons'
 import {
   SuggestionList,

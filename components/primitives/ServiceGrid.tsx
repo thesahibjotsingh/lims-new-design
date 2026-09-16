@@ -4,7 +4,7 @@
 // Every href resolves through serviceHref(), so a service that moves category moves its
 // tile and its URL together.
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { serviceHref } from '@/lib/services'
 import { ArrowRightIcon } from '@/components/icons'
 import { ServiceIcon } from '@/components/primitives/ServiceIcon'
