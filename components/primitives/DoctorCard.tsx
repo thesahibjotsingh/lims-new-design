@@ -19,7 +19,7 @@
 // designation, department, registration number. Optional fields render as absent
 // sections, never as placeholders. See the rules at the top of lib/doctors.ts.
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { registrationDisplay } from '@/lib/doctors'
 import { serviceHrefBySlug, serviceName } from '@/lib/services'
 import { ArrowRightIcon, ShieldIcon } from '@/components/icons'
@@ -42,7 +42,11 @@ export function DoctorCard({ doctor }: { doctor: Doctor }) {
           the same argument holds on a desktop grid, where four tall portraits in a row
           push the names and the appointment buttons below the fold. The shorter box
           crops to head and shoulders, which is the part that identifies someone, and
-          `object-top` guarantees the crop comes off the coat rather than the face.
+          `object-center`, not `object-top`: these portraits are supplied as a 4:5 crop
+          with the face roughly centred rather than pinned to the top edge, so anchoring
+          the visible window to the top of the source image showed ceiling and hallway
+          and cut the face off at the nose. Centring keeps the face in frame across every
+          photo LIMS has supplied so far.
         */
         <div className="relative aspect-[3/2] w-full overflow-hidden bg-brand-mist">
           {/*
@@ -58,7 +62,7 @@ export function DoctorCard({ doctor }: { doctor: Doctor }) {
             height={portrait.height}
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
+            className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]"
           />
         </div>
       )}
@@ -188,9 +192,10 @@ export function DoctorPortraitCard({ doctor }: { doctor: Doctor }) {
     // exists on desktop anyway, so the glow is desktop-only and mobile keeps the flat card.
     <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-lg ring-0 ring-brand-teal-light transition-[transform,box-shadow] duration-300 ease-out md:hover:shadow-[0_18px_48px_-8px_rgba(22,139,153,0.75)] md:hover:ring-2 md:motion-safe:hover:-translate-y-1 md:has-[:focus-visible]:shadow-[0_18px_48px_-8px_rgba(22,139,153,0.75)] md:has-[:focus-visible]:ring-2">
       {/*
-        3:2 with `object-top`, the same crop DoctorCard uses: head and shoulders, which is
-        the part that identifies someone, without four tall portraits pushing the names
-        and the button below the fold.
+        3:2 with `object-center`, the same crop DoctorCard uses: head and shoulders, which
+        is the part that identifies someone, without four tall portraits pushing the names
+        and the button below the fold. Centred rather than top-anchored because the source
+        photos have the face roughly centred in their 4:5 crop, not pinned to the top edge.
       */}
       <div className="relative aspect-[3/2] w-full overflow-hidden bg-brand-mist">
         {portrait ? (
@@ -202,7 +207,7 @@ export function DoctorPortraitCard({ doctor }: { doctor: Doctor }) {
             height={portrait.height}
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
+            className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]"
           />
         ) : (
           // No photograph supplied: large initials, never a stock face — see the top of
