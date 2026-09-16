@@ -134,33 +134,40 @@ BANNER_NAMES = {
 # The home hero's full-bleed art. It shares the Placeholders folder with the page
 # banners but is not one: a page banner is a 600px-tall strip sized to the header band,
 # while this covers an entire viewport-width section and needs its native resolution.
-HERO_BANNER_STEM = "hero-banner"
+#
+# Two stems, not one: the hero is a 2-slide rotation (see HeroSlideshow), and
+# hero-banner-2 is the second slide. Optional — if it isn't there, `build_hero_banner`
+# just skips it, same as every other optional slot in this script.
+HERO_BANNER_STEMS = ["hero-banner", "hero-banner-2"]
 HERO_BANNER_W = 1920
 
 
 def build_hero_banner() -> int:
-    """assets-source/Placeholders/hero-banner.png -> public/hero-banner.webp
+    """assets-source/Placeholders/hero-banner*.png -> public/hero-banner*.webp
 
-    Width-capped and never upscaled. The source is 1916px wide, so on anything up to a
-    1920px viewport this is effectively native; beyond that the browser scales it up,
+    Width-capped and never upscaled. The sources are ~1916px wide, so on anything up to
+    a 1920px viewport this is effectively native; beyond that the browser scales it up,
     which on a soft-focus photographic background is invisible and far cheaper than
     shipping a 4K image to every visitor.
     """
-    src = SRC / "Placeholders" / f"{HERO_BANNER_STEM}.png"
-    if not src.exists():
-        return 0
+    written = 0
+    for stem in HERO_BANNER_STEMS:
+        src = SRC / "Placeholders" / f"{stem}.png"
+        if not src.exists():
+            continue
 
-    im = Image.open(src).convert("RGB")
-    w, h = im.size
-    if w > HERO_BANNER_W:
-        im = im.resize((HERO_BANNER_W, round(h * HERO_BANNER_W / w)), Image.LANCZOS)
+        im = Image.open(src).convert("RGB")
+        w, h = im.size
+        if w > HERO_BANNER_W:
+            im = im.resize((HERO_BANNER_W, round(h * HERO_BANNER_W / w)), Image.LANCZOS)
 
-    out = PUB / "hero-banner.webp"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    # 78 rather than the icons' 82: this is the largest thing on the home page and sets
-    # the LCP, and the difference is not visible on a defocused background.
-    im.save(out, "WEBP", quality=78, method=6)
-    return out.stat().st_size
+        out = PUB / f"{stem}.webp"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        # 78 rather than the icons' 82: this is the largest thing on the home page and
+        # sets the LCP, and the difference is not visible on a defocused background.
+        im.save(out, "WEBP", quality=78, method=6)
+        written += out.stat().st_size
+    return written
 
 
 def build_banners() -> int:
@@ -178,7 +185,7 @@ def build_banners() -> int:
     unknown = []
 
     for src in sorted(folder.glob("*.png")):
-        if src.stem.lower() == HERO_BANNER_STEM:
+        if src.stem.lower() in HERO_BANNER_STEMS:
             continue  # full-bleed hero art, handled by build_hero_banner()
         name = BANNER_NAMES.get(src.stem.lower())
         if name is None:

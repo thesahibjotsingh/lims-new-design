@@ -28,6 +28,26 @@ export const heroBanner: ImageAsset = {
   height: 821,
 }
 
+/**
+ * The hero's second slide — a quote card built in Canva, text baked into the pixels
+ * rather than live HTML.
+ *
+ * That means alt text is the ONLY way a screen reader learns what this slide says, so
+ * it can't be empty like `heroBanner` above. It is deliberately narrower than what the
+ * image actually shows, though: the card's own copy credits "Senior Consultant" and
+ * lists Laparoscopic Surgery and Aesthetic & Cosmetic Gynaecology, neither of which
+ * lib/doctors.ts has on record for her (MS, Obstetrics & Gynaecology, no designation
+ * on file). This alt text repeats only what her verified record supports — get the
+ * card itself corrected or the designation confirmed before this alt text (or the
+ * image) claims more.
+ */
+export const heroBannerSecondary: ImageAsset = {
+  src: '/hero-banner-2.webp',
+  alt: "Dr. Shweta Godara, Obstetrics & Gynaecology consultant at LIMS: “Every woman deserves compassionate, evidence-based care through every stage of life.”",
+  width: 1916,
+  height: 821,
+}
+
 export const heroImage: ImageAsset = {
   src: 'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?auto=format&fit=crop&w=1400&q=80',
   alt: 'Clinical team conferring in a hospital corridor',

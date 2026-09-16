@@ -13,71 +13,27 @@
 // The section still must not clip: the search card deliberately hangs past the seam
 // between the two columns, and `overflow-hidden` on the section would cut it in half.
 //
-// Server component. The one interactive part is HeroSearchCard, a client leaf.
+// Server component. The interactive parts are HeroSearchCard and HeroSlideshow, both
+// client leaves — HeroSlideshow owns the <section>, the two background photos and the
+// crossfade between them; this component only supplies the copy column and the search
+// card as props, so it never needs rotation state of its own.
 
 import { Link } from '@/i18n/navigation'
 import { HeroSearchCard } from '@/components/home/HeroSearchCard'
+import { HeroSlideshow } from '@/components/home/HeroSlideshow'
 import { ArrowRightIcon, PhoneIcon } from '@/components/icons'
-import { heroBanner } from '@/lib/media'
+import { heroBanner, heroBannerSecondary } from '@/lib/media'
 import { contact, primaryLocation, siteConfig } from '@/lib/site-config'
 import { SERVICES, servicesByCategory } from '@/lib/services'
 
 export function DesktopHero() {
   return (
-    <section className="relative isolate hidden overflow-hidden bg-brand-teal text-white lg:block">
-      {/*
-        The banner covers the whole section, not a card inside it.
-
-        `bg-brand-teal` underneath is not redundant: the art is 2.33:1 and a tall
-        viewport crops its sides, so the base colour is what the edges fall back to
-        while the image decodes and wherever the cover crop cannot reach.
-
-        Plain <img> rather than next/image, per next.config.mjs — image optimisation is
-        off because Cloudflare Workers cannot run sharp, so next/image would add a
-        wrapper and buy nothing over a WebP that build_assets.py already sized.
-      */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={heroBanner.src}
-        alt={heroBanner.alt}
-        width={heroBanner.width}
-        height={heroBanner.height}
-        // The LCP element on the home page: eager and high priority, never lazy.
-        fetchPriority="high"
-        decoding="async"
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 h-full w-full object-cover object-[75%_center]"
-      />
-
-      {/*
-        A scrim anchored to the left, where the copy sits.
-
-        Measured on this art, white already reaches 8.2:1 over the left third and
-        4.89:1 mid-frame, so it passes unaided. The scrim is insurance against the next
-        banner: art gets swapped without anyone re-checking contrast, and a headline
-        that silently drops to 3:1 on a hospital home page is not a failure anyone
-        notices until it matters.
-      */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-gradient-to-r from-brand-teal-dark/80 via-brand-teal-dark/35 to-transparent"
-      />
-      {/*
-        py-12, down from py-20. Eighty pixels of padding above the location pill read as
-        a gap between the navigation and the hero rather than as breathing room, because
-        the band behind it is one flat colour — there is nothing in that space for the
-        padding to separate. The copy column sets the section's height on its own.
-      */}
-      <div className="relative mx-auto grid max-w-7xl grid-cols-12 items-center gap-12 px-6 py-12 xl:py-14">
-        {/* Copy column */}
-        {/*
-          Six columns, not seven. Pulling the search card toward the middle with a
-          negative margin put it 48px over the copy column and it painted across the end
-          of "Services on one campus" — measured at 48px horizontal by 85px vertical
-          overlap. Narrowing the column moves the copy's own right edge instead, so the
-          card reaches the centre with nothing underneath it to cover.
-        */}
-        <div className="col-span-6 space-y-7">
+    <HeroSlideshow
+      firstBanner={heroBanner}
+      secondBanner={heroBannerSecondary}
+      persistent={<HeroSearchCard />}
+      copy={
+        <>
           <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold text-white/90">
             <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-400" />
             {primaryLocation.addressLines.join(', ')}, {primaryLocation.city},{' '}
@@ -130,27 +86,9 @@ export function DesktopHero() {
             />
             <HeroStat value={SERVICES.length} label="Services on one campus" />
           </dl>
-        </div>
-
-        {/*
-          The search card, where the photo card used to be.
-
-          Bottom-aligned rather than centred: the banner's subject stands in the upper
-          right of the frame, and a card centred in this column would sit across her
-          face. Dropping it to the foot of the column leaves the portrait clear and puts
-          the control on the same baseline as the statistics opposite it.
-        */}
-        {/*
-          Left-aligned at the start of its own column, which on a 6/6 split is the
-          middle of the hero. No negative margin: an overhang put the card over the copy
-          column and clipped the last statistic. Bottom-aligned so it stays clear of the
-          portrait's face, and on the same baseline as the statistics opposite it.
-        */}
-        <div className="col-span-6 flex justify-start self-end">
-          <HeroSearchCard />
-        </div>
-      </div>
-    </section>
+        </>
+      }
+    />
   )
 }
 
