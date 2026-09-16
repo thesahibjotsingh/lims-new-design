@@ -23,15 +23,12 @@
 //     likeness of that person, and rule 1 covers it as squarely as an invented
 //     qualification would be.
 //
-//     ALL FOUR PORTRAITS BELOW ARE STOCK PLACEHOLDERS AND MUST NOT SHIP. They are in
-//     place so the client demo shows the finished card design, on the same footing as
-//     the stock photography in lib/media.ts. Before launch, either replace all four
-//     with photographs of the actual consultants or delete the `portrait` lines —
-//     DoctorCard renders a finished monogram card without them, which is why leaving
-//     the field out costs nothing.
+//     harshal-godara and shweta-godara are REAL PHOTOGRAPHS of those two consultants,
+//     supplied 2026-09-16 — 1086x1448 sources under assets-source/doctors/, well above
+//     the 640x800 floor build_portraits() warns below.
 //
-//     Known problems in the current placeholders, so nobody rediscovers them:
-//       - shweta-godara   carries a visible Dreamstime watermark (unlicensed comp).
+//     udit-choudhary and vikash-raj ARE STILL STOCK PLACEHOLDERS AND MUST NOT SHIP.
+//     Known problems, so nobody rediscovers them:
 //       - vikash-raj      is a photograph of a woman.
 //       - udit-choudhary  and vikash-raj were upscaled from sources far below the card
 //                         size, so both look soft.
@@ -70,7 +67,7 @@ export const DOCTORS: Doctor[] = [
     qualifications: 'MS (Obstetrics & Gynaecology)',
     departmentSlug: 'obstetrics-gynaecology',
     registrationNumber: 'HN-31657',
-    // PLACEHOLDER - see rule 4. Carries a visible Dreamstime watermark.
+    // Real photograph, supplied 2026-09-16.
     portrait: {
       src: '/doctors/shweta-godara.webp',
       alt: 'Portrait of Dr. Shweta Godara',
@@ -98,7 +95,7 @@ export const DOCTORS: Doctor[] = [
     qualifications: 'M.S. (Orthopedic)',
     departmentSlug: 'ortho-joint-replacement',
     registrationNumber: 'HN-31573',
-    // PLACEHOLDER - see rule 4. The only one at full resolution (3000x3855 source).
+    // Real photograph, supplied 2026-09-16.
     portrait: {
       src: '/doctors/harshal-godara.webp',
       alt: 'Portrait of Dr. Harshal Godara',
