@@ -7,6 +7,7 @@
 // Filtering matches `alsoKnownAs` as well as the name: someone who typed "Orthopedics"
 // from their referral slip should find "Ortho & Joint Replacement".
 
+import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { getCategory, servicesByCategory } from '@/lib/services'
 import { ServiceGrid } from '@/components/primitives/ServiceGrid'
@@ -26,13 +27,14 @@ const CATEGORY_BANNERS: Record<ServiceCategory, string> = {
   support: '/banners/patient-care.webp',
 }
 
-export function CategoryIndex({
+export async function CategoryIndex({
   category,
   query,
 }: {
   category: ServiceCategory
   query?: string
 }) {
+  const t = await getTranslations('categoryIndex')
   const definition = getCategory(category)
   const all = servicesByCategory(category)
   const needle = query?.trim().toLowerCase() ?? ''
@@ -48,7 +50,7 @@ export function CategoryIndex({
   return (
     <>
       <PageHeader
-        eyebrow={`${all.length} ${all.length === 1 ? 'service' : 'services'}`}
+        eyebrow={t('serviceCount', { count: all.length })}
         title={definition.pageTitle}
         intro={definition.blurb}
         banner={CATEGORY_BANNERS[category]}
@@ -58,19 +60,20 @@ export function CategoryIndex({
       <Section>
         {needle && (
           <p className="scroll-reveal mb-5 text-sm text-brand-dark-base/70">
-            {services.length === 0 ? (
-              <>
-                Nothing under {definition.pageTitle.toLowerCase()} matches{' '}
-                <strong className="font-semibold text-brand-dark-base">{query}</strong>.
-              </>
-            ) : (
-              <>
-                {services.length} of {all.length} matching{' '}
-                <strong className="font-semibold text-brand-dark-base">{query}</strong>.
-              </>
-            )}{' '}
+            {services.length === 0
+              ? t.rich('noMatch', {
+                  title: definition.pageTitle.toLowerCase(),
+                  query: query ?? '',
+                  b: (chunks) => <strong className="font-semibold text-brand-dark-base">{chunks}</strong>,
+                })
+              : t.rich('matchingCount', {
+                  count: services.length,
+                  total: all.length,
+                  query: query ?? '',
+                  b: (chunks) => <strong className="font-semibold text-brand-dark-base">{chunks}</strong>,
+                })}{' '}
             <Link href={definition.basePath} className="font-semibold text-brand-teal hover:underline">
-              Clear the filter
+              {t('clearFilter')}
             </Link>
           </p>
         )}
@@ -86,14 +89,13 @@ export function CategoryIndex({
           */
           <div className="rounded-2xl border border-dashed border-brand-teal/25 bg-brand-mist/60 p-8 text-center">
             <p className="text-sm text-brand-dark-base/70">
-              Try a broader term, or browse all {all.length}{' '}
-              {definition.name.toLowerCase()}.
+              {t('browseAllFallback', { count: all.length, name: definition.name.toLowerCase() })}
             </p>
             <Link
               href={definition.basePath}
               className="tap-target focus-ring-inverse mt-4 rounded-full bg-brand-teal px-6 text-sm font-semibold text-white hover:bg-brand-teal-dark"
             >
-              Browse all
+              {t('browseAll')}
             </Link>
           </div>
         )}

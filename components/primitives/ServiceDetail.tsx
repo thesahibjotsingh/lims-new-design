@@ -8,6 +8,7 @@
 // and they come from LIMS or they do not exist. Where they are missing the page says
 // so and offers the phone, which is a page a patient can act on.
 
+import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { getCategory, serviceHref, servicesByCategory } from '@/lib/services'
 import { getDoctorsByDepartment } from '@/lib/doctors'
@@ -16,7 +17,9 @@ import { ServiceIcon } from '@/components/primitives/ServiceIcon'
 import { AwaitingContent, PageHeader, Section } from '@/components/primitives/PageShell'
 import type { ClinicalService } from '@/lib/services'
 
-export function ServiceDetail({ service }: { service: ClinicalService }) {
+export async function ServiceDetail({ service }: { service: ClinicalService }) {
+  const t = await getTranslations('serviceDetail')
+  const tCommon = await getTranslations('common')
   const category = getCategory(service.category)
   const doctors = getDoctorsByDepartment(service.slug)
   const siblings = servicesByCategory(service.category).filter(
@@ -28,14 +31,18 @@ export function ServiceDetail({ service }: { service: ClinicalService }) {
       <PageHeader
         eyebrow={category.name}
         title={service.name}
-        intro={service.alsoKnownAs?.length ? `Also known as ${service.alsoKnownAs.join(', ')}.` : undefined}
+        intro={
+          service.alsoKnownAs?.length
+            ? t('alsoKnownAs', { names: service.alsoKnownAs.join(', ') })
+            : undefined
+        }
         icon={<ServiceIcon slug={service.slug} size={72} />}
       >
         <nav aria-label="Breadcrumb" className="mt-5">
           <ol className="flex flex-wrap items-center gap-2 text-xs text-brand-dark-base/55">
             <li>
               <Link href="/" className="hover:text-brand-teal">
-                Home
+                {tCommon('home')}
               </Link>
             </li>
             <li aria-hidden="true">/</li>
@@ -58,7 +65,7 @@ export function ServiceDetail({ service }: { service: ClinicalService }) {
             {doctors.length > 0 ? (
               <div>
                 <h2 className="mb-4 font-serif text-2xl font-bold text-brand-dark-base">
-                  Consultants in {service.name}
+                  {t('consultantsIn', { name: service.name })}
                 </h2>
                 <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   {doctors.map((doctor) => (
@@ -69,23 +76,21 @@ export function ServiceDetail({ service }: { service: ClinicalService }) {
                 </ul>
               </div>
             ) : (
-              <AwaitingContent what={`Consultants in ${service.name}`}>
-                LIMS has not yet published the consultant list for this{' '}
-                {service.category === 'clinical' ? 'department' : 'service'}. The
-                hospital can tell you who is available and when.
+              <AwaitingContent what={t('consultantsIn', { name: service.name })}>
+                {t('consultantsNotPublished', {
+                  type: service.category === 'clinical' ? t('departmentType') : t('serviceType'),
+                })}
               </AwaitingContent>
             )}
 
-            <AwaitingContent what="About this service">
-              An overview, the conditions treated and the procedures offered are
-              published from information supplied by LIMS. Until the hospital provides
-              them, this page does not describe what happens here rather than guess.
+            <AwaitingContent what={t('aboutThisService')}>
+              {t('aboutServiceFallback')}
             </AwaitingContent>
           </div>
 
           <aside className="scroll-reveal space-y-4">
             <h2 className="font-serif text-lg font-bold text-brand-dark-base">
-              Other {category.name.toLowerCase()}
+              {t('otherIn', { category: category.name.toLowerCase() })}
             </h2>
             <ul className="space-y-1">
               {siblings.map((sibling) => (

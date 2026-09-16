@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { notFound } from 'next/navigation'
 import { DOCTORS, getDoctor, registrationDisplay } from '@/lib/doctors'
@@ -46,6 +47,10 @@ export default async function DoctorProfilePage({
   const doctor = getDoctor(id)
   if (!doctor) notFound()
 
+  const t = await getTranslations('doctorProfile')
+  const tCommon = await getTranslations('common')
+  const tCard = await getTranslations('doctorCard')
+  const tEmergency = await getTranslations('emergency')
   const departmentHref = serviceHrefBySlug(doctor.departmentSlug)
   const department = serviceName(doctor.departmentSlug)
 
@@ -66,13 +71,13 @@ export default async function DoctorProfilePage({
             href={`/appointments?doctor=${doctor.id}`}
             className="tap-target focus-ring-inverse rounded-full bg-brand-teal px-6 text-sm font-semibold text-white hover:bg-brand-teal-dark"
           >
-            Request an appointment
+            {tCommon('requestAnAppointment')}
           </Link>
           <a
             href={`tel:${contact.secondary}`}
             className="tap-target rounded-full border border-brand-teal/25 px-6 text-sm font-semibold text-brand-teal hover:bg-white"
           >
-            Call {contact.secondaryDisplay}
+            {tCommon('call', { number: contact.secondaryDisplay })}
           </a>
         </div>
       </PageHeader>
@@ -113,7 +118,7 @@ export default async function DoctorProfilePage({
             {doctor.registrationNumber && (
               <span className="flex items-center gap-1.5 text-brand-dark-base/70">
                 <ShieldIcon className="h-4 w-4 shrink-0 text-brand-teal" aria-hidden="true" />
-                Reg. no.{' '}
+                {tCard('regNo')}{' '}
                 <span className="font-semibold text-brand-dark-base">
                   {registrationDisplay(doctor.registrationNumber)}
                 </span>
@@ -121,10 +126,10 @@ export default async function DoctorProfilePage({
             )}
             {typeof doctor.experienceYears === 'number' && (
               <span className="text-brand-dark-base/70">
-                <span className="font-semibold text-brand-dark-base">
-                  {doctor.experienceYears} years
-                </span>{' '}
-                experience
+                {t.rich('yearsExperience', {
+                  years: doctor.experienceYears,
+                  b: (chunks) => <span className="font-semibold text-brand-dark-base">{chunks}</span>,
+                })}
               </span>
             )}
           </div>
@@ -135,28 +140,23 @@ export default async function DoctorProfilePage({
             {doctor.about ? (
               <div>
                 <h2 className="mb-3 font-serif text-2xl font-bold text-brand-dark-base">
-                  About
+                  {t('about')}
                 </h2>
                 <p className="max-w-2xl leading-relaxed text-brand-dark-base/75">
                   {doctor.about}
                 </p>
               </div>
             ) : (
-              <AwaitingContent what="About this consultant">
-                A biography, specialisations and OPD timings are published from
-                information supplied by LIMS. Rather than describe this doctor&rsquo;s
-                practice without that, the page leaves it out and gives you the
-                hospital&rsquo;s number.
-              </AwaitingContent>
+              <AwaitingContent what={t('aboutThisConsultant')}>{t('aboutFallback')}</AwaitingContent>
             )}
           </div>
 
           <aside className="scroll-reveal space-y-4 rounded-2xl border border-brand-teal/10 bg-brand-mist/50 p-6">
-            <h2 className="font-serif text-lg font-bold text-brand-dark-base">Details</h2>
+            <h2 className="font-serif text-lg font-bold text-brand-dark-base">{t('details')}</h2>
             <dl className="space-y-3 text-sm">
               <div>
                 <dt className="text-xs font-semibold uppercase tracking-wider text-brand-dark-base/50">
-                  Department
+                  {t('department')}
                 </dt>
                 <dd className="mt-0.5">
                   {departmentHref ? (
@@ -181,7 +181,7 @@ export default async function DoctorProfilePage({
               {doctor.languages?.length ? (
                 <div>
                   <dt className="text-xs font-semibold uppercase tracking-wider text-brand-dark-base/50">
-                    Languages
+                    {t('languages')}
                   </dt>
                   <dd className="mt-0.5">{doctor.languages.join(', ')}</dd>
                 </div>
@@ -205,20 +205,17 @@ export default async function DoctorProfilePage({
             </span>
             <div>
               <p className="text-sm font-semibold text-brand-dark-base">
-                Need urgent care instead?
+                {t('urgentCareHeading')}
               </p>
-              <p className="text-xs text-brand-dark-base/60">
-                The emergency line goes straight to the hospital, no appointment
-                needed.
-              </p>
+              <p className="text-xs text-brand-dark-base/60">{t('urgentCareBody')}</p>
             </div>
           </div>
           <a
             href={`tel:${contact.primary}`}
-            aria-label={`Call the emergency line, ${contact.primaryDisplay}`}
+            aria-label={tEmergency('callLine', { number: contact.primaryDisplay })}
             className="tap-target focus-ring-inverse shrink-0 rounded-full bg-brand-emergency px-5 text-xs font-bold text-white hover:bg-brand-emergency/90"
           >
-            Call {contact.primaryDisplay}
+            {tCommon('call', { number: contact.primaryDisplay })}
           </a>
         </div>
       </Section>

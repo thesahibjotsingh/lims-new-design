@@ -19,13 +19,15 @@
 // designation, department, registration number. Optional fields render as absent
 // sections, never as placeholders. See the rules at the top of lib/doctors.ts.
 
+import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { registrationDisplay } from '@/lib/doctors'
 import { serviceHrefBySlug, serviceName } from '@/lib/services'
 import { ArrowRightIcon, ShieldIcon } from '@/components/icons'
 import type { Doctor } from '@/types'
 
-export function DoctorCard({ doctor }: { doctor: Doctor }) {
+export async function DoctorCard({ doctor }: { doctor: Doctor }) {
+  const t = await getTranslations('doctorCard')
   const departmentHref = serviceHrefBySlug(doctor.departmentSlug)
   const portrait = doctor.portrait
 
@@ -137,7 +139,7 @@ export function DoctorCard({ doctor }: { doctor: Doctor }) {
                 register — a trust signal that costs nothing and cannot be faked.
               */}
               <span>
-                Reg. no.{' '}
+                {t('regNo')}{' '}
                 <span className="font-semibold text-brand-dark-base/75">
                   {registrationDisplay(doctor.registrationNumber)}
                 </span>
@@ -150,13 +152,13 @@ export function DoctorCard({ doctor }: { doctor: Doctor }) {
               href={`/doctors/${doctor.id}`}
               className="tap-target rounded-full border border-brand-teal/20 px-4 text-xs font-semibold text-brand-teal transition-colors hover:bg-brand-mist"
             >
-              View profile
+              {t('viewProfile')}
             </Link>
             <Link
               href={`/appointments?doctor=${doctor.id}`}
               className="tap-target focus-ring-inverse gap-1.5 rounded-full bg-brand-teal px-4 text-xs font-semibold text-white transition-colors hover:bg-brand-teal-dark"
             >
-              Request appointment
+              {t('requestAppointment')}
               <ArrowRightIcon className="h-3.5 w-3.5" strokeWidth={2.25} />
             </Link>
           </div>
@@ -177,7 +179,8 @@ export function DoctorCard({ doctor }: { doctor: Doctor }) {
  * The name links to the profile too, so the profile needs a text link, not a second
  * button competing with the appointment request.
  */
-export function DoctorPortraitCard({ doctor }: { doctor: Doctor }) {
+export async function DoctorPortraitCard({ doctor }: { doctor: Doctor }) {
+  const t = await getTranslations('doctorCard')
   const portrait = doctor.portrait
   // Every consultant on file has one or the other; joined so a doctor with both still
   // gets a single line rather than two stacked sizes of grey.
@@ -264,7 +267,7 @@ export function DoctorPortraitCard({ doctor }: { doctor: Doctor }) {
             {doctor.registrationNumber && (
               <span className="flex items-center gap-1.5 text-brand-dark-base/60">
                 <ShieldIcon className="h-3.5 w-3.5 shrink-0 text-brand-teal" />
-                Reg.
+                {t('reg')}
                 <span className="font-semibold text-brand-dark-base/80">
                   {registrationDisplay(doctor.registrationNumber)}
                 </span>
@@ -272,21 +275,25 @@ export function DoctorPortraitCard({ doctor }: { doctor: Doctor }) {
             )}
             <Link
               href={`/doctors/${doctor.id}`}
+              // Four identical "View profile" links are indistinguishable read out of
+              // context, so the accessible name carries the doctor's name too — an
+              // aria-label rather than a visually-hidden suffix, because splicing a
+              // translated "View profile" with an English ": {name}" punctuation
+              // pattern doesn't hold up across languages with different word order.
+              aria-label={t('viewProfileForName', { name: doctor.name })}
               className="press inline-flex min-h-[24px] items-center gap-1 font-semibold text-brand-teal hover:underline"
             >
-              View profile
-              {/* Four identical "View profile" links are indistinguishable read out of context. */}
-              <span className="sr-only">: {doctor.name}</span>
+              <span aria-hidden="true">{t('viewProfile')}</span>
               <ArrowRightIcon aria-hidden="true" className="h-3 w-3" strokeWidth={2.25} />
             </Link>
           </div>
 
           <Link
             href={`/appointments?doctor=${doctor.id}`}
+            aria-label={t('requestAppointmentForName', { name: doctor.name })}
             className="tap-target focus-ring-inverse w-full rounded-full bg-brand-teal px-4 text-xs font-semibold text-white transition-colors hover:bg-brand-teal-dark"
           >
-            Request appointment
-            <span className="sr-only"> with {doctor.name}</span>
+            <span aria-hidden="true">{t('requestAppointment')}</span>
           </Link>
         </div>
       </div>

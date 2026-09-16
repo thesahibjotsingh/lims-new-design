@@ -15,6 +15,7 @@
 // two hero search inputs.
 
 import { useCallback, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { SearchIcon } from '@/components/icons'
 import {
   SuggestionList,
@@ -24,9 +25,10 @@ import {
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
 import { DOCTOR_SEARCH_PHRASES } from '@/components/search/searchPhrases'
 
-const PLACEHOLDER = 'Name, speciality or department'
-
 export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }) {
+  const t = useTranslations('search')
+  const tDoctors = useTranslations('doctorsPage')
+  const placeholder = t('doctorPlaceholder')
   const [query, setQuery] = useState(defaultQuery)
   const [focused, setFocused] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -58,7 +60,7 @@ export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }
         className="flex flex-col gap-2 sm:flex-row"
       >
         <label htmlFor="doctor-search" className="sr-only">
-          Search doctors by name, speciality or department
+          {tDoctors('searchLabel')}
         </label>
         <div className="relative flex-1">
           {/*
@@ -90,7 +92,7 @@ export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }
             // The real placeholder attribute stays the plain sentence, so assistive
             // tech and a reduced-motion reader get a stable, meaningful hint — the
             // overlay below owns every visible state.
-            placeholder={PLACEHOLDER}
+            placeholder={placeholder}
             // 16px on mobile, or iOS Safari zooms the page on focus and never zooms back.
             className="min-h-[44px] w-full rounded-xl border border-brand-teal/20 bg-white py-2 pl-10 pr-4 text-sm text-brand-dark-base shadow-sm placeholder:text-transparent max-md:text-base"
           />
@@ -98,7 +100,7 @@ export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }
             <TypewriterPlaceholder
               phrases={DOCTOR_SEARCH_PHRASES}
               idle={!focused && query.length === 0}
-              staticText={PLACEHOLDER}
+              staticText={placeholder}
               className="pointer-events-none absolute left-10 right-0 top-1/2 -translate-y-1/2 truncate pr-4 text-sm text-brand-dark-base/45"
             />
           )}
@@ -109,7 +111,7 @@ export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }
           // brand teal — a teal button on a teal band is an invisible control.
           className="tap-target focus-ring-inverse rounded-xl bg-brand-copper px-6 text-sm font-semibold text-white shadow-sm hover:bg-brand-copper-hover"
         >
-          Search
+          {t('searchButton')}
         </button>
       </form>
 

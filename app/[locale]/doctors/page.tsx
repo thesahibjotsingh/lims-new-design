@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { DOCTORS, searchDoctors } from '@/lib/doctors'
 import { DoctorPortraitCard } from '@/components/primitives/DoctorCard'
@@ -30,6 +31,8 @@ export default async function DoctorsPage({
 }: {
   searchParams: Promise<{ q?: string | string[] }>
 }) {
+  const t = await getTranslations('doctorsPage')
+  const tCommon = await getTranslations('common')
   const params = await searchParams
   const raw = Array.isArray(params.q) ? params.q[0] : params.q
   const query = (raw ?? '').trim()
@@ -42,9 +45,9 @@ export default async function DoctorsPage({
       <PageHeader
         banner="/banners/find-a-doctor.webp"
         cinematic
-        eyebrow="Consultant roster"
-        title="Find a doctor"
-        intro="Search by name, qualification, speciality or department."
+        eyebrow={t('eyebrow')}
+        title={t('title')}
+        intro={t('intro')}
       >
         <DoctorSearchBox defaultQuery={query} />
       </PageHeader>
@@ -53,19 +56,14 @@ export default async function DoctorsPage({
         <p className="scroll-reveal mb-5 text-sm text-brand-dark-base/65">
           {query ? (
             <>
-              {doctors.length} of {DOCTORS.length}{' '}
-              {DOCTORS.length === 1 ? 'consultant' : 'consultants'} matching{' '}
+              {t('matchingCount', { count: doctors.length, total: DOCTORS.length })}{' '}
               <strong className="font-semibold text-brand-dark-base">{query}</strong>.{' '}
               <Link href="/doctors" className="font-semibold text-brand-teal hover:underline">
-                Clear
+                {t('clear')}
               </Link>
             </>
           ) : (
-            <>
-              {DOCTORS.length} named{' '}
-              {DOCTORS.length === 1 ? 'consultant' : 'consultants'}. Profiles are
-              published as LIMS supplies them.
-            </>
+            t('namedCount', { count: DOCTORS.length })
           )}
         </p>
 
@@ -108,7 +106,7 @@ export default async function DoctorsPage({
           */
           <div className="rounded-2xl border border-dashed border-brand-teal/25 bg-brand-mist/60 p-8">
             <h2 className="font-serif text-xl font-bold text-brand-dark-base">
-              No consultant on the published roster matches &ldquo;{query}&rdquo;
+              {t('noMatch', { query })}
             </h2>
             {/*
               "Did you mean" before the apology. A misspelling is the likeliest reason a
@@ -121,7 +119,7 @@ export default async function DoctorsPage({
             {alternatives.length > 0 && (
               <div className="mt-4">
                 <p className="text-sm font-semibold text-brand-dark-base">
-                  Did you mean:
+                  {t('didYouMean')}
                 </p>
                 <ul className="mt-2 flex flex-wrap gap-2">
                   {alternatives.map((suggestion) => (
@@ -139,21 +137,20 @@ export default async function DoctorsPage({
             )}
 
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-brand-dark-base/70">
-              Not every LIMS consultant has been published here yet. The hospital can
-              tell you who covers this speciality and when they are available.
+              {t('notPublishedYet')}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Link
                 href="/doctors"
                 className="tap-target rounded-full border border-brand-teal/25 px-5 text-xs font-semibold text-brand-teal hover:bg-white"
               >
-                See all consultants
+                {t('seeAll')}
               </Link>
               <a
                 href={`tel:${contact.secondary}`}
                 className="tap-target focus-ring-inverse rounded-full bg-brand-teal px-5 text-xs font-semibold text-white hover:bg-brand-teal-dark"
               >
-                Call {contact.secondaryDisplay}
+                {tCommon('call', { number: contact.secondaryDisplay })}
               </a>
             </div>
           </div>

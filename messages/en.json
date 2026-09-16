@@ -84,5 +84,119 @@
     "everythingElse": "Everything else",
     "restOfSite": "The rest of the site",
     "restOfSiteIntro": "Departments, diagnostics, patient services and the consultant roster are above. These are the remaining sections in the main menu."
+  },
+  "common": {
+    "call": "Call {number}",
+    "contactLims": "Contact LIMS",
+    "requestAnAppointment": "Request an appointment",
+    "home": "Home"
+  },
+  "doctorCard": {
+    "viewProfile": "View profile",
+    "viewProfileForName": "View profile: {name}",
+    "requestAppointment": "Request appointment",
+    "requestAppointmentForName": "Request appointment with {name}",
+    "regNo": "Reg. no.",
+    "reg": "Reg."
+  },
+  "doctorsPage": {
+    "eyebrow": "Consultant roster",
+    "title": "Find a doctor",
+    "intro": "Search by name, qualification, speciality or department.",
+    "matchingCount": "{count} of {total} {total, plural, one {consultant} other {consultants}} matching",
+    "clear": "Clear",
+    "namedCount": "{count, plural, one {# named consultant} other {# named consultants}}. Profiles are published as LIMS supplies them.",
+    "noMatch": "No consultant on the published roster matches “{query}”",
+    "didYouMean": "Did you mean:",
+    "notPublishedYet": "Not every LIMS consultant has been published here yet. The hospital can tell you who covers this speciality and when they are available.",
+    "seeAll": "See all consultants",
+    "searchLabel": "Search doctors by name, speciality or department"
+  },
+  "doctorProfile": {
+    "about": "About",
+    "aboutThisConsultant": "About this consultant",
+    "aboutFallback": "A biography, specialisations and OPD timings are published from information supplied by LIMS. Rather than describe this doctor's practice without that, the page leaves it out and gives you the hospital's number.",
+    "details": "Details",
+    "department": "Department",
+    "languages": "Languages",
+    "yearsExperience": "<b>{years, plural, one {# year} other {# years}}</b> experience",
+    "urgentCareHeading": "Need urgent care instead?",
+    "urgentCareBody": "The emergency line goes straight to the hospital, no appointment needed."
+  },
+  "categoryIndex": {
+    "serviceCount": "{count, plural, one {# service} other {# services}}",
+    "noMatch": "Nothing under {title} matches <b>{query}</b>.",
+    "matchingCount": "{count} of {total} matching <b>{query}</b>.",
+    "clearFilter": "Clear the filter",
+    "browseAllFallback": "Try a broader term, or browse all {count} {name}.",
+    "browseAll": "Browse all"
+  },
+  "serviceDetail": {
+    "alsoKnownAs": "Also known as {names}.",
+    "consultantsIn": "Consultants in {name}",
+    "consultantsNotPublished": "LIMS has not yet published the consultant list for this {type}. The hospital can tell you who is available and when.",
+    "departmentType": "department",
+    "serviceType": "service",
+    "aboutThisService": "About this service",
+    "aboutServiceFallback": "An overview, the conditions treated and the procedures offered are published from information supplied by LIMS. Until the hospital provides them, this page does not describe what happens here rather than guess.",
+    "otherIn": "Other {category}"
+  },
+  "awaitingContent": {
+    "defaultBody": "This section is published from information supplied by LIMS and is not yet available. For anything urgent, please call the hospital directly."
+  },
+  "healthPackagesPage": {
+    "eyebrow": "Patient services",
+    "title": "Health check packages",
+    "intro": "Preventive health checks bundled as fixed packages.",
+    "awaitingWhat": "Packages and prices",
+    "awaitingBody": "LIMS has not yet supplied the package list or its pricing. Rather than publish indicative prices the hospital never quoted, this page waits for the real ones — please call to ask what is available.",
+    "bookableHeading": "The tests themselves are already bookable",
+    "bookableBody": "While the bundled package list is still coming, {count, plural, one {# individual diagnostics and imaging service is} other {# individual diagnostics and imaging services are}} already published — book one directly, or call to ask what a package would cover.",
+    "browseAllDiagnostics": "Browse all diagnostics →"
+  },
+  "insurancePage": {
+    "eyebrow": "Patient care",
+    "title": "Insurance & billing",
+    "intro": "Cashless claims, reimbursement and what to bring to the billing desk.",
+    "awaitingWhat": "Empanelled insurers and TPAs",
+    "awaitingBody": "The list of insurers and third-party administrators LIMS accepts is not published here yet. Please confirm your cover with the hospital before admission — an insurer named on a website that turns out not to be empanelled becomes a bill at the desk.",
+    "askBillingHeading": "Ask the billing desk",
+    "askBillingBody": "The hospital can confirm whether your policy is accepted and what a cashless claim needs.",
+    "allPatientServices": "All patient services"
+  },
+  "visitorsPage": {
+    "eyebrow": "Patient care",
+    "title": "Visitor information",
+    "intro": "Visiting a patient, ward access and where to come.",
+    "awaitingWhat": "Visiting hours and ward policy",
+    "awaitingBody": "Visiting hours, attendant passes and ICU access rules are set by the hospital and vary by ward. They are not published here yet — please call before travelling rather than relying on a general figure.",
+    "whereToCome": "Where to come",
+    "directions": "Directions"
+  },
+  "contactPage": {
+    "eyebrow": "Get in touch",
+    "title": "Contact LIMS Hisar",
+    "intro": "Both published hospital numbers, and where to find us.",
+    "phoneHeading": "Phone",
+    "emergencyLabel": "Emergency",
+    "appointmentsLabel": "Appointments & enquiries",
+    "noHoursNote": "No opening hours are published here yet. Rather than state hours LIMS has not confirmed, this page gives you the numbers — please call to check before travelling.",
+    "locationHeading": "Location",
+    "openInMaps": "Open in Google Maps",
+    "bookingHeading": "Booking an appointment",
+    "bookingBody": "You can send a callback request online and the hospital will ring you to confirm a time."
+  },
+  "searchSuggest": {
+    "recent": "Recent",
+    "recentSearchesAria": "Recent searches",
+    "suggestionsAria": "Suggestions",
+    "kindDoctor": "Doctor",
+    "kindDepartment": "Department",
+    "kindPage": "Page"
+  },
+  "serviceGrid": {
+    "also": "Also: {names}",
+    "viewMore": "View more",
+    "showLess": "Show less"
   }
 }

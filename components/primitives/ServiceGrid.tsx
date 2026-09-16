@@ -4,6 +4,7 @@
 // Every href resolves through serviceHref(), so a service that moves category moves its
 // tile and its URL together.
 
+import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { serviceHref } from '@/lib/services'
 import { ArrowRightIcon } from '@/components/icons'
@@ -13,7 +14,7 @@ import type { ClinicalService } from '@/lib/services'
 
 const GRID_CLASSES = 'grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3'
 
-export function ServiceGrid({
+export async function ServiceGrid({
   services,
   /**
    * Cap the phone-height of this grid at N tiles, rest behind a "View more" button.
@@ -27,6 +28,7 @@ export function ServiceGrid({
   services: ClinicalService[]
   mobileLimit?: number
 }) {
+  const t = await getTranslations('serviceGrid')
   const tiles = services.map((service) => (
     <li key={service.slug}>
       <Link
@@ -46,7 +48,7 @@ export function ServiceGrid({
           */}
           {service.alsoKnownAs?.length ? (
             <span className="mt-0.5 block truncate text-xs text-brand-dark-base/50">
-              Also: {service.alsoKnownAs.join(', ')}
+              {t('also', { names: service.alsoKnownAs.join(', ') })}
             </span>
           ) : null}
         </span>
@@ -63,7 +65,12 @@ export function ServiceGrid({
   }
 
   return (
-    <RevealMore limit={mobileLimit} className={GRID_CLASSES}>
+    <RevealMore
+      limit={mobileLimit}
+      className={GRID_CLASSES}
+      moreLabel={t('viewMore')}
+      lessLabel={t('showLess')}
+    >
       {tiles}
     </RevealMore>
   )

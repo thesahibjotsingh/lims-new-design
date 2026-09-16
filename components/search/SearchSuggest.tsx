@@ -16,6 +16,7 @@
 // a faster route to a specific destination.
 
 import { useEffect, useId, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
 import { SearchIcon } from '@/components/icons'
 import { suggestSearch } from '@/lib/search'
@@ -180,12 +181,6 @@ export function useCloseOnOutside(
   }, [ref, close])
 }
 
-const KIND_LABEL: Record<SuggestionKind, string> = {
-  doctor: 'Doctor',
-  department: 'Department',
-  page: 'Page',
-}
-
 export function SuggestionList({
   suggestions,
   active,
@@ -231,11 +226,17 @@ export function SuggestionList({
    */
   visible?: boolean
 }) {
+  const t = useTranslations('searchSuggest')
+  const kindLabel: Record<SuggestionKind, string> = {
+    doctor: t('kindDoctor'),
+    department: t('kindDepartment'),
+    page: t('kindPage'),
+  }
   return (
     <ul
       id={listId}
       role="listbox"
-      aria-label={showingRecent ? 'Recent searches' : 'Suggestions'}
+      aria-label={showingRecent ? t('recentSearchesAria') : t('suggestionsAria')}
       className={[
         variant === 'floating'
           ? 'suggestion-list-floating absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50'
@@ -250,7 +251,7 @@ export function SuggestionList({
           role="presentation"
           className="px-4 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-wider text-brand-dark-base/45"
         >
-          Recent
+          {t('recent')}
         </li>
       )}
       {suggestions.map((suggestion, index) => (
@@ -289,7 +290,7 @@ export function SuggestionList({
               only discovered by being surprised.
             */}
             <span className="shrink-0 rounded-full bg-brand-mist px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-teal">
-              {KIND_LABEL[suggestion.kind]}
+              {kindLabel[suggestion.kind]}
             </span>
           </button>
         </li>

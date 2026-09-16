@@ -4,6 +4,7 @@
 // twenty-six service pages, the directory and the standing pages cannot drift apart in
 // spacing, measure or heading level.
 
+import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { HeroIntro } from '@/components/primitives/HeroIntro'
 import type { ReactNode } from 'react'
@@ -211,7 +212,7 @@ export function Section({
  * about conditions treated and procedures offered — would be clinical claims the
  * hospital never made, which is the one thing a hospital site must not do.
  */
-export function AwaitingContent({
+export async function AwaitingContent({
   what,
   children,
   icon,
@@ -226,6 +227,8 @@ export function AwaitingContent({
    */
   icon?: ReactNode
 }) {
+  const t = await getTranslations('awaitingContent')
+  const tCommon = await getTranslations('common')
   return (
     <div className="scroll-reveal rounded-2xl border border-dashed border-brand-teal/25 bg-brand-mist/60 p-6">
       {icon && (
@@ -238,25 +241,20 @@ export function AwaitingContent({
       )}
       <h2 className="font-serif text-lg font-bold text-brand-dark-base">{what}</h2>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-brand-dark-base/70">
-        {children ?? (
-          <>
-            This section is published from information supplied by LIMS and is not yet
-            available. For anything urgent, please call the hospital directly.
-          </>
-        )}
+        {children ?? t('defaultBody')}
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         <Link
           href="/contact"
           className="tap-target rounded-full border border-brand-teal/25 px-5 text-xs font-semibold text-brand-teal hover:bg-white"
         >
-          Contact LIMS
+          {tCommon('contactLims')}
         </Link>
         <Link
           href="/appointments"
           className="tap-target focus-ring-inverse rounded-full bg-brand-teal px-5 text-xs font-semibold text-white hover:bg-brand-teal-dark"
         >
-          Request an appointment
+          {tCommon('requestAnAppointment')}
         </Link>
       </div>
     </div>

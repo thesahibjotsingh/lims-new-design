@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { AwaitingContent, PageHeader, Section } from '@/components/primitives/PageShell'
 import { PhoneIcon } from '@/components/icons'
@@ -18,32 +19,23 @@ export const metadata: Metadata = {
  * admission expecting a cashless claim that will be refused at the desk, which is a
  * bill they did not plan for. The list goes up when LIMS supplies it.
  */
-export default function InsurancePage() {
+export default async function InsurancePage() {
+  const t = await getTranslations('insurancePage')
   return (
     <>
-      <PageHeader
-        eyebrow="Patient care"
-        title="Insurance & billing"
-        intro="Cashless claims, reimbursement and what to bring to the billing desk."
-      />
+      <PageHeader eyebrow={t('eyebrow')} title={t('title')} intro={t('intro')} />
       <Section>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <AwaitingContent what="Empanelled insurers and TPAs">
-              The list of insurers and third-party administrators LIMS accepts is not
-              published here yet. Please confirm your cover with the hospital before
-              admission &mdash; an insurer named on a website that turns out not to be
-              empanelled becomes a bill at the desk.
-            </AwaitingContent>
+            <AwaitingContent what={t('awaitingWhat')}>{t('awaitingBody')}</AwaitingContent>
           </div>
 
           <aside className="rounded-2xl border border-brand-teal/10 bg-brand-mist/60 p-6">
             <h2 className="font-serif text-lg font-bold text-brand-dark-base">
-              Ask the billing desk
+              {t('askBillingHeading')}
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-brand-dark-base/70">
-              The hospital can confirm whether your policy is accepted and what a
-              cashless claim needs.
+              {t('askBillingBody')}
             </p>
             <a
               href={`tel:${contact.secondary}`}
@@ -56,7 +48,7 @@ export default function InsurancePage() {
               href="/patient-care"
               className="tap-target mt-2 w-full rounded-full border border-brand-teal/25 px-5 text-xs font-semibold text-brand-teal hover:bg-white"
             >
-              All patient services
+              {t('allPatientServices')}
             </Link>
           </aside>
         </div>

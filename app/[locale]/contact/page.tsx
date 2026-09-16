@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { PageHeader, Section } from '@/components/primitives/PageShell'
 import { PhoneIcon, PinIcon } from '@/components/icons'
@@ -9,22 +10,24 @@ export const metadata: Metadata = {
   description: `Contact details and location for ${siteConfig.name}, ${siteConfig.city}.`,
 }
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const t = await getTranslations('contactPage')
+  const tCommon = await getTranslations('common')
   return (
     <>
       <PageHeader
         banner="/banners/contact.webp"
         cinematic
-        eyebrow="Get in touch"
-        title="Contact LIMS Hisar"
-        intro="Both published hospital numbers, and where to find us."
+        eyebrow={t('eyebrow')}
+        title={t('title')}
+        intro={t('intro')}
       />
 
       <Section>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="scroll-reveal space-y-4">
             <h2 className="font-serif text-2xl font-bold text-brand-dark-base">
-              Phone
+              {t('phoneHeading')}
             </h2>
 
             {/*
@@ -46,7 +49,7 @@ export default function ContactPage() {
                   </span>
                   <span>
                     <span className="block text-xs font-semibold uppercase tracking-wider text-brand-dark-base/50">
-                      Emergency
+                      {t('emergencyLabel')}
                     </span>
                     <span className="block text-lg font-semibold tabular-nums text-brand-dark-base">
                       {contact.primaryDisplay}
@@ -67,7 +70,7 @@ export default function ContactPage() {
                   </span>
                   <span>
                     <span className="block text-xs font-semibold uppercase tracking-wider text-brand-dark-base/50">
-                      Appointments &amp; enquiries
+                      {t('appointmentsLabel')}
                     </span>
                     <span className="block text-lg font-semibold tabular-nums text-brand-dark-base">
                       {contact.secondaryDisplay}
@@ -78,15 +81,13 @@ export default function ContactPage() {
             </ul>
 
             <p className="text-xs leading-relaxed text-brand-dark-base/55">
-              No opening hours are published here yet. Rather than state hours LIMS has
-              not confirmed, this page gives you the numbers &mdash; please call to
-              check before travelling.
+              {t('noHoursNote')}
             </p>
           </div>
 
           <div id="locations" className="scroll-reveal scroll-mt-32 space-y-4">
             <h2 className="font-serif text-2xl font-bold text-brand-dark-base">
-              Location
+              {t('locationHeading')}
             </h2>
             <div className="rounded-2xl border border-brand-teal/10 bg-white p-6">
               <p className="flex items-start gap-3">
@@ -113,23 +114,22 @@ export default function ContactPage() {
                 rel="noreferrer noopener"
                 className="tap-target mt-4 rounded-full border border-brand-teal/25 px-5 text-xs font-semibold text-brand-teal hover:bg-brand-mist"
               >
-                Open in Google Maps
+                {t('openInMaps')}
               </a>
             </div>
 
             <div className="rounded-2xl border border-brand-teal/10 bg-brand-mist/60 p-6">
               <h3 className="font-serif text-lg font-bold text-brand-dark-base">
-                Booking an appointment
+                {t('bookingHeading')}
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-brand-dark-base/70">
-                You can send a callback request online and the hospital will ring you to
-                confirm a time.
+                {t('bookingBody')}
               </p>
               <Link
                 href="/appointments"
                 className="tap-target focus-ring-inverse mt-3 rounded-full bg-brand-teal px-6 text-sm font-semibold text-white hover:bg-brand-teal-dark"
               >
-                Request an appointment
+                {tCommon('requestAnAppointment')}
               </Link>
             </div>
           </div>
