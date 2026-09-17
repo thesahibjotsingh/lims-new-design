@@ -13,14 +13,18 @@
 //     nothing that reads as a "carousel effect" fighting for attention on a
 //     hospital home page.
 //   - copy / secondSlideText: headline+description vs. quote+name — text only, no
-//     buttons or stats. Absolutely positioned into the same top-left slot so one
-//     can run longer than the other without pushing anything.
+//     buttons or stats. Both cross-dissolve into the same slot, which is the
+//     flexible region above `actions` (a flex column, not a hardcoded height) —
+//     `copy` top-aligns within it with `copy`'s own top padding, `secondSlideText`
+//     centres within it, so the quote sits balanced against however much room
+//     `actions`'s actual height leaves rather than a guessed pixel offset.
 //   - secondSlideBg: the second slide's own background photo (see the comment on
 //     `heroBannerSecondary` in lib/media.ts for why this is a plain photo now, not
 //     a flat export with the quote baked into its pixels).
 //   - actions: the Book/Emergency buttons and the stats row. Identical on both
-//     slides, so it was never really "slide content" — one instance, pinned to a
-//     fixed bottom offset in the left column, never tied to `active`.
+//     slides, so it was never really "slide content" — one instance, sitting in
+//     its own natural-height row at the bottom of the flex column, never tied to
+//     `active`.
 //   - persistent: the search card. Same idea, pinned in the right column.
 
 import { useEffect, useId, useRef, useState } from 'react'
@@ -136,31 +140,42 @@ export function HeroSlideshow({
       />
 
       <div className="relative mx-auto grid h-full max-w-7xl grid-cols-12 gap-12 px-6">
-        {/* Left column: text up top (crossfades), actions pinned at a fixed bottom offset. */}
-        <div className="relative col-span-6">
-          <div
-            aria-hidden={active !== 0}
-            inert={active !== 0 ? true : undefined}
-            style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-            className={`absolute inset-x-0 top-12 space-y-7 transition-opacity ease-out xl:top-14 ${
-              active === 0 ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            {copy}
-          </div>
-          <div
-            aria-hidden={active !== 1}
-            inert={active !== 1 ? true : undefined}
-            style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-            className={`absolute inset-x-0 top-12 space-y-5 transition-opacity ease-out xl:top-14 ${
-              active === 1 ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            {secondSlideText}
+        {/*
+          Left column: a flex column, not absolute-positioned-everything. The
+          text crossfade lives in the flexible region (flex-1) above `actions`,
+          which sits in its own natural-height row — so `secondSlideText` can
+          centre itself against exactly the room `actions` leaves, computed by
+          the browser, not guessed as a pixel offset.
+        */}
+        <div className="relative col-span-6 flex h-full flex-col">
+          <div className="relative flex-1">
+            <div
+              aria-hidden={active !== 0}
+              inert={active !== 0 ? true : undefined}
+              style={{ transitionDuration: `${TRANSITION_MS}ms` }}
+              className={`absolute inset-0 flex flex-col justify-start space-y-7 pt-12 transition-opacity ease-out xl:pt-14 ${
+                active === 0 ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              {copy}
+            </div>
+            <div
+              aria-hidden={active !== 1}
+              inert={active !== 1 ? true : undefined}
+              style={{ transitionDuration: `${TRANSITION_MS}ms` }}
+              // -translate-y-2 nudges the centred block up slightly — true centre
+              // read as a bit low under the actions row. 8px keeps it inside the
+              // ~15px of slack the lg-only breakpoint (1024–1279px) has above it.
+              className={`absolute inset-0 flex -translate-y-2 flex-col justify-center space-y-5 transition-opacity ease-out ${
+                active === 1 ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              {secondSlideText}
+            </div>
           </div>
 
           {/* Identical on both slides — one instance, never re-rendered on rotation. */}
-          <div className="absolute inset-x-0 bottom-12 xl:bottom-14">{actions}</div>
+          <div className="pb-12 xl:pb-14">{actions}</div>
         </div>
 
         {/*

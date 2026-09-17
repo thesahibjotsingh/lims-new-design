@@ -33,7 +33,7 @@ export function DesktopHero() {
       persistent={<HeroSearchCard />}
       copy={
         <>
-          <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold text-white/90">
+          <p className="inline-flex items-center gap-2 text-xs font-semibold text-white/90">
             <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-400" />
             {primaryLocation.addressLines.join(', ')}, {primaryLocation.city},{' '}
             {primaryLocation.state}
@@ -61,15 +61,20 @@ export function DesktopHero() {
             credential claim about a named, registered doctor now, not a graphic in
             a design tool.
           */}
-          <p className="font-serif text-4xl leading-none text-brand-copper" aria-hidden="true">
-            &ldquo;
-          </p>
-          <p className="-mt-6 text-lg font-bold leading-snug">
-            Every woman deserves compassionate, evidence-based care through every
-            stage of life. Our department is committed to providing personalised
-            care in Obstetrics and Gynaecology, advanced Laparoscopic Surgery, and
-            safe, ethical Aesthetic &amp; Cosmetic Gynaecology &mdash; with dignity,
-            privacy, and patient wellbeing at the heart of every decision.
+          {/*
+            Sized up only from xl: the text column narrows below the xl
+            breakpoint (1024&ndash;1279px), where this paragraph already sits
+            close to the pinned actions row below it. Bumping the base size
+            would push it into overlap there; xl: is where the spare room
+            actually is.
+          */}
+          <p className="text-lg font-bold leading-snug xl:text-2xl xl:leading-tight">
+            &ldquo;Every woman deserves compassionate, evidence-based care
+            through every stage of life. Our department is committed to
+            providing personalised care in Obstetrics and Gynaecology,
+            advanced Laparoscopic Surgery, and safe, ethical Aesthetic
+            &amp; Cosmetic Gynaecology, with dignity, privacy, and patient
+            wellbeing at the heart of every decision.&rdquo;
           </p>
           <div>
             <p className="font-serif text-2xl font-bold">Dr. Shweta Godara</p>
