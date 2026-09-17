@@ -14,29 +14,33 @@
 //     hospital home page.
 //   - copy / secondSlideText: headline+description vs. quote+name — text only, no
 //     buttons or stats. Both cross-dissolve into the same slot, which is the
-//     flexible region above `actions` (a flex column, not a hardcoded height) —
-//     `copy` top-aligns within it with `copy`'s own top padding, `secondSlideText`
-//     centres within it, so the quote sits balanced against however much room
-//     `actions`'s actual height leaves rather than a guessed pixel offset.
+//     flexible region above `actions` (a flex column, not a hardcoded height).
+//     Both are vertically CENTRED within it, with the same small upward nudge —
+//     one shared alignment strategy for both slides, not "copy top-aligns,
+//     secondSlideText centres." Top-aligning copy used to leave a growing dead
+//     zone below the description at the xl breakpoint (640px section, description
+//     capped at max-w-xl): centring both spends that same leftover space evenly
+//     above and below instead of dumping it all beneath the text.
 //   - secondSlideBg: the second slide's own background photo (see the comment on
 //     `heroBannerSecondary` in lib/media.ts for why this is a plain photo now, not
 //     a flat export with the quote baked into its pixels).
 //   - actions: the Book/Emergency buttons and the stats row. Identical on both
 //     slides, so it was never really "slide content" — one instance, sitting in
 //     its own natural-height row at the bottom of the flex column, never tied to
-//     `active`.
+//     `active`. Verified pixel-static across slides (getBoundingClientRect
+//     before/after a slide change returns identical rects at every breakpoint
+//     tested) — it was never re-rendered per slide, so there was nothing to pin
+//     more firmly than "render it once."
 //   - persistent: the search card. Same idea, pinned in the right column.
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId } from 'react'
 import type { ReactNode } from 'react'
 import { ArrowRightIcon } from '@/components/icons'
+import { useCarouselRotation } from '@/components/primitives/useCarouselRotation'
+import { CAROUSEL_TRANSITION_MS } from '@/lib/carousel'
 import type { ImageAsset } from '@/types'
 
-const ROTATE_MS = 5000
-// Long and linear-ish (ease-out) rather than the ~300ms snap used for hovers
-// elsewhere on the site — a hero banner swapping under someone's eyes needs to read
-// as a slow dissolve, not a cut, or it undercuts "subtle."
-const TRANSITION_MS = 1200
+const TRANSITION_MS = CAROUSEL_TRANSITION_MS
 
 export function HeroSlideshow({
   firstBanner,
@@ -53,39 +57,15 @@ export function HeroSlideshow({
   actions: ReactNode
   persistent: ReactNode
 }) {
-  const [active, setActive] = useState(0)
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { active, goTo, goToRelative, pause, resume } = useCarouselRotation(2)
   const labelId = useId()
-
-  function startTimer() {
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    // Reduced motion keeps the arrows working but drops the auto-advance — the
-    // slides are content, not decoration, so swapping one out on a timer nobody
-    // asked for is exactly the motion that setting exists to opt out of.
-    if (reduceMotion) return
-    timerRef.current = setInterval(() => setActive((current) => (current === 0 ? 1 : 0)), ROTATE_MS)
-  }
-
-  useEffect(() => {
-    startTimer()
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-  }, [])
-
-  function goTo(index: number) {
-    setActive(index)
-    // A manual pick restarts the clock. Without this, clicking to slide 2 right
-    // before the timer was about to fire flips straight back a moment later, which
-    // reads as the click having done nothing.
-    if (timerRef.current) clearInterval(timerRef.current)
-    startTimer()
-  }
 
   return (
     <section
       aria-roledescription="carousel"
       aria-label="Home page highlights"
+      onMouseEnter={pause}
+      onMouseLeave={resume}
       className="relative isolate hidden h-[600px] overflow-hidden bg-brand-teal text-white lg:block xl:h-[640px]"
     >
       {/*
@@ -153,7 +133,9 @@ export function HeroSlideshow({
               aria-hidden={active !== 0}
               inert={active !== 0 ? true : undefined}
               style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-              className={`absolute inset-0 flex flex-col justify-start space-y-7 pt-12 transition-opacity ease-out xl:pt-14 ${
+              // -translate-y-2: see the identical comment on secondSlideText below —
+              // both slides share this exact wrapper now, so they share the nudge too.
+              className={`absolute inset-0 flex -translate-y-2 flex-col justify-center space-y-7 transition-opacity ease-out ${
                 active === 0 ? 'opacity-100' : 'opacity-0'
               }`}
             >
@@ -195,7 +177,7 @@ export function HeroSlideshow({
 
       <button
         type="button"
-        onClick={() => goTo(active === 0 ? 1 : 0)}
+        onClick={() => goToRelative(-1)}
         aria-label="Previous slide"
         aria-describedby={labelId}
         className="press focus-ring-inverse absolute left-4 top-1/2 z-40 -translate-y-1/2 rounded-full bg-black/25 p-2.5 text-white backdrop-blur-sm transition-colors hover:bg-black/40"
@@ -204,7 +186,7 @@ export function HeroSlideshow({
       </button>
       <button
         type="button"
-        onClick={() => goTo(active === 0 ? 1 : 0)}
+        onClick={() => goToRelative(1)}
         aria-label="Next slide"
         aria-describedby={labelId}
         className="press focus-ring-inverse absolute right-4 top-1/2 z-40 -translate-y-1/2 rounded-full bg-black/25 p-2.5 text-white backdrop-blur-sm transition-colors hover:bg-black/40"
