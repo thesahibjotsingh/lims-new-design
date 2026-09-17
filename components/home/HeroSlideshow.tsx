@@ -2,19 +2,23 @@
 
 // components/home/HeroSlideshow.tsx
 //
-// Owns the hero <section>, the two background photos and the crossfade between them.
-// DesktopHero hands it three pieces instead of one opaque blob of markup:
+// Owns the hero <section> and the crossfade between two slides. DesktopHero hands it
+// three pieces instead of one opaque blob of markup:
 //
-//   - firstBanner / secondBanner: the two background images, cross-dissolved on a
-//     long, gentle opacity transition — no slide, no scale, nothing that reads as a
-//     "carousel effect" fighting for attention on a hospital home page.
-//   - copy: the headline/description/buttons/stats column. This is specific to
-//     `firstBanner`'s photo (the copy sits on a scrim over it) and secondBanner
-//     already has its own quote and name baked into its pixels, so stacking `copy` on
-//     top of it would double up the text. Faded and made inert while secondBanner is
-//     showing, for exactly that reason.
-//   - persistent: the search card. Unlike `copy` it isn't tied to either photo's
-//     content, so it stays mounted and interactive across both slides rather than
+//   - firstBanner: the background photo behind `copy`, cross-dissolved against
+//     `secondSlide` on a long, gentle opacity transition — no slide, no scale,
+//     nothing that reads as a "carousel effect" fighting for attention on a hospital
+//     home page.
+//   - copy: the headline/description/buttons/stats column that sits over
+//     `firstBanner`. Faded and made inert while `secondSlide` is showing, so its text
+//     never doubles up with whatever the second slide is showing.
+//   - secondSlide: the whole second slide, composed by the caller (own background
+//     image, own text) rather than a single ImageAsset — this used to be a flat
+//     picture with the quote baked into its pixels, which blurred at display size.
+//     Live text doesn't have that problem, so the caller now builds it as real
+//     markup and this component only handles fading it in and out.
+//   - persistent: the search card. Unlike `copy` it isn't tied to either slide's
+//     content, so it stays mounted and interactive across both rather than
 //     disappearing every time the banner rotates.
 
 import { useEffect, useId, useRef, useState } from 'react'
@@ -30,12 +34,12 @@ const TRANSITION_MS = 1200
 
 export function HeroSlideshow({
   firstBanner,
-  secondBanner,
+  secondSlide,
   copy,
   persistent,
 }: {
   firstBanner: ImageAsset
-  secondBanner: ImageAsset
+  secondSlide: ReactNode
   copy: ReactNode
   persistent: ReactNode
 }) {
@@ -75,8 +79,13 @@ export function HeroSlideshow({
       className="relative isolate hidden overflow-hidden bg-brand-teal text-white lg:block"
     >
       {/*
-        Both photos are always mounted, stacked, and cross-dissolve by opacity alone —
-        no `hidden`/unmount, or the transition would be a hard cut instead of a fade.
+        Both slides stay mounted and cross-dissolve by opacity alone — no
+        `hidden`/unmount, or the transition would be a hard cut instead of a fade.
+
+        Stacking here is plain DOM order, not z-index: firstBanner+scrim (slide 0's
+        background unit) paint first, secondSlide paints over them, and grid-content
+        (below) paints over everything — which is also why grid-content stays on top
+        with `persistent` visible no matter which slide is active.
       */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -93,31 +102,32 @@ export function HeroSlideshow({
           active === 0 ? 'opacity-100' : 'opacity-0'
         }`}
       />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={secondBanner.src}
-        alt={secondBanner.alt}
-        width={secondBanner.width}
-        height={secondBanner.height}
-        loading="eager"
-        decoding="async"
-        aria-hidden={active !== 1}
-        style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-        className={`absolute inset-0 h-full w-full object-cover transition-opacity ease-out ${
-          active === 1 ? 'opacity-100' : 'opacity-0'
-        }`}
-      />
-
       {/*
-        A scrim anchored to the left, where the copy sits.
-        See DesktopHero's original comment: measured on firstBanner, white already
+        A scrim anchored to the left, where the copy sits. Fades with firstBanner
+        rather than staying constant — secondSlide has its own finished background
+        (see its own comment in DesktopHero), and this dark-teal gradient sitting on
+        top of it too would just muddy that.
+        See the original comment on this hero: measured on firstBanner, white already
         reaches 8.2:1 over the left third unaided — this is insurance against the next
         photo, not the only thing making the headline legible.
       */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-r from-brand-teal-dark/80 via-brand-teal-dark/35 to-transparent"
+        style={{ transitionDuration: `${TRANSITION_MS}ms` }}
+        className={`absolute inset-0 bg-gradient-to-r from-brand-teal-dark/80 via-brand-teal-dark/35 to-transparent transition-opacity ease-out ${
+          active === 0 ? 'opacity-100' : 'opacity-0'
+        }`}
       />
+      <div
+        aria-hidden={active !== 1}
+        inert={active !== 1 ? true : undefined}
+        style={{ transitionDuration: `${TRANSITION_MS}ms` }}
+        className={`absolute inset-0 transition-opacity ease-out ${
+          active === 1 ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+      >
+        {secondSlide}
+      </div>
 
       {/*
         py-12, down from py-20. Eighty pixels of padding above the location pill read as

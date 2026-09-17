@@ -30,8 +30,86 @@ export function DesktopHero() {
   return (
     <HeroSlideshow
       firstBanner={heroBanner}
-      secondBanner={heroBannerSecondary}
       persistent={<HeroSearchCard />}
+      secondSlide={
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={heroBannerSecondary.src}
+            alt={heroBannerSecondary.alt}
+            width={heroBannerSecondary.width}
+            height={heroBannerSecondary.height}
+            loading="eager"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          {/*
+            Live text over a plain photo, not a second baked-pixel export — the
+            Canva quote card this replaced blurred at display size, and its copy was
+            unreadable to a screen reader except through alt text. This wraps at the
+            container's own width instead of a fixed image crop, so it stays crisp at
+            any size and any zoom.
+
+            CONTENT NOTE: this quote and "Senior Consultant" credit her with
+            Laparoscopic Surgery and Aesthetic & Cosmetic Gynaecology. Neither is on
+            her record in lib/doctors.ts (MS, Obstetrics & Gynaecology; no designation
+            on file) — reproduced here because that's what was asked for, but get it
+            confirmed with her or the hospital. It's a real credential claim about a
+            named, registered doctor now, not a graphic in a design tool.
+          */}
+          <div className="relative mx-auto flex h-full max-w-7xl items-start px-6 py-12 xl:py-14">
+            <div className="max-w-2xl space-y-6">
+              <p className="font-serif text-5xl leading-none text-brand-copper" aria-hidden="true">
+                &ldquo;
+              </p>
+              <p className="-mt-8 text-xl font-bold leading-relaxed">
+                Every woman deserves compassionate, evidence-based care through every
+                stage of life. Our department is committed to providing personalised
+                care in Obstetrics and Gynaecology, advanced Laparoscopic Surgery, and
+                safe, ethical Aesthetic &amp; Cosmetic Gynaecology &mdash; with dignity,
+                privacy, and patient wellbeing at the heart of every decision.
+              </p>
+              <div>
+                <p className="font-serif text-2xl font-bold">Dr. Shweta Godara</p>
+                <p className="mt-1 text-white/90">
+                  Senior Consultant &ndash; Obstetrics &amp; Gynaecology
+                </p>
+                <p className="mt-1 text-sm text-white/70">
+                  Obstetrics &middot; Gynaecology &middot; Laparoscopic Surgery &middot;
+                  Aesthetic &amp; Cosmetic Gynaecology
+                </p>
+              </div>
+
+              {/* Same CTAs as slide 1's copy, so booking or calling isn't only available half the time. */}
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                <Link
+                  href="/appointments"
+                  className="tap-target gap-2 rounded-full bg-white px-8 text-sm font-semibold text-brand-teal shadow-lg transition-colors hover:bg-brand-mist"
+                >
+                  Book an appointment
+                  <ArrowRightIcon className="h-4 w-4" strokeWidth={2.25} />
+                </Link>
+                <a
+                  href={`tel:${contact.primary}`}
+                  className="tap-target gap-2 rounded-full border border-white/40 px-8 text-sm font-semibold text-white transition-colors hover:border-white hover:bg-white/10"
+                >
+                  <PhoneIcon className="h-4 w-4" />
+                  Emergency: {contact.primaryDisplay}
+                </a>
+              </div>
+
+              <dl className="flex flex-wrap gap-x-8 gap-y-4 border-t border-white/15 pt-6">
+                <HeroStat value={servicesByCategory('clinical').length} label="Clinical departments" />
+                <HeroStat
+                  value={servicesByCategory('diagnostics').length}
+                  label="Diagnostics & imaging"
+                />
+                <HeroStat value={SERVICES.length} label="Services on one campus" />
+              </dl>
+            </div>
+          </div>
+        </>
+      }
       copy={
         <>
           <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold text-white/90">

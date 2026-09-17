@@ -29,22 +29,18 @@ export const heroBanner: ImageAsset = {
 }
 
 /**
- * The hero's second slide — a quote card built in Canva, text baked into the pixels
- * rather than live HTML.
+ * The hero's second slide — background photo only.
  *
- * That means alt text is the ONLY way a screen reader learns what this slide says, so
- * it can't be empty like `heroBanner` above. It is deliberately narrower than what the
- * image actually shows, though: the card's own copy credits "Senior Consultant" and
- * lists Laparoscopic Surgery and Aesthetic & Cosmetic Gynaecology, neither of which
- * lib/doctors.ts has on record for her (MS, Obstetrics & Gynaecology, no designation
- * on file). This alt text repeats only what her verified record supports — get the
- * card itself corrected or the designation confirmed before this alt text (or the
- * image) claims more.
+ * The quote and her name used to be baked into this image as pixels (a Canva export);
+ * that text blurred at display size and was invisible to a screen reader except
+ * through alt text. Both are now live HTML in DesktopHero's `secondSlide`, so this
+ * asset only needs to identify who's in the photo, the same as any other doctor
+ * portrait — see the `alt` convention on `portrait` in lib/doctors.ts.
  */
 export const heroBannerSecondary: ImageAsset = {
   src: '/hero-banner-2.webp',
-  alt: "Dr. Shweta Godara, Obstetrics & Gynaecology consultant at LIMS: “Every woman deserves compassionate, evidence-based care through every stage of life.”",
-  width: 1916,
+  alt: 'Portrait of Dr. Shweta Godara',
+  width: 1915,
   height: 821,
 }
 
