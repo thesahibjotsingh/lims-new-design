@@ -135,7 +135,7 @@ export function HeroSlideshow({
         the band behind it is one flat colour — there is nothing in that space for the
         padding to separate. The copy column sets the section's height on its own.
       */}
-      <div className="relative mx-auto grid max-w-7xl grid-cols-12 items-center gap-12 px-6 py-12 xl:py-14">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-12 items-start gap-12 px-6 py-12 xl:py-14">
         <div
           aria-hidden={active !== 0}
           inert={active !== 0 ? true : undefined}

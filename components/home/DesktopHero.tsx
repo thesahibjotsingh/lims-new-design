@@ -58,39 +58,26 @@ export function DesktopHero() {
             named, registered doctor now, not a graphic in a design tool.
           */}
           <div className="relative mx-auto flex h-full max-w-7xl items-start px-6 py-12 xl:py-14">
-            <div className="max-w-2xl space-y-6">
-              {/*
-                Fixed min-height, matched to `copy`'s own pre-CTA block (see its
-                comment) — without it the CTAs and stats land at a different height
-                on each slide (the quote runs longer than the headline+description),
-                which reads as a jump instead of a crossfade even though the photo
-                and search card hold still.
-              */}
-              <div className="min-h-[420px] space-y-6">
-                <p className="font-serif text-5xl leading-none text-brand-copper" aria-hidden="true">
-                  &ldquo;
+            <div className="max-w-2xl space-y-5">
+              <p className="font-serif text-4xl leading-none text-brand-copper" aria-hidden="true">
+                &ldquo;
+              </p>
+              <p className="-mt-6 text-lg font-bold leading-snug">
+                Every woman deserves compassionate, evidence-based care through every
+                stage of life. Our department is committed to providing personalised
+                care in Obstetrics and Gynaecology, advanced Laparoscopic Surgery, and
+                safe, ethical Aesthetic &amp; Cosmetic Gynaecology &mdash; with dignity,
+                privacy, and patient wellbeing at the heart of every decision.
+              </p>
+              <div>
+                <p className="font-serif text-2xl font-bold">Dr. Shweta Godara</p>
+                <p className="mt-1 text-white/90">
+                  Senior Consultant &ndash; Obstetrics &amp; Gynaecology
                 </p>
-                <p className="-mt-8 text-xl font-bold leading-relaxed">
-                  Every woman deserves compassionate, evidence-based care through every
-                  stage of life. Our department is committed to providing personalised
-                  care in Obstetrics and Gynaecology, advanced Laparoscopic Surgery, and
-                  safe, ethical Aesthetic &amp; Cosmetic Gynaecology &mdash; with dignity,
-                  privacy, and patient wellbeing at the heart of every decision.
-                </p>
-                <div>
-                  <p className="font-serif text-2xl font-bold">Dr. Shweta Godara</p>
-                  <p className="mt-1 text-white/90">
-                    Senior Consultant &ndash; Obstetrics &amp; Gynaecology
-                  </p>
-                  <p className="mt-1 text-sm text-white/70">
-                    Obstetrics &middot; Gynaecology &middot; Laparoscopic Surgery &middot;
-                    Aesthetic &amp; Cosmetic Gynaecology
-                  </p>
-                </div>
               </div>
 
               {/* Same CTAs as slide 1's copy, so booking or calling isn't only available half the time. */}
-              <div className="flex flex-wrap items-center gap-4 pt-2">
+              <div className="flex flex-wrap items-center gap-4">
                 <Link
                   href="/appointments"
                   className="tap-target gap-2 rounded-full bg-white px-8 text-sm font-semibold text-brand-teal shadow-lg transition-colors hover:bg-brand-mist"
@@ -121,28 +108,21 @@ export function DesktopHero() {
       }
       copy={
         <>
-          {/*
-            Fixed min-height, matched to secondSlide's own pre-CTA block (see its
-            comment) — keeps the CTAs and stats at the same height on both slides so
-            the crossfade doesn't jump.
-          */}
-          <div className="min-h-[420px] space-y-7">
-            <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold text-white/90">
-              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-400" />
-              {primaryLocation.addressLines.join(', ')}, {primaryLocation.city},{' '}
-              {primaryLocation.state}
-            </p>
+          <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold text-white/90">
+            <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-400" />
+            {primaryLocation.addressLines.join(', ')}, {primaryLocation.city},{' '}
+            {primaryLocation.state}
+          </p>
 
-            <h1 className="font-serif text-5xl font-bold leading-[1.1] tracking-tight xl:text-6xl">
-              World class care,
-              <br />
-              close to home.
-            </h1>
+          <h1 className="font-serif text-5xl font-bold leading-[1.1] tracking-tight xl:text-6xl">
+            World class care,
+            <br />
+            close to home.
+          </h1>
 
-            <p className="max-w-xl text-lg leading-relaxed text-white/80">
-              {siteConfig.description}
-            </p>
-          </div>
+          <p className="max-w-xl text-lg leading-relaxed text-white/80">
+            {siteConfig.description}
+          </p>
 
           {/* Dual action buttons — book, or call. */}
           <div className="flex flex-wrap items-center gap-4">
