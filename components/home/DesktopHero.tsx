@@ -54,12 +54,12 @@ export function DesktopHero() {
         <>
           {/*
             CONTENT NOTE: this quote and "Senior Consultant" credit her with
-            Laparoscopic Surgery and Aesthetic & Cosmetic Gynaecology. Neither is on
-            her record in lib/doctors.ts (MS, Obstetrics & Gynaecology; no
-            designation on file) — reproduced here because that's what was asked
-            for, but get it confirmed with her or the hospital. It's a real
-            credential claim about a named, registered doctor now, not a graphic in
-            a design tool.
+            Laparoscopic Surgery and Cosmetic Gynaecology. That used to be
+            unconfirmed against lib/doctors.ts — it now matches her qualifications
+            there (Fellowship in Advance Laparoscopic Pelvic Surgeries, Fellowship
+            in Cosmetic Gynaecology), supplied 2026-09-17. Leaving this note in
+            place rather than deleting it: it's the record of why the two used to
+            disagree, for whoever touches this next.
           */}
           {/*
             Sized up only from xl: the text column narrows below the xl
@@ -77,7 +77,11 @@ export function DesktopHero() {
             wellbeing at the heart of every decision.&rdquo;
           </p>
           <div>
-            <p className="font-serif text-2xl font-bold">Dr. Shweta Godara</p>
+            <p className="font-serif text-2xl font-bold">
+              <Link href="/doctors/shweta-godara" className="transition-colors hover:text-brand-mist">
+                Dr. Shweta Godara
+              </Link>
+            </p>
             <p className="mt-1 text-white/90">
               Senior Consultant &ndash; Obstetrics &amp; Gynaecology
             </p>

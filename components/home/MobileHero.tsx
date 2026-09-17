@@ -44,14 +44,11 @@ export function MobileHero() {
           secondText={
             <>
               {/*
-                CONTENT NOTE: same caveat as DesktopHero.tsx's secondSlideText, which
-                this now matches word for word — this quote and "Senior Consultant"
-                credit her with Laparoscopic Surgery and Aesthetic & Cosmetic
-                Gynaecology. Neither is on her record in lib/doctors.ts (MS,
-                Obstetrics & Gynaecology; no designation on file). Reproduced in full
-                here because that's what was asked for, but get it confirmed with her
-                or the hospital before launch — it's a real credential claim about a
-                named, registered doctor, now live on two surfaces instead of one.
+                CONTENT NOTE: same quote as DesktopHero.tsx's secondSlideText, word
+                for word — see the CONTENT NOTE there for how this used to be
+                unconfirmed against lib/doctors.ts and now matches her qualifications
+                (Fellowship in Advance Laparoscopic Pelvic Surgeries, Fellowship in
+                Cosmetic Gynaecology), supplied 2026-09-17.
 
                 Micro-type, not a shorter quote: MobileHeroSlideshow's photo wrapper
                 has no fixed height (`min-h-[56.25vw]` is a floor, not a ceiling — see
@@ -76,7 +73,9 @@ export function MobileHero() {
                 decision.&rdquo;
               </p>
               <p className="mt-2 font-serif text-sm font-bold leading-tight text-white">
-                Dr. Shweta Godara
+                <Link href="/doctors/shweta-godara" className="transition-colors hover:text-white/80">
+                  Dr. Shweta Godara
+                </Link>
               </p>
               <p className="text-[10px] font-medium leading-snug text-white/70">
                 Senior Consultant &ndash; Obstetrics &amp; Gynaecology

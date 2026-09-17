@@ -79,8 +79,12 @@ export const DOCTORS: Doctor[] = [
   {
     id: 'shweta-godara',
     name: 'Dr. Shweta Godara',
-    // TODO: supplied as "MS (Obs & Gyane)"; expanded to the standard form. Confirm.
-    qualifications: 'MS (Obstetrics & Gynaecology)',
+    // Full qualifications supplied by LIMS 2026-09-17, superseding the earlier
+    // "MS (Obs & Gyane)" placeholder. This is also what resolves the credential
+    // gap the hero's quote used to flag — see the CONTENT NOTE in
+    // components/home/DesktopHero.tsx and MobileHero.tsx.
+    qualifications:
+      'MBBS, MS (SMS Medical College Jaipur), DNB Obstetrics & Gynaecology, Fellowship in Advance Laparoscopic Pelvic Surgeries, Fellowship in Cosmetic Gynaecology',
     departmentSlug: 'obstetrics-gynaecology',
     registrationNumber: 'HN-31657',
     // Real photograph, supplied 2026-09-16.
