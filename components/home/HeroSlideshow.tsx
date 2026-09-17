@@ -2,24 +2,26 @@
 
 // components/home/HeroSlideshow.tsx
 //
-// Owns the hero <section> and the crossfade between two slides. DesktopHero hands it
-// three pieces instead of one opaque blob of markup:
+// Owns the hero <section>, fixed at h-[600px] xl:h-[640px] rather than sized by
+// whichever slide's text is longest. That fixed height is what makes the pinned
+// pieces below possible: `actions` and `persistent` are each a single absolutely
+// positioned instance — not per-slide, not re-rendered on rotation — so there is
+// nothing for them to jump between. Only `copy`/`secondSlideText` cross-dissolve.
 //
 //   - firstBanner: the background photo behind `copy`, cross-dissolved against
 //     `secondSlide` on a long, gentle opacity transition — no slide, no scale,
-//     nothing that reads as a "carousel effect" fighting for attention on a hospital
-//     home page.
-//   - copy: the headline/description/buttons/stats column that sits over
-//     `firstBanner`. Faded and made inert while `secondSlide` is showing, so its text
-//     never doubles up with whatever the second slide is showing.
-//   - secondSlide: the whole second slide, composed by the caller (own background
-//     image, own text) rather than a single ImageAsset — this used to be a flat
-//     picture with the quote baked into its pixels, which blurred at display size.
-//     Live text doesn't have that problem, so the caller now builds it as real
-//     markup and this component only handles fading it in and out.
-//   - persistent: the search card. Unlike `copy` it isn't tied to either slide's
-//     content, so it stays mounted and interactive across both rather than
-//     disappearing every time the banner rotates.
+//     nothing that reads as a "carousel effect" fighting for attention on a
+//     hospital home page.
+//   - copy / secondSlideText: headline+description vs. quote+name — text only, no
+//     buttons or stats. Absolutely positioned into the same top-left slot so one
+//     can run longer than the other without pushing anything.
+//   - secondSlideBg: the second slide's own background photo (see the comment on
+//     `heroBannerSecondary` in lib/media.ts for why this is a plain photo now, not
+//     a flat export with the quote baked into its pixels).
+//   - actions: the Book/Emergency buttons and the stats row. Identical on both
+//     slides, so it was never really "slide content" — one instance, pinned to a
+//     fixed bottom offset in the left column, never tied to `active`.
+//   - persistent: the search card. Same idea, pinned in the right column.
 
 import { useEffect, useId, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
@@ -34,13 +36,17 @@ const TRANSITION_MS = 1200
 
 export function HeroSlideshow({
   firstBanner,
-  secondSlide,
+  secondSlideBg,
   copy,
+  secondSlideText,
+  actions,
   persistent,
 }: {
   firstBanner: ImageAsset
-  secondSlide: ReactNode
+  secondSlideBg: ImageAsset
   copy: ReactNode
+  secondSlideText: ReactNode
+  actions: ReactNode
   persistent: ReactNode
 }) {
   const [active, setActive] = useState(0)
@@ -76,16 +82,12 @@ export function HeroSlideshow({
     <section
       aria-roledescription="carousel"
       aria-label="Home page highlights"
-      className="relative isolate hidden overflow-hidden bg-brand-teal text-white lg:block"
+      className="relative isolate hidden h-[600px] overflow-hidden bg-brand-teal text-white lg:block xl:h-[640px]"
     >
       {/*
-        Both slides stay mounted and cross-dissolve by opacity alone — no
-        `hidden`/unmount, or the transition would be a hard cut instead of a fade.
-
         Stacking here is plain DOM order, not z-index: firstBanner+scrim (slide 0's
-        background unit) paint first, secondSlide paints over them, and grid-content
-        (below) paints over everything — which is also why grid-content stays on top
-        with `persistent` visible no matter which slide is active.
+        background unit) paint first, secondSlideBg paints over them, and the
+        content layer (below) paints over everything.
       */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -104,12 +106,12 @@ export function HeroSlideshow({
       />
       {/*
         A scrim anchored to the left, where the copy sits. Fades with firstBanner
-        rather than staying constant — secondSlide has its own finished background
-        (see its own comment in DesktopHero), and this dark-teal gradient sitting on
-        top of it too would just muddy that.
-        See the original comment on this hero: measured on firstBanner, white already
-        reaches 8.2:1 over the left third unaided — this is insurance against the next
-        photo, not the only thing making the headline legible.
+        rather than staying constant — secondSlideBg has its own finished
+        background, and this dark-teal gradient sitting on top of it too would
+        just muddy that.
+        See the original comment on this hero: measured on firstBanner, white
+        already reaches 8.2:1 over the left third unaided — this is insurance
+        against the next photo, not the only thing making the headline legible.
       */}
       <div
         aria-hidden="true"
@@ -118,42 +120,58 @@ export function HeroSlideshow({
           active === 0 ? 'opacity-100' : 'opacity-0'
         }`}
       />
-      <div
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={secondSlideBg.src}
+        alt={secondSlideBg.alt}
+        width={secondSlideBg.width}
+        height={secondSlideBg.height}
+        loading="eager"
+        decoding="async"
         aria-hidden={active !== 1}
-        inert={active !== 1 ? true : undefined}
         style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-        className={`absolute inset-0 transition-opacity ease-out ${
-          active === 1 ? 'opacity-100' : 'pointer-events-none opacity-0'
+        className={`absolute inset-0 h-full w-full object-cover transition-opacity ease-out ${
+          active === 1 ? 'opacity-100' : 'opacity-0'
         }`}
-      >
-        {secondSlide}
-      </div>
+      />
 
-      {/*
-        py-12, down from py-20. Eighty pixels of padding above the location pill read as
-        a gap between the navigation and the hero rather than as breathing room, because
-        the band behind it is one flat colour — there is nothing in that space for the
-        padding to separate. The copy column sets the section's height on its own.
-      */}
-      <div className="relative mx-auto grid max-w-7xl grid-cols-12 items-start gap-12 px-6 py-12 xl:py-14">
-        <div
-          aria-hidden={active !== 0}
-          inert={active !== 0 ? true : undefined}
-          style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-          className={`col-span-6 space-y-7 transition-opacity ease-out ${
-            active === 0 ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          {copy}
+      <div className="relative mx-auto grid h-full max-w-7xl grid-cols-12 gap-12 px-6">
+        {/* Left column: text up top (crossfades), actions pinned at a fixed bottom offset. */}
+        <div className="relative col-span-6">
+          <div
+            aria-hidden={active !== 0}
+            inert={active !== 0 ? true : undefined}
+            style={{ transitionDuration: `${TRANSITION_MS}ms` }}
+            className={`absolute inset-x-0 top-12 space-y-7 transition-opacity ease-out xl:top-14 ${
+              active === 0 ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            {copy}
+          </div>
+          <div
+            aria-hidden={active !== 1}
+            inert={active !== 1 ? true : undefined}
+            style={{ transitionDuration: `${TRANSITION_MS}ms` }}
+            className={`absolute inset-x-0 top-12 space-y-5 transition-opacity ease-out xl:top-14 ${
+              active === 1 ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            {secondSlideText}
+          </div>
+
+          {/* Identical on both slides — one instance, never re-rendered on rotation. */}
+          <div className="absolute inset-x-0 bottom-12 xl:bottom-14">{actions}</div>
         </div>
 
         {/*
-          Bottom-aligned rather than centred: firstBanner's subject stands in the
-          upper right of the frame, and a card centred in this column would sit across
-          her face. Left-aligned at the start of its own column, which on a 6/6 split
-          is the middle of the hero, and on the same baseline as the stats opposite it.
+          Right column: the search card, pinned at the same bottom offset as
+          `actions` so the two sit on one baseline — bottom-aligned rather than
+          centred because firstBanner's subject stands in the upper right of the
+          frame, and a card centred in this column would sit across her face.
         */}
-        <div className="col-span-6 flex justify-start self-end">{persistent}</div>
+        <div className="relative col-span-6">
+          <div className="absolute bottom-12 left-0 xl:bottom-14">{persistent}</div>
+        </div>
       </div>
 
       <p id={labelId} className="sr-only">
