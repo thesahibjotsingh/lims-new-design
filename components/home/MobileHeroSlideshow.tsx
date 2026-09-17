@@ -25,15 +25,47 @@
 // spot in this frame that doesn't sit on a face. The dot toggle (top-left, clear of
 // that subject) is manual control enough for two slides; reduced-motion still gets
 // the auto-advance dropped entirely, same as desktop.
+//
+// Fully swipeable: a horizontal drag past SWIPE_THRESHOLD_PX on release calls goTo in
+// the drag's direction, same as tapping a dot. Built on Pointer Events
+// (onPointerDown/Up/Cancel), not TouchEvent — a touch-only listener never fires for a
+// mouse or trackpad drag, which is exactly how this got tested and shipped looking
+// "swipeable" while not actually responding to anything but a real finger. Pointer
+// Events is the one API both fire through, so a drag works the same way whether it's
+// tested with a mouse or used with a thumb.
+//
+// setPointerCapture on pointerdown is what makes the drag reliable once it starts:
+// without it, a fast swipe that drifts outside this element's box before release
+// stops delivering pointer events here entirely, and the gesture just never resolves.
+// A press in progress pauses the timer (pointerdown) the same way desktop hover does
+// — a finger resting on the photo mid-swipe is exactly the moment it must not
+// auto-advance underneath it — and pointerup/pointercancel always resume it, whether
+// or not the drag cleared the threshold.
+//
+// The photo transition is a slide, not a crossfade: each `<img>` sits at
+// `translate-x-0` when active and off to one side — always the same side for a given
+// slide, index 0 to the left, index 1 to the right — when it isn't. A blur crossfade
+// was here first; it read as the photo going soft/out-of-focus rather than an
+// intentional transition, which is a stranger effect on a face than on abstract
+// content, and it didn't match how the reader actually triggers it (a swipe already
+// has a direction — the photo should visibly follow it). Fixed sides rather than
+// gesture-direction-aware ones: with exactly two slides there's no meaningful "which
+// way is forward" to preserve on wraparound, so tracking swipe direction through
+// state would add a dependency for no visible benefit over "slide 2 always lives to
+// the right of slide 1." `overflow-hidden` on the wrapper is load-bearing here — it's
+// what keeps the off-screen slide from widening the page.
 
-import { useEffect, useId, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import { useId, useRef } from 'react'
+import type { PointerEvent, ReactNode } from 'react'
+import { useCarouselRotation } from '@/components/primitives/useCarouselRotation'
+import { CAROUSEL_TRANSITION_MS } from '@/lib/carousel'
 import type { ImageAsset } from '@/types'
 
-const ROTATE_MS = 5000
-// Matches HeroSlideshow's TRANSITION_MS — a hero banner swapping under someone's
-// thumb should read as the same slow dissolve on mobile as it does on desktop.
-const TRANSITION_MS = 1200
+const TRANSITION_MS = CAROUSEL_TRANSITION_MS
+// A flick and a deliberate drag both need to register; a scroll-intent brush across
+// the photo should not. 48px sits above normal scroll jitter on a touchscreen and
+// well below "most of a phone's width," so a short, confident swipe is enough.
+const SWIPE_THRESHOLD_PX = 48
 
 export function MobileHeroSlideshow({
   firstBanner,
@@ -46,31 +78,63 @@ export function MobileHeroSlideshow({
   firstText: ReactNode
   secondText: ReactNode
 }) {
-  const [active, setActive] = useState(0)
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { active, goTo, goToRelative, pause, resume } = useCarouselRotation(2)
   const labelId = useId()
+  const dragStartX = useRef<number | null>(null)
 
-  function startTimer() {
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    // Reduced motion keeps the dots working but drops the auto-advance — same
-    // reasoning as HeroSlideshow: the slides are content, not decoration.
-    if (reduceMotion) return
-    timerRef.current = setInterval(() => setActive((current) => (current === 0 ? 1 : 0)), ROTATE_MS)
+  function handlePointerDown(event: PointerEvent) {
+    // Ignore a second finger, or a non-primary mouse button — one gesture at a time.
+    if (!event.isPrimary) return
+    dragStartX.current = event.clientX
+    // pause() first, unconditionally: it must run even if capture below fails, or a
+    // press that fails to capture would also fail to pause — two unrelated failures
+    // for the price of one.
+    pause()
+    try {
+      // Keeps every subsequent pointer event for this gesture routed to this element
+      // even if the drag drifts outside its box before release — without this, a
+      // fast swipe can end up delivering pointerup nowhere, and the gesture just
+      // never resolves (no goToRelative, no resume, stuck paused until the next tap).
+      event.currentTarget.setPointerCapture(event.pointerId)
+    } catch {
+      // Some browsers throw if the pointer already ended by the time this runs (a
+      // very fast tap). The swipe still works without capture, just slightly less
+      // robust to the gesture drifting outside the element first — not worth
+      // failing the whole interaction over.
+    }
   }
 
-  useEffect(() => {
-    startTimer()
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-  }, [])
+  function handlePointerUp(event: PointerEvent) {
+    const startX = dragStartX.current
+    dragStartX.current = null
 
-  function goTo(index: number) {
-    setActive(index)
-    // A manual pick restarts the clock — without this, tapping to slide 2 right
-    // before the timer fires flips straight back a moment later.
-    if (timerRef.current) clearInterval(timerRef.current)
-    startTimer()
+    if (startX === null) {
+      resume()
+      return
+    }
+
+    const delta = event.clientX - startX
+    if (Math.abs(delta) < SWIPE_THRESHOLD_PX) {
+      // Not a real swipe (a tap, or scroll jitter) — goTo would restart the clock
+      // for nothing, so this resumes it exactly where a pause left off instead.
+      resume()
+      return
+    }
+
+    // Dragged left (delta < 0) advances, same "next" direction as the auto-rotate;
+    // dragged right goes back. goToRelative reads React's latest state directly
+    // rather than a closed-over `active` — a drag that spans an auto-advance tick
+    // would otherwise compute its target from the index active before that tick,
+    // landing back on the slide already showing instead of the one swiped to.
+    goToRelative(delta < 0 ? 1 : -1)
+  }
+
+  function handlePointerCancel() {
+    // The browser aborted the gesture (an incoming scroll, an OS interruption) —
+    // there is no reliable endpoint to measure a delta against, so this only
+    // resumes the clock rather than guessing a direction.
+    dragStartX.current = null
+    resume()
   }
 
   return (
@@ -78,7 +142,10 @@ export function MobileHeroSlideshow({
       role="region"
       aria-roledescription="carousel"
       aria-label="Home page highlights"
-      className="relative w-full overflow-hidden bg-brand-teal"
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      className="relative w-full touch-pan-y overflow-hidden bg-brand-teal"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -91,8 +158,21 @@ export function MobileHeroSlideshow({
         decoding="async"
         aria-hidden="true"
         style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-        className={`absolute inset-0 h-full w-full object-cover transition-opacity ease-out ${
-          active === 0 ? 'opacity-100' : 'opacity-0'
+        // Moving on screen, not entering/exiting a static position — ease-in-out
+        // (the strong custom curve, not Tailwind's built-in one) is the right family
+        // here, same as HeroSlideshow's `-translate-y-2` text nudge would use if it
+        // were animated rather than a static offset.
+        //
+        // motion-reduce: a 100%-width lateral slide is real, large-amplitude motion —
+        // more of it than the opacity/blur crossfade it replaced, not less — so it
+        // gets its own fallback rather than riding on the auto-advance timer's
+        // existing reduced-motion gate (that only stops the *automatic* rotation; a
+        // manual swipe or dot tap still transitions either way). Under reduced
+        // motion this drops straight back to the plain opacity crossfade instead.
+        className={`absolute inset-0 h-full w-full object-cover transition-transform ease-[var(--ease-in-out)] motion-reduce:translate-x-0 motion-reduce:transition-opacity ${
+          active === 0
+            ? 'translate-x-0 motion-reduce:opacity-100'
+            : '-translate-x-full motion-reduce:opacity-0'
         }`}
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -105,8 +185,10 @@ export function MobileHeroSlideshow({
         decoding="async"
         aria-hidden={active !== 1}
         style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-        className={`absolute inset-0 h-full w-full object-cover transition-opacity ease-out ${
-          active === 1 ? 'opacity-100' : 'opacity-0'
+        className={`absolute inset-0 h-full w-full object-cover transition-transform ease-[var(--ease-in-out)] motion-reduce:translate-x-0 motion-reduce:transition-opacity ${
+          active === 1
+            ? 'translate-x-0 motion-reduce:opacity-100'
+            : 'translate-x-full motion-reduce:opacity-0'
         }`}
       />
 
@@ -141,8 +223,13 @@ export function MobileHeroSlideshow({
         the bottom, and if that text still needs more room than the floor leaves, this
         div (and so the photo behind it, via `absolute inset-0 h-full w-full`) simply
         grows taller rather than clipping anything.
+
+        `pb-11` rather than the photo-hero-standard `pb-8`: lifts the text block off
+        the very bottom edge, closer to the middle of the negative space the scrim
+        leaves, so it doesn't read as crammed against the seam where the search bar
+        overlaps (`-mt-6` on that wrapper in MobileHero.tsx).
       */}
-      <div className="relative flex min-h-[56.25vw] flex-col justify-end px-5 pb-8">
+      <div className="relative flex min-h-[56.25vw] flex-col justify-end px-5 pb-11">
         {/*
           Grid-stack crossfade: both text blocks sit in the same cell (`[grid-area:1/1]`
           on each), so the grid track's height is the taller of the two — opacity-0
@@ -205,6 +292,11 @@ export function MobileHeroSlideshow({
             key={index}
             type="button"
             onClick={() => goTo(index)}
+            // Stops the press from ever reaching the container's onPointerDown — a
+            // tap here is a navigation, not the start of a drag, and letting it
+            // through would call setPointerCapture on the container mid-tap, which
+            // can swallow the button's own click.
+            onPointerDown={(event) => event.stopPropagation()}
             aria-label={`Go to slide ${index + 1}`}
             aria-current={active === index}
             className="press -mx-1 -my-2 flex items-center justify-center px-1 py-2"

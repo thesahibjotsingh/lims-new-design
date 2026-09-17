@@ -7,6 +7,9 @@
     color-scheme: light;
     /* Strong ease-out for UI motion — the built-in CSS easings read as too weak. */
     --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    /* Strong ease-in-out, for anything moving or morphing on screen rather than
+       entering/exiting — a slide crossfade, not a fade-in. */
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
     /* iOS-like drawer curve, for anything that slides in as a panel or sheet. */
     --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   }
