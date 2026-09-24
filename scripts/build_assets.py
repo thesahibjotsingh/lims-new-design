@@ -170,6 +170,50 @@ def build_hero_banner() -> int:
     return written
 
 
+def build_department_banners(services) -> int:
+    """assets-source/Department Banners/<slug>.png -> public/service-banners/<slug>.webp
+
+    Same idea as build_banners() (height-only resize, wide art with the subject on the
+    right, quality 75 for a full-width photograph), but keyed by catalogue slug and
+    genuinely optional per service — unlike the small icon loop above, a department
+    without a file here just doesn't get a banner on its page (ServiceDetail falls
+    back to the plain mist header, same as it always has), rather than the build
+    failing. Most of the 26 will not have one of these for a long time; that's fine.
+
+    Filenames DO still have to match a real slug, though — a typo here is a banner
+    silently never appearing rather than a 404, which is a harder bug to notice.
+    """
+    folder = SRC / "Department Banners"
+    if not folder.exists():
+        return 0
+
+    known_slugs = {slug for slug, _ in services}
+    written = 0
+    unknown = []
+
+    for src in sorted(folder.glob("*.png")):
+        slug = src.stem.lower()
+        if slug not in known_slugs:
+            unknown.append(src.name)
+            continue
+
+        im = Image.open(src).convert("RGB")
+        w, h = im.size
+        im = im.resize((round(w * BANNER_H / h), BANNER_H), Image.LANCZOS)
+        out = PUB / "service-banners" / f"{slug}.webp"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        im.save(out, "WEBP", quality=75, method=6)
+        written += out.stat().st_size
+
+    if unknown:
+        sys.exit(
+            "Department banner filename doesn't match any slug in lib/services.ts: "
+            + "; ".join(unknown)
+        )
+
+    return written
+
+
 def build_banners() -> int:
     """assets-source/Placeholders/<name>.png -> public/banners/<name>.webp
 
@@ -318,6 +362,7 @@ def main():
     # ---- page banners ------------------------------------------------------------
     written += build_banners()
     written += build_hero_banner()
+    written += build_department_banners(services)
 
     # ---- consultant portraits ----------------------------------------------------
     written += build_portraits()

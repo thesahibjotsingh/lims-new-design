@@ -76,6 +76,18 @@ export interface ClinicalService {
    * Generic and educational — not a claim about what LIMS specifically performs.
    */
   commonTreatments?: ServiceListItem[]
+  /**
+   * Path to a banner from public/service-banners/, e.g. "/service-banners/<slug>.webp".
+   * Passed straight to PageHeader's own `banner` prop — see that component for how it
+   * renders and why it always ships with `cinematic`.
+   *
+   * Written by scripts/build_assets.py from assets-source/Department Banners/<slug>.png,
+   * not by hand — the WebP files in public/ are generated output. Genuinely optional
+   * and genuinely partial: most of the 26 services do not have one yet and that's a
+   * normal, permanent state, not a gap to fill before launch, unlike a missing
+   * `overview`.
+   */
+  banner?: string
 }
 
 export interface ServiceCategoryDefinition {
@@ -127,6 +139,7 @@ export const SERVICES: ClinicalService[] = [
     slug: 'emergency-services',
     name: 'Emergency Services',
     category: 'clinical',
+    banner: '/service-banners/emergency-services.webp',
     overview:
       'Emergency medicine is the specialty concerned with the immediate recognition, ' +
       'diagnosis and treatment of acute illness and injury — conditions that need ' +
@@ -191,6 +204,7 @@ export const SERVICES: ClinicalService[] = [
     slug: 'general-medicine',
     name: 'General Medicine',
     category: 'clinical',
+    banner: '/service-banners/general-medicine.webp',
     overview:
       'General medicine, also called internal medicine, diagnoses and manages the ' +
       'full range of adult illness — from common infections, diabetes, high blood ' +
@@ -250,6 +264,7 @@ export const SERVICES: ClinicalService[] = [
     name: 'Ortho & Joint Replacement',
     category: 'clinical',
     alsoKnownAs: ['Orthopedics', 'Polytrauma'],
+    banner: '/service-banners/ortho-joint-replacement.webp',
     overview:
       'Orthopaedics deals with the bones, joints, ligaments, tendons and muscles that ' +
       'make up the musculoskeletal system — covering fractures, arthritis, sports ' +
@@ -308,6 +323,7 @@ export const SERVICES: ClinicalService[] = [
     name: 'Obstetrics & Gynaecology',
     category: 'clinical',
     alsoKnownAs: ['Obs and Gynae'],
+    banner: '/service-banners/obstetrics-gynaecology.webp',
     overview:
       'Obstetrics covers pregnancy, childbirth and the postnatal period — routine ' +
       'antenatal care through to delivery. Gynaecology covers the reproductive ' +

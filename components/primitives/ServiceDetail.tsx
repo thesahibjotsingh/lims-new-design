@@ -82,6 +82,13 @@ export async function ServiceDetail({ service }: { service: ClinicalService }) {
             : undefined
         }
         icon={<ServiceIcon slug={service.slug} size={72} />}
+        // Genuinely optional — most services don't have one yet (see the comment on
+        // `banner` in lib/services.ts). `cinematic` is passed unconditionally, same
+        // as every other banner call site in this codebase (about, find-a-doctor):
+        // PageHeader itself no-ops it when there's no banner to shrink, so there's
+        // nothing to gate here.
+        banner={service.banner}
+        cinematic
       >
         <nav aria-label="Breadcrumb" className="mt-5">
           <ol className="flex flex-wrap items-center gap-2 text-xs text-brand-dark-base/55">
