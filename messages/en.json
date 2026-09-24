@@ -139,7 +139,15 @@
     "serviceType": "service",
     "aboutThisService": "About this service",
     "aboutServiceFallback": "An overview, the conditions treated and the procedures offered are published from information supplied by LIMS. Until the hospital provides them, this page does not describe what happens here rather than guess.",
-    "otherIn": "Other {category}"
+    "otherIn": "Other {category}",
+    "conditionsHeadingClinical": "Conditions commonly associated with {name}",
+    "conditionsHeadingDiagnostics": "What {name} can help evaluate",
+    "conditionsHeadingSupport": "Situations {name} commonly helps with",
+    "treatmentsHeadingClinical": "Common treatments and procedures",
+    "treatmentsHeadingDiagnostics": "How it's typically performed",
+    "treatmentsHeadingSupport": "Common approaches",
+    "morePendingHeading": "More detail is on its way",
+    "morePendingBody": "This page will grow to include the department's own highlights, sub-specialties, the consultant team's approach, equipment and technology, and patient experiences — published once LIMS supplies them, not invented here in the meantime."
   },
   "awaitingContent": {
     "defaultBody": "This section is published from information supplied by LIMS and is not yet available. For anything urgent, please call the hospital directly."
