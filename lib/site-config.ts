@@ -5,8 +5,8 @@
 // Contact details below are REAL, transcribed from the official LIMS card:
 //   Jindal Chowk, Hisar · 9254984121, 9254984122 · www.limshisar.com
 //
-// What is still an assumption is which number serves which purpose — the card lists
-// both numbers without roles. See the note on `contact` before launch.
+// Which number serves which purpose is confirmed — see the note on `contact` below.
+// Still unconfirmed: 24x7 coverage and whether there's a separate ambulance line.
 
 import { getCategory, serviceHref, servicesByCategory } from '@/lib/services'
 import type { Location, NavItem } from '@/types'
@@ -30,26 +30,24 @@ export const siteConfig = {
 /**
  * The two published LIMS numbers.
  *
- * >>> ROLE ASSIGNMENT IS AN ASSUMPTION — CONFIRM WITH LIMS BEFORE LAUNCH <<<
+ * Role assignment confirmed 2026-09-24: 84121 is the reception desk, 84122 is
+ * answered in an emergency. (Previously reversed here — the card itself prints both
+ * numbers with no labels, and the original guess used the conventional "first number
+ * = emergency" split, which was wrong.) `primary` stays the name used everywhere in
+ * the UI for the emergency line and `secondary` for the reception/appointments line;
+ * only the digits underneath moved.
  *
- * The card prints both numbers with no labels. `primary` is surfaced in the top tier
- * as the emergency line and `secondary` as the appointments line, because that is the
- * conventional split and someone in distress needs *a* number above the fold. But if
- * either line is in fact a reception desk that closes at night, the top bar is telling
- * a patient to call a phone nobody answers — a safety problem, not a copy problem.
- *
- * Three things to confirm with LIMS:
- *   1. Which of the two numbers is answered in an emergency.
- *   2. Whether either line is genuinely 24x7 (no "24x7" claim is made anywhere in the
+ * Still unconfirmed:
+ *   1. Whether either line is genuinely 24x7 (no "24x7" claim is made anywhere in the
  *      UI until this is confirmed).
- *   3. Whether there is a separate ambulance number. The top tier has a slot for one
+ *   2. Whether there is a separate ambulance number. The top tier has a slot for one
  *      and currently renders without it rather than pointing at a guess.
  */
 export const contact = {
-  primary: '+919254984121',
-  primaryDisplay: '+91 92549 84121',
-  secondary: '+919254984122',
-  secondaryDisplay: '+91 92549 84122',
+  primary: '+919254984122',
+  primaryDisplay: '+91 92549 84122',
+  secondary: '+919254984121',
+  secondaryDisplay: '+91 92549 84121',
   /** TODO: dedicated ambulance line, if LIMS operates one. */
   ambulance: undefined as string | undefined,
   ambulanceDisplay: undefined as string | undefined,
