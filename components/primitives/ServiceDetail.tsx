@@ -2,11 +2,14 @@
 //
 // The body of a service page, shared by all three category routes.
 //
-// It renders the name, the category, the alternative names, and the consultants filed
-// under that slug. It does NOT render an overview, conditions treated, procedures
-// offered, or facilities — those are clinical claims about what this hospital can do,
-// and they come from LIMS or they do not exist. Where they are missing the page says
-// so and offers the phone, which is a page a patient can act on.
+// It renders the name, the category, the alternative names, the consultants filed
+// under that slug, and — when `service.overview` is set — a generic, non-institution-
+// specific description of what the specialty/test/service is. It does NOT render
+// conditions treated, procedures offered, or facilities: those are clinical claims
+// about what THIS hospital can do, and they come from LIMS or they do not exist.
+// Where `overview` is missing (a service added without one yet) the page falls back
+// to AwaitingContent and offers the phone instead of guessing — same pattern as
+// `doctor.about` on the profile page.
 
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
@@ -83,9 +86,20 @@ export async function ServiceDetail({ service }: { service: ClinicalService }) {
               </AwaitingContent>
             )}
 
-            <AwaitingContent what={t('aboutThisService')}>
-              {t('aboutServiceFallback')}
-            </AwaitingContent>
+            {service.overview ? (
+              <div>
+                <h2 className="mb-3 font-serif text-2xl font-bold text-brand-dark-base">
+                  {t('aboutThisService')}
+                </h2>
+                <p className="max-w-2xl leading-relaxed text-brand-dark-base/75">
+                  {service.overview}
+                </p>
+              </div>
+            ) : (
+              <AwaitingContent what={t('aboutThisService')}>
+                {t('aboutServiceFallback')}
+              </AwaitingContent>
+            )}
           </div>
 
           <aside className="scroll-reveal space-y-4">
