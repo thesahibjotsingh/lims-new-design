@@ -283,6 +283,7 @@
     "intro": "Call the hospital, find it on the map, or send an appointment request. In an emergency, call the emergency number now.",
     "getDirections": "Get directions",
     "emergencyLabel": "Emergency",
+    "noteFor": "For",
     "appointmentsLabel": "Appointments & enquiries",
     "findHeading": "Find us",
     "addressLabel": "Address",

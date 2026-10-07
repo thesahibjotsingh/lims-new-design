@@ -128,8 +128,10 @@ export async function ServiceHero({
 
           <ContactCard
             heading={t('talkToUs')}
+            tag={name}
             requestHref={noAppointment ? undefined : `/appointments?department=${service.slug}`}
-            requestLabel={noAppointment ? undefined : t('requestFor', { name })}
+            requestLabel={noAppointment ? undefined : tCommon('requestAnAppointment')}
+            requestAriaLabel={noAppointment ? undefined : t('requestFor', { name })}
             emergencyFirst={emergencyFirst}
           />
         </div>

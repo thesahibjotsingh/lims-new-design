@@ -137,8 +137,10 @@ export async function DoctorHero({
 
           <ContactCard
             heading={tService('talkToUs')}
+            tag={doctor.name}
             requestHref={`/appointments?doctor=${doctor.id}`}
-            requestLabel={t('requestWith', { name: doctor.name })}
+            requestLabel={tCommon('requestAnAppointment')}
+            requestAriaLabel={t('requestWith', { name: doctor.name })}
           />
         </div>
       </div>

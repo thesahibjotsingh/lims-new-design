@@ -37,6 +37,13 @@ const config: Config = {
           ribbon: '#DCEDEF',
           /** Emergency only. Never used decoratively — red must keep its meaning. */
           emergency: '#C62828',
+          /**
+           * The sticky note on the "Talk to us" card (components/service/ContactCard.tsx):
+           * a copper wash with a dark brown ink. The ink is about 7:1 on the note (5:1 for the
+           * small "For" label, which is the ink at 85%).
+           */
+          sticky: '#F4C3AB',
+          'sticky-ink': '#5E2C18',
         },
       },
       fontFamily: {
