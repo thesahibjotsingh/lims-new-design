@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { AwaitingContent, PageHeader, Section } from '@/components/primitives/PageShell'
 import { PhoneIcon, PinIcon } from '@/components/icons'
-import { contact, primaryLocation } from '@/lib/site-config'
+import { contact, fullAddress } from '@/lib/site-config'
 
 export const metadata: Metadata = {
   title: 'Visitor information',
@@ -34,9 +34,7 @@ export default async function VisitorsPage() {
               <p className="mt-2 flex items-start gap-2 text-sm leading-relaxed text-brand-dark-base/75">
                 <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-teal" />
                 <span>
-                  {primaryLocation.addressLines.join(', ')}
-                  <br />
-                  {primaryLocation.city}, {primaryLocation.state}
+                  {fullAddress()}
                 </span>
               </p>
               <a

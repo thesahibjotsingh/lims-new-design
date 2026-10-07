@@ -69,10 +69,16 @@ Node version comes from `.node-version` in this repo.
 
 ## Environment
 
-Appointment submissions are delivered to whatever `APPOINTMENT_WEBHOOK_URL` (or
-`APPOINTMENT_NOTIFY_EMAIL`) points at. Neither is set by default, and that is a safe
-state: the endpoint returns `503 { configured: false }` and the form shows the
-hospital's phone number instead of falsely reporting success.
+Appointment submissions are delivered as JSON to whatever `APPOINTMENT_WEBHOOK_URL`
+points at (a Google Apps Script, Zapier or Make URL, or an endpoint on the hospital's
+own software). It is not set by default, and that is a safe state: the endpoint returns
+`503 { configured: false }` and the form shows the hospital's phone number instead of
+falsely reporting success.
+
+The webhook is the only delivery channel. There is no email path — an earlier
+`APPOINTMENT_NOTIFY_EMAIL` variable was removed because setting it reported success
+without sending anything. The form's fields, and what the JSON contains, are defined in
+`lib/appointment.ts`.
 
 Set it as a **secret**, never in `wrangler.jsonc` — that file is committed to a public
 repository:
@@ -80,6 +86,27 @@ repository:
 ```bash
 npx wrangler secret put APPOINTMENT_WEBHOOK_URL
 ```
+
+## Review mode (walking the service pages through with LIMS staff)
+
+Every department, test and support-service page has dashed amber "Needs LIMS input" boxes
+for things only the hospital can confirm (highlights, equipment, OPD timings, patient
+stories, accreditations). They exist for review sessions with LIMS staff and are defined in
+`lib/review-slots.ts`.
+
+- `npm run dev` shows them. Any production build hides them: `NODE_ENV` is `production`, so
+  the boxes are not rendered at all, not merely hidden.
+- A deliberate review deploy can show them by building with `NEXT_PUBLIC_REVIEW_MODE=1`.
+- **Never** set `NEXT_PUBLIC_REVIEW_MODE` in the Cloudflare build settings for the real
+  domain. The boxes contain example text that is not confirmed to be true of LIMS.
+
+The general reference content on those pages (`lib/service-content.ts`) is draft copy and
+needs a LIMS doctor's sign-off before launch. In review mode each such section carries a
+"Draft copy, clinician review pending" tag.
+
+If `npm run dev` ever answers every page with a 500 and a "not-found.tsx doesn't have a root
+layout" error after routes were added or deleted, stop it, delete the `.next` folder, and
+start it again.
 
 ## Scripts
 

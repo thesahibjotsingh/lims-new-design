@@ -1,14 +1,17 @@
 // components/home/ConsultantRoster.tsx
 //
-// The named consultants LIMS has supplied. Four, at time of writing — and the section
-// says four rather than padding the row out to a tidy six with invented people.
+// The named consultants LIMS has supplied. Five, at time of writing, and the section
+// shows exactly those rather than padding the row out to a tidy eight with invented people.
 
+import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { DOCTORS } from '@/lib/doctors'
-import { DoctorPortraitCard } from '@/components/primitives/DoctorCard'
+import { RosterSlider } from '@/components/home/RosterSlider'
+import { DoctorCard } from '@/components/primitives/DoctorCard'
 import { Section } from '@/components/primitives/PageShell'
 
-export function ConsultantRoster() {
+export async function ConsultantRoster() {
+  const t = await getTranslations('doctorCard')
   return (
     // The dark band between the two mist ones — see ServiceArchitecture. Dark so the
     // white panels on the portrait cards read as floating rather than as more page.
@@ -41,41 +44,29 @@ export function ConsultantRoster() {
         </div>
 
         {/*
-          A swipe rail on a phone, the same grid from md up — matching /doctors, so the
-          roster behaves the same way in both places.
+          One row that slides, at every width: a swipe on a phone, arrow buttons (and a
+          trackpad) from md up. See RosterSlider for why it is manual and why it stays one
+          row however many consultants are added. /doctors is the full grid.
 
-          This replaced a "three then View more" list. Reveal is the right pattern for
-          the service tiles above, which are short rows where seeing all fifteen at once
-          is the point. A consultant card is tall, carries a portrait, and is read one
-          at a time; swiping suits that and costs no vertical space at all.
-
-          Pure CSS scroll-snap, no library and no JS. The 78% card width is the whole
-          affordance: the next card is visibly cut off at the right edge, which is what
-          tells a thumb there is more to the right.
+          The card widths live here, not in the slider: 78% on a phone so the next card is
+          cut off at the right edge (that cut-off is what tells a thumb there is more), and
+          a fixed 16.25rem (260px) from md up. In the 1232px content column that is four
+          cards plus about 136px of the fifth, which is deliberate: the slider fades the last
+          8rem of the row, and a wider peek lets that fade be gentle without reaching back
+          into the fourth card, which should stay fully crisp. Widening the cards shrinks
+          the peek, so change this and the slider's fade length together.
         */}
-        <ul
-          className="
-            grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4
-            max-md:-mx-5 max-md:flex max-md:snap-x max-md:snap-mandatory
-            max-md:gap-4 max-md:overflow-x-auto max-md:scroll-px-5 max-md:px-5
-            max-md:pb-2 max-md:[-webkit-overflow-scrolling:touch]
-            max-md:[overscroll-behavior-x:contain]
-            max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden
-          "
-        >
+        <RosterSlider prevLabel={t('scrollPrev')} nextLabel={t('scrollNext')}>
           {DOCTORS.map((doctor) => (
-            <li
-              key={doctor.id}
-              className="max-md:w-[78%] max-md:shrink-0 max-md:snap-start"
-            >
-              <DoctorPortraitCard doctor={doctor} />
+            <li key={doctor.id} className="w-[78%] shrink-0 snap-start md:w-[16.25rem]">
+              <DoctorCard doctor={doctor} onDark />
             </li>
           ))}
-        </ul>
+        </RosterSlider>
 
         {/*
-          Said plainly rather than hidden. A roster page that silently shows four
-          consultants for a fifteen-department hospital reads as a broken page; one
+          Said plainly rather than hidden. A roster page that silently shows a handful
+          of consultants for a fifteen-department hospital reads as a broken page; one
           that says the rest are still being published reads as an honest one.
         */}
         <p className="mt-6 text-xs text-white/70">

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { todayInIndia, validateAppointment } from '@/lib/appointment'
 import { getDoctor } from '@/lib/doctors'
 import { getService } from '@/lib/services'
 import { contact } from '@/lib/site-config'
@@ -15,32 +16,37 @@ import { contact } from '@/lib/site-config'
  * configured this returns 503 with `configured: false`, and the UI shows the phone
  * number instead of a success message.
  *
- * `nodejs` runtime, not edge: the Phase 2 delivery path is SMTP/Nodemailer, which needs
- * TCP sockets the edge runtime does not have. Declared now so the switch is not a
- * surprise later.
+ * THE ONLY DELIVERY CHANNEL IS A WEBHOOK. There used to be an APPOINTMENT_NOTIFY_EMAIL
+ * variable here too, but nothing ever sent an email: setting it made this route skip the
+ * webhook, return `ok: true`, and show a patient "Request received" for a request that
+ * went nowhere — the exact failure this file exists to prevent. It was removed rather
+ * than left half-built. Add an email path only together with the code that sends one.
+ *
+ * The fields mirror the hospital software's own online-appointment form — see
+ * lib/appointment.ts for the mapping and for how this differs from a booking.
+ *
+ * `nodejs` runtime, not edge: a later delivery path (SMTP, or a call into the hospital
+ * system) may need TCP sockets the edge runtime does not have.
  */
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-interface AppointmentPayload {
-  name?: unknown
-  phone?: unknown
-  preferredDate?: unknown
-  doctorId?: unknown
-  departmentSlug?: unknown
-  notes?: unknown
-}
+const LOCALES = ['en', 'hi', 'pa'] as const
 
 /** Where a submitted request is delivered. Unset in development, and that is fine. */
 function deliveryTarget(): string | undefined {
-  return process.env.APPOINTMENT_WEBHOOK_URL || process.env.APPOINTMENT_NOTIFY_EMAIL
+  return process.env.APPOINTMENT_WEBHOOK_URL || undefined
 }
 
 export async function POST(request: Request) {
-  let body: AppointmentPayload
+  let body: Record<string, unknown>
 
   try {
-    body = await request.json()
+    const parsed: unknown = await request.json()
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      throw new Error('not an object')
+    }
+    body = parsed as Record<string, unknown>
   } catch {
     return NextResponse.json(
       { ok: false, error: 'Could not read the request.' },
@@ -48,35 +54,28 @@ export async function POST(request: Request) {
     )
   }
 
-  const name = typeof body.name === 'string' ? body.name.trim() : ''
-  const phone = typeof body.phone === 'string' ? body.phone.trim() : ''
-  const preferredDate =
-    typeof body.preferredDate === 'string' ? body.preferredDate.trim() : ''
-  const notes = typeof body.notes === 'string' ? body.notes.trim().slice(0, 2000) : ''
-
-  const fieldErrors: Record<string, string> = {}
-  if (name.length < 2) fieldErrors.name = 'Please enter the patient name.'
-
-  /*
-   * Indian mobile numbers, permissively. Deliberately loose: a validator strict enough
-   * to be "correct" rejects landlines, +91 prefixes, spaces and hyphens, and the cost
-   * of a false reject here is a patient who cannot ask for an appointment. A human
-   * reads this field either way.
-   */
-  const digits = phone.replace(/\D/g, '')
-  if (digits.length < 10 || digits.length > 13) {
-    fieldErrors.phone = 'Please enter a phone number we can call you back on.'
-  }
-
-  if (Object.keys(fieldErrors).length > 0) {
-    return NextResponse.json({ ok: false, fieldErrors }, { status: 422 })
-  }
+  const result = validateAppointment(body, todayInIndia())
 
   // Resolve against the catalogue rather than trusting the posted strings, so a
   // hand-crafted request cannot put arbitrary text into a staff-facing notification.
-  const doctor = typeof body.doctorId === 'string' ? getDoctor(body.doctorId) : undefined
-  const service =
-    typeof body.departmentSlug === 'string' ? getService(body.departmentSlug) : undefined
+  // An id that is not in the catalogue is rejected, not silently dropped: the patient
+  // would otherwise believe they had asked for a doctor the hospital never heard of.
+  const fieldErrors = result.ok ? {} : { ...result.fieldErrors }
+  const requestedDoctor = result.ok ? result.value.doctorId : String(body.doctorId ?? '').trim()
+  const requestedService = result.ok
+    ? result.value.departmentSlug
+    : String(body.departmentSlug ?? '').trim()
+
+  const doctor = requestedDoctor ? getDoctor(requestedDoctor) : undefined
+  const service = requestedService ? getService(requestedService) : undefined
+  if (requestedDoctor && !doctor) Object.assign(fieldErrors, { doctorId: 'invalidChoice' })
+  if (requestedService && !service) {
+    Object.assign(fieldErrors, { departmentSlug: 'invalidChoice' })
+  }
+
+  if (!result.ok || Object.keys(fieldErrors).length > 0) {
+    return NextResponse.json({ ok: false, fieldErrors }, { status: 422 })
+  }
 
   const target = deliveryTarget()
 
@@ -86,8 +85,8 @@ export async function POST(request: Request) {
      *
      * The response carries the phone number so the client has something useful to show
      * without hard-coding it in two places. Nothing about the patient is logged here —
-     * a name and phone number in a server log is exactly the kind of quiet PHI leak
-     * that is invisible until an audit.
+     * a name, phone number and address in a server log is exactly the kind of quiet PHI
+     * leak that is invisible until an audit.
      */
     return NextResponse.json(
       {
@@ -102,26 +101,28 @@ export async function POST(request: Request) {
     )
   }
 
-  try {
-    // Phase 2 replaces this with the real delivery (SMTP or the hospital's HIS).
-    // Until then a configured webhook is the whole channel.
-    if (process.env.APPOINTMENT_WEBHOOK_URL) {
-      const response = await fetch(process.env.APPOINTMENT_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          phone,
-          preferredDate: preferredDate || null,
-          doctor: doctor ? { id: doctor.id, name: doctor.name } : null,
-          service: service ? { slug: service.slug, name: service.name } : null,
-          notes: notes || null,
-          receivedAt: new Date().toISOString(),
-        }),
-      })
+  const value = result.value
+  const posted = typeof body.locale === 'string' ? body.locale : ''
+  const preferredLanguage = LOCALES.find((locale) => locale === posted) ?? 'en'
+  // A doctor implies a department; fill it so reception always sees both.
+  const department = service ?? (doctor ? getService(doctor.departmentSlug) : undefined)
 
-      if (!response.ok) throw new Error(`Delivery responded ${response.status}`)
-    }
+  try {
+    const response = await fetch(target, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        ...value,
+        departmentSlug: department?.slug ?? null,
+        departmentName: department?.name ?? null,
+        doctorName: doctor?.name ?? null,
+        preferredLanguage,
+        source: 'limshisar.com',
+        receivedAt: new Date().toISOString(),
+      }),
+    })
+
+    if (!response.ok) throw new Error(`Delivery responded ${response.status}`)
 
     return NextResponse.json({ ok: true, configured: true })
   } catch {

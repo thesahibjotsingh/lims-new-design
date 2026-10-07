@@ -122,7 +122,6 @@ BANNER_NAMES = {
     "find-a-doctor": "find-a-doctor",
     "diagnostics-and-imaging": "diagnostics-and-imaging",
     "diagnostics-and-maging": "diagnostics-and-imaging",
-    "health-check-packages": "health-packages",
     "patient-care": "patient-care",
     "health-library": "health-library",
     "about-lmis": "about",

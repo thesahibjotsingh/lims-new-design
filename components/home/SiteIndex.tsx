@@ -2,17 +2,16 @@
 //
 // The rest of the navigation, on the home page.
 //
-// Four of the eight primary nav entries already have a home-page section of their own:
+// Four of the seven primary nav entries already have a home-page section of their own:
 // Specialities, Services and Patient care are the three groups in ServiceArchitecture,
-// and Find a doctor is ConsultantRoster. This section carries the remaining four so the
+// and Find a doctor is ConsultantRoster. This section carries the remaining three so the
 // home page reaches every destination in the header without duplicating those three
 // grids underneath themselves.
 //
 // EVERY DESCRIPTION HERE IS THE `intro` LINE FROM THE PAGE IT POINTS AT, verbatim, or a
 // value out of lib/site-config.ts. Nothing is written fresh for this section: a summary
 // invented at the link is a second, drifting version of a page's own promise, and for
-// health packages and the health library it would be a claim about clinical content
-// that does not exist yet.
+// the health library it would be a claim about clinical content that does not exist yet.
 //
 // `status` says so out loud where a page is still waiting on LIMS. A tile that reads
 // like a live section and lands on a placeholder wastes the visitor's tap; one that
@@ -22,7 +21,7 @@ import { Link } from '@/i18n/navigation'
 import { ArrowRightIcon } from '@/components/icons'
 import { RevealMore } from '@/components/primitives/RevealMore'
 import { Section } from '@/components/primitives/PageShell'
-import { contact, primaryLocation, siteConfig } from '@/lib/site-config'
+import { contact, shortAddress, siteConfig } from '@/lib/site-config'
 
 interface Destination {
   label: string
@@ -33,12 +32,6 @@ interface Destination {
 }
 
 const DESTINATIONS: Destination[] = [
-  {
-    label: 'Health packages',
-    href: '/health-packages',
-    description: 'Preventive health checks bundled as fixed packages.',
-    status: 'List not published yet',
-  },
   {
     label: 'Health library',
     href: '/health-library',
@@ -53,7 +46,7 @@ const DESTINATIONS: Destination[] = [
   {
     label: 'Contact Us',
     href: '/contact',
-    description: `${primaryLocation.addressLines.join(', ')}, ${primaryLocation.city}. Emergency ${contact.primaryDisplay}.`,
+    description: `${shortAddress}. Emergency ${contact.primaryDisplay}.`,
   },
 ]
 
@@ -77,7 +70,7 @@ export function SiteIndex() {
 
         <RevealMore
           limit={3}
-          className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+          className="grid grid-cols-1 gap-3 sm:grid-cols-3"
           moreLabel="View more sections"
         >
           {DESTINATIONS.map((destination) => (

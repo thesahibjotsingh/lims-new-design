@@ -85,6 +85,15 @@ export const DOCTORS: Doctor[] = [
     // components/home/DesktopHero.tsx and MobileHero.tsx.
     qualifications:
       'MBBS, MS (SMS Medical College Jaipur), DNB Obstetrics & Gynaecology, Fellowship in Advance Laparoscopic Pelvic Surgeries, Fellowship in Cosmetic Gynaecology',
+    // Card form of the string above, written by hand (2026-10-07): degrees as
+    // abbreviations, fellowships on a second line. The institution, the DNB speciality
+    // and "Advance" are left off the card and kept in `qualifications`, which the
+    // profile page shows in full. Worth confirming the shortened fellowship names with
+    // LIMS when staff sit down with the review boxes.
+    cardCredentials: {
+      degrees: 'MBBS, MS, DNB',
+      fellowships: 'Laparoscopic Pelvic Surgery, Cosmetic Gynaecology',
+    },
     departmentSlug: 'obstetrics-gynaecology',
     registrationNumber: 'HN-31657',
     // Real photograph, supplied 2026-09-16.
@@ -121,6 +130,24 @@ export const DOCTORS: Doctor[] = [
     portrait: {
       src: '/doctors/harshal-godara.webp',
       alt: 'Portrait of Dr. Harshal Godara',
+      width: 800,
+      height: 1000,
+      focusY: 12,
+    },
+  },
+  {
+    id: 'nirmala-goyat',
+    name: 'Dr. Nirmala Goyat',
+    // Listed with a name, a department and a photograph only. LIMS has not yet supplied her
+    // qualifications, registration number or designation, so none are shown (rule 1). Her
+    // profile's review box asks for them. Departments are filed under LIMS's own name for
+    // the service, which for this one is simply "ENT".
+    departmentSlug: 'ent',
+    // Photograph forwarded by LIMS 2026-10-07, 1024x1536 (above the 640x800 floor).
+    // Hairline sits near 8% of the 4:5 crop, so 12 keeps a sliver of headroom in the 3:2 card.
+    portrait: {
+      src: '/doctors/nirmala-goyat.webp',
+      alt: 'Portrait of Dr. Nirmala Goyat',
       width: 800,
       height: 1000,
       focusY: 12,

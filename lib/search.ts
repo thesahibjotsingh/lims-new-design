@@ -10,7 +10,7 @@
 // reader as a labelled row they choose, never substituted behind their back. That is
 // the whole difference, and it is why the fuzzy matching lives here.
 //
-// SIZE SETS THE TECHNIQUE. The whole corpus is four consultants, twenty-six services
+// SIZE SETS THE TECHNIQUE. The whole corpus is a handful of consultants, twenty-six services
 // and ten pages — forty documents, in process, known at build time. So this is an
 // exhaustive scan with hand-written rules, and it runs in well under a millisecond.
 // TF-IDF, an inverted index or vector embeddings would all be slower to ship, heavier
@@ -199,9 +199,6 @@ const SYNONYMS: Record<string, string[]> = {
   charge: ['packages', 'billing'],
   package: ['packages', 'checkup'],
   checkup: ['packages', 'health'],
-  insurance: ['insurance', 'billing', 'tpa'],
-  cashless: ['insurance', 'tpa'],
-  claim: ['insurance', 'billing'],
   address: ['contact', 'location', 'directions'],
   location: ['contact', 'location', 'directions'],
   directions: ['contact', 'location'],
@@ -273,12 +270,6 @@ const PAGES: { label: string; detail: string; href: string; keywords: string }[]
     keywords: 'contact phone number call address location directions map reach',
   },
   {
-    label: 'Health check packages',
-    detail: 'Preventive checks and pricing',
-    href: '/health-packages',
-    keywords: 'packages package checkup health price cost fee rate preventive',
-  },
-  {
     label: 'Health library',
     detail: 'Clinically reviewed articles',
     href: '/health-library',
@@ -295,12 +286,6 @@ const PAGES: { label: string; detail: string; href: string; keywords: string }[]
     detail: 'Visiting hours and ward policy',
     href: '/patient-care/visitors',
     keywords: 'visitor visiting hours timing ward policy attendant admission',
-  },
-  {
-    label: 'Insurance & billing',
-    detail: 'Empanelled insurers and TPAs',
-    href: '/patient-care/insurance',
-    keywords: 'insurance billing cashless tpa claim empanelled payment',
   },
   {
     label: 'About LIMS',

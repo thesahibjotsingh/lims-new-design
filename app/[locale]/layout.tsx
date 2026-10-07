@@ -8,6 +8,7 @@ import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
 import { Footer } from '@/components/layout/Footer'
 import { TranslationNotice } from '@/components/layout/TranslationNotice'
 import { serifEn, serifHi, serifPa } from '@/lib/fonts'
+import { googleListing } from '@/lib/google-listing'
 import { primaryLocation, siteConfig } from '@/lib/site-config'
 import { routing, type Locale } from '@/i18n/routing'
 import '../globals.css'
@@ -153,8 +154,15 @@ export default async function LocaleLayout({
                 streetAddress: primaryLocation.addressLines.join(', '),
                 addressLocality: primaryLocation.city,
                 addressRegion: primaryLocation.state,
+                postalCode: primaryLocation.pincode,
                 addressCountry: 'IN',
               },
+              geo: primaryLocation.geo && {
+                '@type': 'GeoCoordinates',
+                latitude: primaryLocation.geo.lat,
+                longitude: primaryLocation.geo.lng,
+              },
+              hasMap: googleListing.placeUrl,
             }),
           }}
         />

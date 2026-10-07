@@ -20,7 +20,7 @@ export const siteConfig = {
   // Names only services on LIMS's own list. Advertising a department LIMS does not run
   // is not a copy problem — it is a patient arriving for a department that is not there.
   description:
-    'Multi-speciality hospital at Jindal Chowk, Hisar, Haryana — emergency care, ' +
+    'Multi-speciality hospital at Jindal Chowk, Hisar, Haryana: emergency care, ' +
     'surgery, orthopaedics, obstetrics and gynaecology, with diagnostics, imaging and ' +
     'pathology on the same campus.',
   url: 'https://www.limshisar.com',
@@ -56,14 +56,46 @@ export const contact = {
 export const primaryLocation: Location = {
   id: 'hisar-main',
   name: 'LIMS Hisar',
-  addressLines: ['Jindal Chowk'],
+  // The full postal address, supplied by the hospital 2026-10-07 and matching the one on its
+  // Google Maps listing (which spells "Extension" as "Exyension"; that is Google's typo).
+  // "Jindal Hospital" is the building name on that address and is kept because it is how the
+  // address is written on the hospital's own listing.
+  addressLines: [
+    'Jindal Hospital',
+    'Plot No. 6, Main Road',
+    'Near Jindal Chowk - Raipur Road',
+    'Dayanand Colony',
+    'New Model Town Extension, Model Town',
+  ],
   city: 'Hisar',
   state: 'Haryana',
-  // pincode deliberately omitted — not on the official card, and inventing one puts a
-  // wrong postal code into the site's structured data.
+  pincode: '125001',
+  // The pin on the hospital's Google Maps listing.
+  geo: { lat: 29.1336255, lng: 75.7462539 },
   phone: contact.primary,
   phoneDisplay: contact.primaryDisplay,
 }
+
+/**
+ * The address in one line, in postal order: building, street, area, city, state, PIN.
+ * For the Contact and About pages, the visitor page, the appointment page and the
+ * structured data, where there is room.
+ */
+export function fullAddress(location: Location = primaryLocation): string {
+  const region = [location.state, location.pincode].filter(Boolean).join(' ')
+  return [...location.addressLines, location.city, region].join(', ')
+}
+
+/**
+ * Where to find us in five words, for the hero eyebrow, the home page index and any other
+ * tight spot. The full address above runs to a paragraph and does not fit beside a headline.
+ */
+export const shortAddress = 'Jindal Chowk, Hisar, Haryana'
+
+/** Opens turn-by-turn directions to the building in Google Maps, from wherever the visitor is. */
+export const directionsUrl = primaryLocation.geo
+  ? `https://www.google.com/maps/dir/?api=1&destination=${primaryLocation.geo.lat}%2C${primaryLocation.geo.lng}`
+  : undefined
 
 /**
  * Primary navigation — eight items on the teal ribbon tier.
@@ -97,7 +129,6 @@ export const primaryNav: NavItem[] = [
       href: serviceHref(service),
     })),
   },
-  { label: 'Health packages', href: '/health-packages' },
   {
     label: 'Patient care',
     href: getCategory('support').basePath,
@@ -116,7 +147,6 @@ export const primaryNav: NavItem[] = [
     children: [
       { label: 'Locations & directions', href: '/contact#locations' },
       { label: 'Book an appointment', href: '/appointments' },
-      { label: 'Insurance & billing', href: '/patient-care/insurance' },
       { label: 'Visitor information', href: '/patient-care/visitors' },
     ],
   },
@@ -151,9 +181,7 @@ export const supportNav: NavItem[] = servicesByCategory('support').map((service)
 
 export const patientServicesNav: NavItem[] = [
   { label: 'Book an appointment', href: '/appointments' },
-  { label: 'Health check packages', href: '/health-packages' },
   { label: 'Visitor information', href: '/patient-care/visitors' },
-  { label: 'Insurance & billing', href: '/patient-care/insurance' },
   { label: 'Locations & directions', href: '/contact#locations' },
   { label: 'Patient portal', href: '/portal' },
 ]
@@ -171,5 +199,5 @@ export const mobileQuickActions = [
   // Linux host this deploys to.
   { label: 'Book appointment', href: '/appointments', icon: 'book-an-appointment' },
   { label: 'Find a doctor', href: '/doctors', icon: 'find-a-doctor' },
-  { label: 'Health packages', href: '/health-packages', icon: 'health-check-packages' },
+  { label: 'Locations & directions', href: '/contact#locations', icon: 'locations-and-directions' },
 ]

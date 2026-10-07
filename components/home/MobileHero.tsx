@@ -20,7 +20,7 @@ import { Link } from '@/i18n/navigation'
 import { MobileHeroSlideshow } from '@/components/home/MobileHeroSlideshow'
 import { TypewriterSearchBar } from '@/components/home/TypewriterSearchBar'
 import { heroBannerSecondary, heroImageMobile } from '@/lib/media'
-import { mobileQuickActions, primaryLocation, siteConfig } from '@/lib/site-config'
+import { mobileQuickActions, shortAddress, siteConfig } from '@/lib/site-config'
 
 export function MobileHero() {
   return (
@@ -37,7 +37,7 @@ export function MobileHero() {
                 close to home.
               </h1>
               <p className="mt-1.5 text-xs font-medium text-white/75">
-                {primaryLocation.addressLines.join(', ')}, {primaryLocation.city}
+                {shortAddress}
               </p>
             </>
           }
@@ -78,7 +78,7 @@ export function MobileHero() {
                 </Link>
               </p>
               <p className="text-[10px] font-medium leading-snug text-white/70">
-                Senior Consultant &ndash; Obstetrics &amp; Gynaecology
+                Senior Consultant, Obstetrics &amp; Gynaecology
               </p>
             </>
           }

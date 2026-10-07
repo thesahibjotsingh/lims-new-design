@@ -19,7 +19,6 @@ export const NAV_KEY_BY_HREF: Record<string, string> = {
   '/specialities': 'specialities',
   '/doctors': 'findADoctor',
   '/services': 'services',
-  '/health-packages': 'healthPackages',
   '/patient-care': 'patientCare',
   '/health-library': 'healthLibrary',
   '/about': 'aboutLims',
@@ -28,7 +27,6 @@ export const NAV_KEY_BY_HREF: Record<string, string> = {
   // not part of primaryNav, but the same href-keyed lookup works for it.
   '/appointments': 'bookAppointment',
   '/patient-care/visitors': 'visitorInformation',
-  '/patient-care/insurance': 'insuranceBilling',
   '/contact#locations': 'locationsDirections',
   '/portal': 'patientPortal',
 }

@@ -1,15 +1,22 @@
 import type { Metadata } from 'next'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { AppointmentForm } from '@/components/appointments/AppointmentForm'
 import { PageHeader, Section } from '@/components/primitives/PageShell'
 import { DOCTORS, getDoctor } from '@/lib/doctors'
-import { SERVICE_CATEGORIES, getService, serviceName, servicesByCategory } from '@/lib/services'
-import { contact, primaryLocation } from '@/lib/site-config'
+import { SERVICE_CATEGORIES, getService, servicesByCategory } from '@/lib/services'
+import { translatedCategoryName, translatedServiceName } from '@/lib/services-i18n'
+import { contact, fullAddress, primaryLocation } from '@/lib/site-config'
 import { PhoneIcon, PinIcon } from '@/components/icons'
+import type { Locale } from '@/i18n/routing'
 
-export const metadata: Metadata = {
-  title: 'Request an appointment',
-  description:
-    'Request an appointment at LIMS Hisar. The hospital calls you back to confirm a time.',
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'appointmentsPage' })
+  return { title: t('metaTitle'), description: t('metaDescription') }
 }
 
 /*
@@ -29,6 +36,8 @@ export default async function AppointmentsPage({
   searchParams: Promise<{ doctor?: string | string[]; department?: string | string[] }>
 }) {
   const params = await searchParams
+  const locale = (await getLocale()) as Locale
+  const t = await getTranslations('appointmentsPage')
 
   const doctorParam = Array.isArray(params.doctor) ? params.doctor[0] : params.doctor
   const departmentParam = Array.isArray(params.department)
@@ -38,28 +47,30 @@ export default async function AppointmentsPage({
   const preselectedDoctor = doctorParam ? getDoctor(doctorParam) : undefined
   const preselectedService = departmentParam ? getService(departmentParam) : undefined
 
+  // Doctor names are proper nouns and stay as supplied; the department after the dash is
+  // a descriptive term patients read in their own language.
   const doctorOptions = DOCTORS.map((doctor) => ({
     value: doctor.id,
-    label: `${doctor.name} — ${serviceName(doctor.departmentSlug)}`,
+    label: `${doctor.name}, ${translatedServiceName(doctor.departmentSlug, locale)}`,
   }))
 
   const serviceGroups = SERVICE_CATEGORIES.map((category) => ({
-    label: category.name,
+    label: translatedCategoryName(category.id, locale),
     options: servicesByCategory(category.id).map((service) => ({
       value: service.slug,
-      label: service.name,
+      label: translatedServiceName(service.slug, locale),
     })),
   }))
 
   return (
     <>
       <PageHeader
-        eyebrow="Appointments"
-        title="Request an appointment"
+        eyebrow={t('eyebrow')}
+        title={t('title')}
         intro={
           preselectedDoctor
-            ? `Requesting time with ${preselectedDoctor.name}. The hospital will call you back to confirm.`
-            : 'Send a request and the hospital will call you back to confirm a time. For anything urgent, please call instead.'
+            ? t('introDoctor', { name: preselectedDoctor.name })
+            : t('intro')
         }
       />
 
@@ -81,12 +92,10 @@ export default async function AppointmentsPage({
           <aside className="space-y-5 lg:col-span-2">
             <div className="scroll-reveal rounded-2xl border border-brand-emergency/20 bg-brand-emergency/5 p-6">
               <h2 className="font-serif text-lg font-bold text-brand-dark-base">
-                In an emergency, do not use this form
+                {t('emergencyHeading')}
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-brand-dark-base/75">
-                This is a callback request and nobody is watching it in real time. If
-                someone needs care now, call the hospital directly or go to the
-                emergency department.
+                {t('emergencyBody')}
               </p>
               <a
                 href={`tel:${contact.primary}`}
@@ -99,16 +108,14 @@ export default async function AppointmentsPage({
 
             <div className="scroll-reveal rounded-2xl border border-brand-teal/10 bg-brand-mist/60 p-6">
               <h2 className="font-serif text-lg font-bold text-brand-dark-base">
-                Where to come
+                {t('whereHeading')}
               </h2>
               <p className="mt-2 flex items-start gap-2 text-sm leading-relaxed text-brand-dark-base/75">
                 <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-teal" />
                 <span>
                   {primaryLocation.name}
                   <br />
-                  {primaryLocation.addressLines.join(', ')}
-                  <br />
-                  {primaryLocation.city}, {primaryLocation.state}
+                  {fullAddress()}
                 </span>
               </p>
               <a
@@ -116,7 +123,7 @@ export default async function AppointmentsPage({
                 className="tap-target mt-3 gap-2 rounded-full border border-brand-teal/25 px-5 text-xs font-semibold text-brand-teal hover:bg-white"
               >
                 <PhoneIcon className="h-4 w-4" />
-                Appointments: {contact.secondaryDisplay}
+                {t('appointmentsPhone', { number: contact.secondaryDisplay })}
               </a>
             </div>
           </aside>

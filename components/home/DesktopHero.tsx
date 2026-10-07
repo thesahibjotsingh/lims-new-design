@@ -22,7 +22,7 @@ import { HeroSearchCard } from '@/components/home/HeroSearchCard'
 import { HeroSlideshow } from '@/components/home/HeroSlideshow'
 import { ArrowRightIcon, PhoneIcon } from '@/components/icons'
 import { heroBanner, heroBannerSecondary } from '@/lib/media'
-import { contact, primaryLocation, siteConfig } from '@/lib/site-config'
+import { contact, shortAddress, siteConfig } from '@/lib/site-config'
 import { SERVICES, servicesByCategory } from '@/lib/services'
 
 export function DesktopHero() {
@@ -35,8 +35,7 @@ export function DesktopHero() {
         <>
           <p className="inline-flex items-center gap-2 text-xs font-semibold text-white/90">
             <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-400" />
-            {primaryLocation.addressLines.join(', ')}, {primaryLocation.city},{' '}
-            {primaryLocation.state}
+            {shortAddress}
           </p>
 
           <h1 className="font-serif text-5xl font-bold leading-[1.1] tracking-tight xl:text-6xl">
@@ -83,7 +82,7 @@ export function DesktopHero() {
               </Link>
             </p>
             <p className="mt-1 text-white/90">
-              Senior Consultant &ndash; Obstetrics &amp; Gynaecology
+              Senior Consultant, Obstetrics &amp; Gynaecology
             </p>
           </div>
         </>

@@ -14,7 +14,6 @@ export const GENERAL_SEARCH_PHRASES = [
   'Ultrasound',
   'Emergency services',
   'Physiotherapy',
-  'health packages',
   'visiting hours',
 ]
 

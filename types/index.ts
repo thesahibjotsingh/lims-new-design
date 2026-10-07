@@ -32,9 +32,10 @@ export interface Location {
   addressLines: string[]
   city: string
   state: string
-  /** Optional: LIMS's published contact details do not include a PIN code, and a
-   *  guessed postal code on a hospital's structured data is worse than none. */
+  /** Optional: a guessed postal code on a hospital's structured data is worse than none. */
   pincode?: string
+  /** Where the building is, for directions and structured data. */
+  geo?: { lat: number; lng: number }
   /**
    * E.164 ONLY, e.g. "+919254984121". This value goes straight into a tel: href, and
    * spaces are not valid in a tel: URI — a display-formatted number here produces
@@ -94,6 +95,13 @@ export interface Doctor {
   departmentSlug: string
   /** Post-nominals as one string — these run long in India and must not be truncated. */
   qualifications?: string
+  /**
+   * `qualifications` regrouped for a card, where one long line is too much: degrees as
+   * abbreviations, fellowships on their own line. Only ever a shortening of what LIMS
+   * supplied in `qualifications`, never new facts, and the profile page still shows the
+   * full string. Set it only for a doctor whose full string does not fit on a card.
+   */
+  cardCredentials?: { degrees: string; fellowships?: string }
   designation?: string
   /** Years in practice. Rendered as "18 years experience". */
   experienceYears?: number
@@ -106,6 +114,8 @@ export interface Doctor {
   positionsHeld?: CredentialEntry[]
   publications?: string[]
   memberships?: string[]
+  /** Awards and recognition, newest first. A year is free text ("2014", "2008-2009"). */
+  awards?: { year?: string; title: string }[]
   portrait?: ImageAsset
   opdSchedule?: OpdSession[]
   videos?: DoctorVideo[]
@@ -155,7 +165,7 @@ export interface DoctorVideo {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Services and health packages                                                */
+/* Services                                                                    */
 /* -------------------------------------------------------------------------- */
 
 export interface Service {
@@ -163,17 +173,6 @@ export interface Service {
   name: string
   summary: string
   departmentSlug?: string
-}
-
-export interface HealthPackage {
-  slug: string
-  name: string
-  summary: string
-  /** Integer paise or rupees — decided with finance before Phase 4. Never a float. */
-  priceInRupees: number
-  includedTests: string[]
-  recommendedFor: string
-  fastingRequired: boolean
 }
 
 /* -------------------------------------------------------------------------- */
