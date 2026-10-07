@@ -16,14 +16,20 @@
 // ("For: Cardiology", "For: Dr. Vikash Raj") is the one thing on the card that is specific to
 // the page.
 //
+// THE PAD IS ALIVE (app/globals.css, ".pad"). On a mouse, hovering the pad lifts it, fans the
+// sheet behind it and peels the sticky note up, so "For: Emergency Services" travels with the
+// pad. On touch, pressing it dips it. The note also slaps onto the pad once when the page
+// loads. All CSS, no script; the numbers and links never move relative to the paper, so they
+// stay easy to hit. Reduced motion turns all of it off.
+//
 // The paper is decoration and is hidden from assistive tech (rings, back sheet, tape). The
 // colours are tokens: the note is `brand-sticky` on `brand-sticky-ink` (about 7:1), red stays
 // reserved for the emergency number.
 
 import { getLocale, getTranslations } from 'next-intl/server'
 import type { Locale } from '@/i18n/routing'
-import { PhoneIcon, PinIcon } from '@/components/icons'
-import { contact } from '@/lib/site-config'
+import { ArrowUpRightIcon, PhoneIcon, PinIcon } from '@/components/icons'
+import { contact, directionsUrl } from '@/lib/site-config'
 import { siteText } from '@/lib/site-i18n'
 
 const RINGS = 10
@@ -72,14 +78,14 @@ export async function ContactCard({
   )
 
   return (
-    <aside className="relative">
+    <aside className="pad relative">
       {/* The next sheet of the pad, showing below and to the right. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 translate-x-2 translate-y-2.5 rounded-xl bg-white/55"
+        className="pad-back absolute inset-0 rounded-xl bg-white/55"
       />
 
-      <div className="relative rounded-xl bg-white px-6 pb-4 pt-9 text-brand-dark-base shadow-lg">
+      <div className="pad-sheet relative rounded-xl bg-white px-6 pb-4 pt-9 text-brand-dark-base shadow-lg">
         {/* Spiral binding: a hole in the paper with a copper ring passing through it. */}
         <div
           aria-hidden="true"
@@ -123,7 +129,7 @@ export async function ContactCard({
             // 10rem wide, so the longest department name ("General & Laparoscopic Surgery")
             // breaks as "General &" / "Laparoscopic Surgery" (136px of text in 140px) instead of
             // onto a third line, which made that one note 19px taller than every other.
-            <p className="relative -mb-5 -mr-10 -mt-2 min-h-[4.25rem] w-40 shrink-0 rotate-3 break-words rounded-[2px] bg-brand-sticky px-2.5 pb-2 pt-1.5 text-sm font-medium leading-snug text-brand-sticky-ink shadow-sm">
+            <p className="pad-note relative -mb-5 -mr-10 -mt-2 min-h-[4.25rem] w-40 shrink-0 break-words rounded-[2px] bg-brand-sticky px-2.5 pb-2 pt-1.5 text-sm font-medium leading-snug text-brand-sticky-ink shadow-sm">
               {/* A strip of masking tape holding the note to the page. */}
               <span
                 aria-hidden="true"
@@ -155,12 +161,36 @@ export async function ContactCard({
           )}
         </dl>
 
-        <p className="flex items-start gap-2 border-t border-brand-teal/20 pt-2.5 text-sm leading-relaxed text-brand-dark-base/75">
-          <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-teal" />
-          <span>
-            {text.locationName}, {text.shortAddress}
-          </span>
-        </p>
+        {/*
+          The address is a link to turn-by-turn directions in Google Maps (the same URL as the
+          Contact page's "Get directions" button, so the two cannot disagree). On a phone that
+          opens the Maps app. A 44px row, like the phone numbers above it. The arrow is always
+          there on touch, where there is no hover to reveal it, and slides in on hover on a
+          mouse (see `.pad-address` in globals.css). With no coordinates configured it falls
+          back to plain text.
+        */}
+        {directionsUrl ? (
+          <a
+            href={directionsUrl}
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label={`${tContact('getDirections')}: ${text.locationName}, ${text.shortAddress}`}
+            className="pad-address flex min-h-[44px] items-center gap-2 border-t border-brand-teal/20 text-sm leading-snug text-brand-dark-base/75"
+          >
+            <PinIcon className="h-4 w-4 shrink-0 text-brand-teal" />
+            <span className="pad-address-text">
+              {text.locationName}, {text.shortAddress}
+            </span>
+            <ArrowUpRightIcon className="pad-arrow h-4 w-4 shrink-0 text-brand-teal" />
+          </a>
+        ) : (
+          <p className="flex items-start gap-2 border-t border-brand-teal/20 pt-2.5 text-sm leading-relaxed text-brand-dark-base/75">
+            <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-teal" />
+            <span>
+              {text.locationName}, {text.shortAddress}
+            </span>
+          </p>
+        )}
       </div>
     </aside>
   )

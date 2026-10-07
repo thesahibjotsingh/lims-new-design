@@ -108,7 +108,13 @@ MIN_PORTRAIT_W, MIN_PORTRAIT_H = 640, 800
 # stretching it across the full width, so the picture's ratio no longer has to match
 # anything. Forcing a fixed ratio here would crop framing that the page then has no need
 # of, and the sources are not consistent anyway: most are 3:1, find-a-doctor is 2.5:1.
-BANNER_H = 600
+BANNER_H = 724
+
+# 724 IS THE SOURCES' OWN HEIGHT (they are 2172 x 724), so nothing is resized. It used to be
+# 600, which is what the band measured on a 1x screen, but PageHeader stretches the picture
+# to the band's height and the band is ~450 CSS px, so any screen at 150% scaling (most
+# Windows laptops) asked for ~675 device px from a 600px picture and the browser upscaled
+# it: soft, on every page that has a banner. Do not shrink these below the source again.
 
 # Source filename (without .png) -> output name. Art gets named by hand and does not
 # always match what the site asks for, so the mapping lives here rather than in the page
@@ -201,7 +207,7 @@ def build_department_banners(services) -> int:
         im = im.resize((round(w * BANNER_H / h), BANNER_H), Image.LANCZOS)
         out = PUB / "service-banners" / f"{slug}.webp"
         out.parent.mkdir(parents=True, exist_ok=True)
-        im.save(out, "WEBP", quality=75, method=6)
+        im.save(out, "WEBP", quality=80, method=6)
         written += out.stat().st_size
 
     if unknown:
@@ -240,7 +246,7 @@ def build_banners() -> int:
         im = im.resize((round(w * BANNER_H / h), BANNER_H), Image.LANCZOS)
         out = PUB / "banners" / f"{name}.webp"
         out.parent.mkdir(parents=True, exist_ok=True)
-        im.save(out, "WEBP", quality=75, method=6)
+        im.save(out, "WEBP", quality=80, method=6)
         written += out.stat().st_size
 
     if unknown:

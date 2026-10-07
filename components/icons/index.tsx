@@ -166,6 +166,14 @@ export function ArrowRightIcon(props: IconProps) {
   )
 }
 
+export function ArrowUpRightIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M7 17L17 7M8 7h9v9" />
+    </Base>
+  )
+}
+
 export function ShieldIcon(props: IconProps) {
   return (
     <Base {...props}>
