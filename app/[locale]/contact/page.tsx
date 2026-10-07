@@ -4,10 +4,9 @@ import { Link } from '@/i18n/navigation'
 import { CopyButton } from '@/components/contact/CopyButton'
 import { GoogleReviews } from '@/components/contact/GoogleReviews'
 import { MapEmbed } from '@/components/contact/MapEmbed'
-import { ArrowRightIcon, CalendarIcon, PhoneIcon, PinIcon } from '@/components/icons'
+import { PhoneIcon, PinIcon } from '@/components/icons'
 import { InfoHero } from '@/components/page/InfoHero'
 import { ReviewBand } from '@/components/service/ReviewBand'
-import { SectionNav } from '@/components/service/SectionNav'
 import { Band, SectionHeading } from '@/components/service/blocks'
 import { embedUrls, googleListing } from '@/lib/google-listing'
 import { REVIEW_MODE } from '@/lib/review'
@@ -21,12 +20,24 @@ export const metadata: Metadata = {
 }
 
 /*
- * THE CONTACT PAGE, in the order a worried visitor needs it:
- *   1. who to call (two numbers, plus the online request for people who would rather not),
- *   2. where we are (full address, directions, the map and Street View on request),
- *   3. hours (honest about what is not yet confirmed),
- *   4. what patients say (only once reviews are approved, see lib/reviews.ts),
- *   5. a last way to book.
+ * THE CONTACT PAGE, kept to about one screen.
+ *
+ * It used to be five full sections (who to call, where we are, hours, reviews, book again) and
+ * ran long: the phone numbers sat below the fold on a laptop, the cards were twice as tall as
+ * their content, the hours section held one sentence, and "request an appointment" appeared
+ * four times. It is now:
+ *
+ *   hero    the two phone numbers as solid colour cards on its right, so the numbers are the
+ *           first thing seen and the empty half of the hero is used;
+ *   find    the address, directions and the map and Street View on request;
+ *   a strip for hours and visitor information, which are one sentence and a link;
+ *   reviews only once some are approved (lib/reviews.ts).
+ *
+ * THE COLOURS ARE NOT DECORATION. Red is the emergency number and nothing else (it is
+ * reserved for that across the site, see tailwind.config). Copper is the site's colour for
+ * "act now" (the header's appointment button), used here for the reception line, which is
+ * where appointments are made. White text on the red passes AA; white on copper would not
+ * (2.95:1), so the copper card carries dark text.
  *
  * Nothing on it is a claim LIMS has not made. Hours, parking, an ambulance line and an email
  * address are absent until supplied; review mode lists each as a box to ask about.
@@ -43,14 +54,6 @@ export default async function ContactPage() {
   const reviewsApproved = SELECTED_REVIEWS.length > 0
   const reviews = reviewsApproved ? SELECTED_REVIEWS : REVIEW_MODE ? REVIEW_PREVIEW : []
   const showReviews = reviews.length > 0
-
-  const navItems = [
-    { id: 'reach', label: t('nav.reach') },
-    { id: 'find', label: t('nav.find') },
-    { id: 'hours', label: t('nav.hours') },
-    ...(showReviews ? [{ id: 'reviews', label: t('nav.reviews') }] : []),
-    { id: 'book', label: t('nav.book') },
-  ]
 
   const outlineLink =
     'tap-target rounded-full border border-brand-teal/25 px-5 text-sm font-semibold text-brand-teal transition-colors hover:bg-brand-mist'
@@ -76,15 +79,10 @@ export default async function ContactPage() {
         eyebrow={t('eyebrow')}
         title={t('title')}
         intro={t('intro')}
+        asideWidth="26rem"
+        alignAside="center"
         actions={
           <>
-            <a
-              href={`tel:${contact.primary}`}
-              className="tap-target focus-ring-inverse gap-2 rounded-full bg-brand-emergency px-6 text-sm font-bold text-white transition-colors hover:bg-brand-emergency/90"
-            >
-              <PhoneIcon className="h-4 w-4" />
-              {t('heroEmergency', { number: contact.primaryDisplay })}
-            </a>
             {directionsUrl && (
               <a
                 href={directionsUrl}
@@ -103,157 +101,157 @@ export default async function ContactPage() {
             </Link>
           </>
         }
-      />
-      <SectionNav items={navItems} label={t('navLabel')} />
+        aside={
+          <div className="flex flex-col gap-4">
+            {/*
+              Two pills, built like the header's "Book an appointment" button: fully rounded,
+              the same `bg-brand-copper` and white text, the same hover. The label and the
+              number are both inside the pill, so a pill reads as one thing: what it is, then
+              the number.
 
-      {/* ---- who to call ------------------------------------------------------------------- */}
-      <Band id="reach" tone="white">
-        <SectionHeading id="reach" lead={t('reachLead')}>
-          {t('reachHeading')}
-        </SectionHeading>
-
-        <ul className="grid grid-cols-1 gap-5 md:grid-cols-3">
-          <li>
+              White on the copper is 2.95:1, which is below the 4.5:1 small text needs, so the
+              small label is set bold and tracked out to carry as well as it can, and the
+              number is large. The header button has the same pairing. Red carries white at
+              5.6:1. If the label ever needs to pass strictly, the fix is the darker
+              `bg-brand-copper-hover` (3.7:1) or dark text on the copper (6.2:1), not a bigger
+              label.
+            */}
             <a
               href={`tel:${contact.primary}`}
-              className="press group flex h-full flex-col rounded-2xl border border-brand-emergency/20 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+              className="press flex min-h-[78px] w-full items-center gap-4 rounded-full bg-brand-emergency py-2.5 pl-3 pr-8 text-white shadow-md transition-[filter,box-shadow] hover:brightness-95 hover:shadow-lg"
             >
               <span
                 aria-hidden="true"
-                className="grid h-12 w-12 place-items-center rounded-full bg-brand-emergency/10 text-brand-emergency"
+                className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full bg-white/20"
               >
                 <PhoneIcon className="h-6 w-6" />
               </span>
-              <span className="mt-5 text-xs font-semibold uppercase tracking-wider text-brand-emergency">
-                {t('emergencyLabel')}
-              </span>
-              <span className="mt-1 text-2xl font-bold tabular-nums text-brand-dark-base">
-                {contact.primaryDisplay}
-              </span>
-              <span className="mt-2 text-sm leading-relaxed text-brand-dark-base/70">
-                {t('emergencyHint')}
+              <span className="block">
+                <span className="block text-xs font-bold uppercase tracking-[0.14em]">
+                  {t('emergencyLabel')}
+                </span>
+                <span className="block text-[1.375rem] font-bold leading-tight tabular-nums max-[359px]:text-lg min-[360px]:whitespace-nowrap min-[400px]:text-2xl sm:text-[1.75rem]">
+                  {contact.primaryDisplay}
+                </span>
               </span>
             </a>
-          </li>
-          <li>
+
             <a
               href={`tel:${contact.secondary}`}
-              className="press group flex h-full flex-col rounded-2xl border border-brand-teal/15 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+              className="press flex min-h-[78px] w-full items-center gap-4 rounded-full bg-brand-copper py-2.5 pl-3 pr-8 text-white shadow-md transition-colors hover:bg-brand-copper-hover hover:shadow-lg"
             >
               <span
                 aria-hidden="true"
-                className="grid h-12 w-12 place-items-center rounded-full bg-brand-mist text-brand-teal"
+                className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full bg-white/20"
               >
                 <PhoneIcon className="h-6 w-6" />
               </span>
-              <span className="mt-5 text-xs font-semibold uppercase tracking-wider text-brand-teal">
-                {t('appointmentsLabel')}
-              </span>
-              <span className="mt-1 text-2xl font-bold tabular-nums text-brand-dark-base">
-                {contact.secondaryDisplay}
-              </span>
-              <span className="mt-2 text-sm leading-relaxed text-brand-dark-base/70">
-                {t('appointmentsHint')}
+              <span className="block">
+                <span className="block text-xs font-bold uppercase tracking-[0.14em]">
+                  {t('appointmentsLabel')}
+                </span>
+                <span className="block text-[1.375rem] font-bold leading-tight tabular-nums max-[359px]:text-lg min-[360px]:whitespace-nowrap min-[400px]:text-2xl sm:text-[1.75rem]">
+                  {contact.secondaryDisplay}
+                </span>
               </span>
             </a>
-          </li>
-          <li>
-            <Link
-              href="/appointments"
-              className="press group flex h-full flex-col rounded-2xl border border-brand-teal/15 bg-brand-mist/70 p-6 transition-shadow hover:shadow-md"
-            >
-              <span
-                aria-hidden="true"
-                className="grid h-12 w-12 place-items-center rounded-full bg-white text-brand-teal"
-              >
-                <CalendarIcon className="h-6 w-6" />
-              </span>
-              <span className="mt-5 text-xs font-semibold uppercase tracking-wider text-brand-teal">
-                {t('bookingHeading')}
-              </span>
-              <span className="mt-1 text-2xl font-bold text-brand-dark-base">
-                {tCommon('requestAnAppointment')}
-              </span>
-              <span className="mt-2 flex-1 text-sm leading-relaxed text-brand-dark-base/70">
-                {t('bookingBody')}
-              </span>
-              <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal">
-                {tCommon('requestAnAppointment')}
-                <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </span>
-            </Link>
-          </li>
-        </ul>
-      </Band>
+          </div>
+        }
+      />
 
-      {/* ---- where we are ------------------------------------------------------------------ */}
-      <Band id="find" tone="mist">
-        <SectionHeading id="find" lead={t('findLead')}>
-          {t('findHeading')}
-        </SectionHeading>
+      {/*
+        `id="locations"` is load-bearing: the "Locations & directions" links in the menu, the
+        footer and the mobile quick actions all point at /contact#locations. The heading is
+        screen-reader only because the address card is its own label.
+      */}
+      <section id="locations" aria-labelledby="locations-heading" className="scroll-mt-36">
+        <div className="mx-auto max-w-7xl px-5 pt-9 sm:px-6">
+          <h2 id="locations-heading" className="sr-only">
+            {t('findHeading')}
+          </h2>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start">
-          <div className="rounded-2xl border border-brand-teal/10 bg-white p-6 shadow-sm">
-            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-dark-base/50">
-              <PinIcon className="h-4 w-4 text-brand-teal" />
-              {t('addressLabel')}
-            </p>
-            <address className="mt-3 text-base not-italic leading-relaxed text-brand-dark-base/85">
-              <strong className="block font-semibold text-brand-dark-base">{primaryLocation.name}</strong>
-              {primaryLocation.addressLines.map((line) => (
-                <span key={line} className="block">
-                  {line}
+          {/*
+            The address card and the map card are the same height: the grid stretches both to
+            the taller (the map), and the address card spreads its content to fill it, with
+            the three actions pinned along the bottom edge. Stacked on a phone each is its
+            natural height.
+          */}
+          <div className="grid grid-cols-1 gap-7 lg:grid-cols-[26rem_minmax(0,1fr)] lg:items-stretch">
+            <div className="flex flex-col rounded-2xl border border-brand-teal/15 bg-white p-7 sm:p-9">
+              <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.12em] text-brand-teal">
+                <PinIcon className="h-5 w-5" />
+                {t('addressLabel')}
+              </p>
+              <address className="mt-5 text-lg not-italic leading-8 text-brand-dark-base/85">
+                <strong className="mb-1 block font-serif text-2xl font-bold text-brand-dark-base">
+                  {primaryLocation.name}
+                </strong>
+                {primaryLocation.addressLines.map((line) => (
+                  <span key={line} className="block">
+                    {line}
+                  </span>
+                ))}
+                <span className="block">
+                  {primaryLocation.city}, {primaryLocation.state} {primaryLocation.pincode}
                 </span>
-              ))}
-              <span className="block">
-                {primaryLocation.city}, {primaryLocation.state} {primaryLocation.pincode}
-              </span>
-            </address>
+              </address>
 
-            <div className="mt-5 flex flex-wrap gap-2">
-              {directionsUrl && (
+              <div className="mt-auto grid grid-cols-1 gap-3 pt-8">
+                {directionsUrl && (
+                  <a
+                    href={directionsUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="tap-target focus-ring-inverse min-h-[52px] w-full justify-center rounded-full bg-brand-teal px-6 text-base font-semibold text-white transition-colors hover:bg-brand-teal-dark"
+                  >
+                    {t('getDirections')}
+                  </a>
+                )}
                 <a
-                  href={directionsUrl}
+                  href={googleListing.placeUrl}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="tap-target focus-ring-inverse rounded-full bg-brand-teal px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-teal-dark"
+                  className={`${outlineLink} min-h-[52px] w-full justify-center text-base`}
                 >
-                  {t('getDirections')}
+                  {t('openInMaps')}
                 </a>
-              )}
-              <a
-                href={googleListing.placeUrl}
-                target="_blank"
-                rel="noreferrer noopener"
-                className={outlineLink}
-              >
-                {t('openInMaps')}
-              </a>
-              <CopyButton
-                text={fullAddress()}
-                label={t('copyAddress')}
-                copiedLabel={t('addressCopied')}
-                failedLabel={t('addressCopyFailed')}
-              />
+                <CopyButton
+                  text={fullAddress()}
+                  label={t('copyAddress')}
+                  copiedLabel={t('addressCopied')}
+                  failedLabel={t('addressCopyFailed')}
+                  className="min-h-[52px] w-full justify-center text-base"
+                />
+              </div>
             </div>
-          </div>
 
-          <MapEmbed
-            mapSrc={embedUrls.map}
-            streetViewSrc={embedUrls.streetView}
-            labels={{
-              heading: t('mapHeading'),
-              showMap: t('showMap'),
-              showStreetView: t('showStreetView'),
-              privacyNote: t('mapPrivacy'),
-              close: t('closeMap'),
-              mapTitle: t('mapTitle'),
-              streetViewTitle: t('streetViewTitle'),
-              streetViewNote: t('streetViewNote'),
-            }}
-          />
+            <MapEmbed
+              mapSrc={embedUrls.map}
+              streetViewSrc={embedUrls.streetView}
+              labels={{
+                heading: t('mapHeading'),
+                showMap: t('showMap'),
+                showStreetView: t('showStreetView'),
+                privacyNote: t('mapPrivacy'),
+                close: t('closeMap'),
+                mapTitle: t('mapTitle'),
+                streetViewTitle: t('streetViewTitle'),
+                streetViewNote: t('streetViewNote'),
+              }}
+            />
+          </div>
         </div>
-      </Band>
+      </section>
+
+      {/* Hours and visiting: one honest sentence and a link, not a section. */}
+      <div className="mx-auto max-w-7xl px-5 pb-12 pt-7 sm:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-brand-mist px-5 py-4">
+          <p className="text-sm leading-relaxed text-brand-dark-base/80">{t('noHoursNote')}</p>
+          <Link href="/patient-care/visitors" className={`${outlineLink} bg-white`}>
+            {tNav('visitorInformation')}
+          </Link>
+        </div>
+      </div>
 
       <ReviewBand
         id="review-contact-practical"
@@ -262,22 +260,7 @@ export default async function ContactPage() {
         title="Needs LIMS input: getting here and practical details"
       />
 
-      {/* ---- hours ------------------------------------------------------------------------- */}
-      <Band id="hours" tone="white">
-        <SectionHeading id="hours" lead={t('noHoursNote')}>
-          {t('hoursHeading')}
-        </SectionHeading>
-        <div className="flex flex-wrap gap-3">
-          <Link href="/patient-care/visitors" className={outlineLink}>
-            {tNav('visitorInformation')}
-          </Link>
-          <a href={`tel:${contact.secondary}`} className={outlineLink}>
-            {tCommon('call', { number: contact.secondaryDisplay })}
-          </a>
-        </div>
-      </Band>
-
-      {/* ---- reviews ----------------------------------------------------------------------- */}
+      {/* ---- reviews: only once approved (live), or as a preview in review mode ------------ */}
       {showReviews && (
         <Band id="reviews" tone="mist">
           <SectionHeading id="reviews" lead={t('reviewsLead')}>
@@ -292,28 +275,6 @@ export default async function ContactPage() {
         slots={slots}
         title="Needs LIMS input: which reviews to show"
       />
-
-      {/* ---- last chance to book ----------------------------------------------------------- */}
-      <Band id="book" tone={showReviews ? 'white' : 'mist'}>
-        <div className="flex flex-col items-start justify-between gap-6 rounded-3xl bg-gradient-to-r from-brand-teal-dark to-brand-teal p-8 text-white sm:p-10 lg:flex-row lg:items-center">
-          <div className="max-w-2xl">
-            <h2
-              id="book-heading"
-              className="text-balance font-serif text-3xl font-bold tracking-tight"
-            >
-              {t('bookingHeading')}
-            </h2>
-            <p className="mt-3 text-base leading-relaxed text-white/90">{t('bookingBody')}</p>
-          </div>
-          <Link
-            href="/appointments"
-            className="tap-target shrink-0 gap-2 rounded-full bg-white px-7 text-sm font-semibold text-brand-teal transition-colors hover:bg-brand-mist"
-          >
-            {tCommon('requestAnAppointment')}
-            <ArrowRightIcon className="h-4 w-4" />
-          </Link>
-        </div>
-      </Band>
     </>
   )
 }

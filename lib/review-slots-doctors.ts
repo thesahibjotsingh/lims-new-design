@@ -244,7 +244,7 @@ export function directoryReviewSlots(): ReviewSlot[] {
     slot(
       'roster-photos',
       'Photographs for every consultant',
-      'Two of the current portraits are placeholders and must be replaced with real photographs.',
+      'One of the current portraits (Dr. Udit Choudhary) is a placeholder and must be replaced with a real photograph.',
       ['One recent photograph per consultant, framed the same way where possible'],
       ['A photograph of each consultant', 'Written consent to publish each one'],
     ),

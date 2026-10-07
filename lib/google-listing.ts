@@ -43,6 +43,13 @@ export const streetView = {
   lat: 29.1336942,
   lng: 75.7461012,
   heading: 117,
+  // Tilted up 10 degrees and a little wider than Google's default (0.78; lower is wider).
+  // Compared side by side on 2026-10-07: the default cropped the top of the building and its
+  // sign; a 12 degree tilt showed the whole building with sky above it; zooming out to 0.4
+  // showed it small among the street. This sits between the last two, so the building and
+  // its LIFELINE HOSPITAL sign are whole in a landscape frame and still readable in a phone's.
+  pitch: 10,
+  zoom: 0.6,
 } as const
 
 const geo = primaryLocation.geo ?? { lat: 29.1336255, lng: 75.7462539 }
@@ -56,5 +63,5 @@ export const embedUrls = {
   map: `https://maps.google.com/maps?q=${geo.lat},${geo.lng}&hl=en&z=17&output=embed`,
   streetView:
     `https://www.google.com/maps/embed?pb=!4v1!6m8!1m7!1s${streetView.panoId}` +
-    `!2m2!1d${streetView.lat}!2d${streetView.lng}!3f${streetView.heading}!4f0!5f0.7820865974627469`,
+    `!2m2!1d${streetView.lat}!2d${streetView.lng}!3f${streetView.heading}!4f${streetView.pitch}!5f${streetView.zoom}`,
 } as const

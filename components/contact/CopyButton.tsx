@@ -16,11 +16,14 @@ export function CopyButton({
   label,
   copiedLabel,
   failedLabel,
+  className = '',
 }: {
   text: string
   label: string
   copiedLabel: string
   failedLabel: string
+  /** Extra classes, for sizing the button to its row. */
+  className?: string
 }) {
   const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
 
@@ -38,7 +41,7 @@ export function CopyButton({
     <button
       type="button"
       onClick={copy}
-      className="tap-target rounded-full border border-brand-teal/25 px-5 text-sm font-semibold text-brand-teal transition-colors hover:bg-brand-mist"
+      className={`tap-target rounded-full border border-brand-teal/25 px-5 text-sm font-semibold text-brand-teal transition-colors hover:bg-brand-mist ${className}`}
     >
       <span aria-live="polite">
         {state === 'copied' ? copiedLabel : state === 'failed' ? failedLabel : label}

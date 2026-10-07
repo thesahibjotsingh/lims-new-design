@@ -130,7 +130,20 @@ export async function DoctorCard({
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div>
           <h3 className="font-serif text-base font-bold leading-snug text-brand-dark-base">
-            <Link href={`/doctors/${doctor.id}`} className="transition-colors hover:text-brand-teal">
+            {/*
+              THE WHOLE CARD IS ONE LINK. This is the card's main link, and its ::after
+              stretches over the entire <article> (which is `relative`), so a click anywhere
+              on the photo, the name or the credentials opens the profile. It is still a
+              single real link: one tab stop, one name for a screen reader, no nested
+              interactive element, and the text can still be read as the heading.
+              The two controls in the footer sit ABOVE that overlay (`relative z-10`), so
+              they still do their own thing. The name goes teal when the card is hovered
+              (`group-hover`), not only the name, so the whole card reads as pressable.
+            */}
+            <Link
+              href={`/doctors/${doctor.id}`}
+              className="transition-colors after:absolute after:inset-0 after:content-[''] group-hover:text-brand-teal"
+            >
               {doctor.name}
             </Link>
           </h3>
@@ -182,7 +195,7 @@ export async function DoctorCard({
               aria-label={t('viewProfileForName', { name: doctor.name })}
               // `ml-auto` so a doctor with no registration number on file still has the
               // link at the right edge rather than alone on the left.
-              className="press ml-auto inline-flex min-h-[24px] items-center gap-1 font-semibold text-brand-teal hover:underline"
+              className="press relative z-10 ml-auto inline-flex min-h-[24px] items-center gap-1 font-semibold text-brand-teal hover:underline"
             >
               <span aria-hidden="true">{t('viewProfile')}</span>
               <ArrowRightIcon aria-hidden="true" className="h-3 w-3" strokeWidth={2.25} />
@@ -192,7 +205,7 @@ export async function DoctorCard({
           <Link
             href={`/appointments?doctor=${doctor.id}`}
             aria-label={t('requestAppointmentForName', { name: doctor.name })}
-            className="tap-target focus-ring-inverse w-full rounded-full bg-brand-teal px-4 text-xs font-semibold text-white transition-colors hover:bg-brand-teal-dark"
+            className="tap-target focus-ring-inverse relative z-10 w-full rounded-full bg-brand-teal px-4 text-xs font-semibold text-white transition-colors hover:bg-brand-teal-dark"
           >
             <span aria-hidden="true">{t('requestAppointment')}</span>
           </Link>

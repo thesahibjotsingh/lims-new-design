@@ -8,10 +8,12 @@
 // positioned instance — not per-slide, not re-rendered on rotation — so there is
 // nothing for them to jump between. Only `copy`/`secondSlideText` cross-dissolve.
 //
-//   - firstBanner: the background photo behind `copy`, cross-dissolved against
-//     `secondSlide` on a long, gentle opacity transition — no slide, no scale,
-//     nothing that reads as a "carousel effect" fighting for attention on a
-//     hospital home page.
+//   - firstBanner: the background photo behind `copy`. It never fades; secondSlideBg
+//     dissolves in OVER it and back out, on a long, gentle opacity transition
+//     (lib/carousel.ts) — no slide, no scale, nothing that reads as a "carousel
+//     effect" fighting for attention on a hospital home page, and no midpoint where
+//     both photos are half-transparent. The text takes turns with the photo rather
+//     than fading on the same clock; see carouselTextTransition.
 //   - copy / secondSlideText: headline+description vs. quote+name — text only, no
 //     buttons or stats. Both cross-dissolve into the same slot, which is the
 //     flexible region above `actions` (a flex column, not a hardcoded height).
@@ -37,7 +39,7 @@ import { useId } from 'react'
 import type { ReactNode } from 'react'
 import { ArrowRightIcon } from '@/components/icons'
 import { useCarouselRotation } from '@/components/primitives/useCarouselRotation'
-import { CAROUSEL_TRANSITION_MS } from '@/lib/carousel'
+import { CAROUSEL_TRANSITION_MS, carouselTextTransition } from '@/lib/carousel'
 import type { ImageAsset } from '@/types'
 
 const TRANSITION_MS = CAROUSEL_TRANSITION_MS
@@ -83,26 +85,24 @@ export function HeroSlideshow({
         fetchPriority="high"
         decoding="async"
         aria-hidden="true"
-        style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-        className={`absolute inset-0 h-full w-full object-cover object-[75%_center] transition-opacity ease-out ${
-          active === 0 ? 'opacity-100' : 'opacity-0'
-        }`}
+        // Never fades. firstBanner is the floor the second photo dissolves in over and out
+        // of, so at no moment are both photos part-transparent over the section's teal
+        // (the dip in brightness that a two-way crossfade has at its midpoint).
+        className="absolute inset-0 h-full w-full object-cover object-[75%_center]"
       />
       {/*
-        A scrim anchored to the left, where the copy sits. Fades with firstBanner
-        rather than staying constant — secondSlideBg has its own finished
-        background, and this dark-teal gradient sitting on top of it too would
-        just muddy that.
+        A scrim anchored to the left, where the copy sits. It stays constant too: it sits
+        BELOW secondSlideBg in paint order, so once that photo is fully in it covers the
+        scrim and the dark-teal gradient never muddies the second slide's own finished
+        background. Mid-dissolve it shows through the fading photo, which is just the
+        first slide's look melting away.
         See the original comment on this hero: measured on firstBanner, white
         already reaches 8.2:1 over the left third unaided — this is insurance
         against the next photo, not the only thing making the headline legible.
       */}
       <div
         aria-hidden="true"
-        style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-        className={`absolute inset-0 bg-gradient-to-r from-brand-teal-dark/80 via-brand-teal-dark/35 to-transparent transition-opacity ease-out ${
-          active === 0 ? 'opacity-100' : 'opacity-0'
-        }`}
+        className="absolute inset-0 bg-gradient-to-r from-brand-teal-dark/80 via-brand-teal-dark/35 to-transparent"
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -114,7 +114,9 @@ export function HeroSlideshow({
         decoding="async"
         aria-hidden={active !== 1}
         style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-        className={`absolute inset-0 h-full w-full object-cover transition-opacity ease-out ${
+        // ease-in-out, not ease-out: a dissolve that starts and ends gently has no moment
+        // at which the eye catches an edge, which is the whole point of the long duration.
+        className={`absolute inset-0 h-full w-full object-cover transition-opacity ease-in-out ${
           active === 1 ? 'opacity-100' : 'opacity-0'
         }`}
       />
@@ -132,10 +134,12 @@ export function HeroSlideshow({
             <div
               aria-hidden={active !== 0}
               inert={active !== 0 ? true : undefined}
-              style={{ transitionDuration: `${TRANSITION_MS}ms` }}
+              // Timing comes from lib/carousel.ts: the leaving text goes first, the
+              // arriving text waits until the photo has mostly changed.
+              style={carouselTextTransition(active === 0)}
               // -translate-y-2: see the identical comment on secondSlideText below —
               // both slides share this exact wrapper now, so they share the nudge too.
-              className={`absolute inset-0 flex -translate-y-2 flex-col justify-center space-y-7 transition-opacity ease-out ${
+              className={`absolute inset-0 flex -translate-y-2 flex-col justify-center space-y-7 ${
                 active === 0 ? 'opacity-100' : 'opacity-0'
               }`}
             >
@@ -144,11 +148,11 @@ export function HeroSlideshow({
             <div
               aria-hidden={active !== 1}
               inert={active !== 1 ? true : undefined}
-              style={{ transitionDuration: `${TRANSITION_MS}ms` }}
+              style={carouselTextTransition(active === 1)}
               // -translate-y-2 nudges the centred block up slightly — true centre
               // read as a bit low under the actions row. 8px keeps it inside the
               // ~15px of slack the lg-only breakpoint (1024–1279px) has above it.
-              className={`absolute inset-0 flex -translate-y-2 flex-col justify-center space-y-5 transition-opacity ease-out ${
+              className={`absolute inset-0 flex -translate-y-2 flex-col justify-center space-y-5 ${
                 active === 1 ? 'opacity-100' : 'opacity-0'
               }`}
             >

@@ -24,14 +24,14 @@
 //     qualification would be.
 //
 //     harshal-godara and shweta-godara are REAL PHOTOGRAPHS of those two consultants,
-//     supplied 2026-09-16 — 1086x1448 sources under assets-source/doctors/, well above
-//     the 640x800 floor build_portraits() warns below.
+//     supplied 2026-09-16, and vikash-raj and nirmala-goyat of theirs, supplied 2026-10-07 —
+//     sources under assets-source/doctors/ well above the 640x800 floor build_portraits()
+//     warns below.
 //
-//     udit-choudhary and vikash-raj ARE STILL STOCK PLACEHOLDERS AND MUST NOT SHIP.
-//     Known problems, so nobody rediscovers them:
-//       - vikash-raj      is a photograph of a woman.
-//       - udit-choudhary  and vikash-raj were upscaled from sources far below the card
-//                         size, so both look soft.
+//     udit-choudhary IS STILL A STOCK PLACEHOLDER AND MUST NOT SHIP. Known problem, so
+//     nobody rediscovers it: it was upscaled from a 363x493 source, far below the card size,
+//     so it looks soft. (vikash-raj was the other placeholder until 2026-10-07: a photograph
+//     of a woman upscaled from 280x360.)
 //
 //     Pipeline: assets-source/doctors/dr-<id>.png -> public/doctors/<id>.webp, written
 //     by scripts/build_assets.py as a 4:5 crop at 800x1000. Drop the real photographs
@@ -111,13 +111,14 @@ export const DOCTORS: Doctor[] = [
     qualifications: 'MS, General Surgery',
     departmentSlug: 'general-laparoscopic-surgery',
     registrationNumber: 'UPMC Reg. No. 123298',
-    // PLACEHOLDER - see rule 4. Photograph is of a woman; upscaled from 280x360.
+    // Real photograph, supplied 2026-10-07 (1086x1448). The hairline sits near 8% of the
+    // 4:5 crop, so 8 keeps a sliver of headroom in the 3:2 card.
     portrait: {
       src: '/doctors/vikash-raj.webp',
       alt: 'Portrait of Dr. Vikash Raj',
       width: 800,
       height: 1000,
-      focusY: 18,
+      focusY: 8,
     },
   },
   {

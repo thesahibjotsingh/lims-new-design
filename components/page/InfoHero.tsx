@@ -8,7 +8,7 @@
 // It takes already-translated strings and already-built actions/aside, so it reads no
 // message file and knows nothing about either page.
 
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Link } from '@/i18n/navigation'
 
 export function InfoHero({
@@ -19,6 +19,8 @@ export function InfoHero({
   intro,
   actions,
   aside,
+  asideWidth = '24rem',
+  alignAside = 'end',
 }: {
   homeLabel: string
   /** The breadcrumb's last item, usually the page name. */
@@ -30,6 +32,10 @@ export function InfoHero({
   actions?: ReactNode
   /** A card at the right on a wide screen, below the actions on a phone. */
   aside?: ReactNode
+  /** Width of the aside column on a wide screen. Any CSS length. */
+  asideWidth?: string
+  /** Where the aside sits against the text: level with its bottom, or centred on it. */
+  alignAside?: 'end' | 'center'
 }) {
   return (
     <header className="bg-gradient-to-r from-brand-teal-dark to-brand-teal text-white">
@@ -49,9 +55,12 @@ export function InfoHero({
         </nav>
 
         <div
-          className={`mt-6 grid grid-cols-1 gap-8 lg:items-end lg:gap-12 ${
-            aside ? 'lg:grid-cols-[minmax(0,1fr)_24rem]' : ''
-          }`}
+          // The column width is a custom property so a caller can set any length without a
+          // class per width (Tailwind cannot see a class built at run time).
+          style={{ '--aside-w': asideWidth } as CSSProperties}
+          className={`mt-6 grid grid-cols-1 gap-8 lg:gap-12 ${
+            alignAside === 'center' ? 'lg:items-center' : 'lg:items-end'
+          } ${aside ? 'lg:grid-cols-[minmax(0,1fr)_var(--aside-w)]' : ''}`}
         >
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/75">
