@@ -50,7 +50,7 @@ export async function SiteIndex() {
     {
       label: tNav('aboutLims'),
       href: '/about',
-      description: text.description,
+      description: text.about.body,
     },
     {
       label: tNav('contactUs'),

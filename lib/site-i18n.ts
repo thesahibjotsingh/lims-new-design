@@ -18,7 +18,7 @@
 
 import type { Locale } from '@/i18n/routing'
 import type { Location } from '@/types'
-import { primaryLocation, shortAddress, siteConfig } from '@/lib/site-config'
+import { grievanceOfficer, primaryLocation, shortAddress, siteConfig } from '@/lib/site-config'
 
 export interface SiteText {
   /** "Lifeline Institute of Medical Sciences" */
@@ -29,6 +29,15 @@ export interface SiteText {
   locationName: string
   tagline: readonly [string, string, string]
   description: string
+  /** The hospital's own introduction of itself (siteConfig.about), in this language. */
+  about: {
+    headline: string
+    body: string
+    highlights: readonly [string, string, string]
+    promise: string
+  }
+  /** The grievance officer's name. */
+  officerName: string
   /** "Jindal Chowk, Hisar, Haryana" */
   shortAddress: string
 }
@@ -40,8 +49,18 @@ const TRANSLATED: Record<Exclude<Locale, 'en'>, SiteText> = {
     locationName: 'LIMS हिसार',
     tagline: ['करुणा', 'उत्कृष्टता', 'देखभाल'],
     description:
-      'जिंदल चौक, हिसार, हरियाणा में मल्टी-स्पेशियलिटी अस्पताल: आपातकालीन देखभाल, सर्जरी, ' +
+      'जिंदल चौक, हिसार, हरियाणा में मल्टी-स्पेशियलिटी अस्पताल: 24×7 आपातकालीन देखभाल, सर्जरी, ' +
       'ऑर्थोपेडिक्स, प्रसूति एवं स्त्री रोग, और उसी परिसर में जांच, इमेजिंग व पैथोलॉजी।',
+    about: {
+      headline: 'जहाँ देखभाल उत्कृष्टता से मिलती है।',
+      body:
+        'भरोसेमंद चिकित्सा विशेषज्ञता और आधुनिक सुविधाओं के साथ करुणामय, सुरक्षित और ' +
+        'मरीज़-केंद्रित स्वास्थ्य सेवा देने के लिए समर्पित। हमारी टीम सही समय पर सही देखभाल, ' +
+        'गरिमा और करुणा के साथ देने के लिए प्रतिबद्ध है।',
+      highlights: ['24×7 आपातकालीन देखभाल', 'विशेषज्ञ सेवाएँ', 'मरीज़ पहले'],
+      promise: 'मरीज़ की देखभाल हमारा वादा है।',
+    },
+    officerName: 'सुनील कुमार',
     shortAddress: 'जिंदल चौक, हिसार, हरियाणा',
   },
   pa: {
@@ -50,8 +69,18 @@ const TRANSLATED: Record<Exclude<Locale, 'en'>, SiteText> = {
     locationName: 'LIMS ਹਿਸਾਰ',
     tagline: ['ਹਮਦਰਦੀ', 'ਉੱਤਮਤਾ', 'ਦੇਖਭਾਲ'],
     description:
-      'ਜਿੰਦਲ ਚੌਂਕ, ਹਿਸਾਰ, ਹਰਿਆਣਾ ਵਿੱਚ ਮਲਟੀ-ਸਪੈਸ਼ਲਿਟੀ ਹਸਪਤਾਲ: ਐਮਰਜੈਂਸੀ ਦੇਖਭਾਲ, ਸਰਜਰੀ, ' +
+      'ਜਿੰਦਲ ਚੌਂਕ, ਹਿਸਾਰ, ਹਰਿਆਣਾ ਵਿੱਚ ਮਲਟੀ-ਸਪੈਸ਼ਲਿਟੀ ਹਸਪਤਾਲ: 24×7 ਐਮਰਜੈਂਸੀ ਦੇਖਭਾਲ, ਸਰਜਰੀ, ' +
       'ਆਰਥੋਪੈਡਿਕਸ, ਪ੍ਰਸੂਤੀ ਅਤੇ ਇਸਤਰੀ ਰੋਗ, ਅਤੇ ਉਸੇ ਕੈਂਪਸ ਵਿੱਚ ਜਾਂਚ, ਇਮੇਜਿੰਗ ਅਤੇ ਪੈਥੋਲੋਜੀ।',
+    about: {
+      headline: 'ਜਿੱਥੇ ਦੇਖਭਾਲ ਉੱਤਮਤਾ ਨੂੰ ਮਿਲਦੀ ਹੈ।',
+      body:
+        'ਭਰੋਸੇਮੰਦ ਮੈਡੀਕਲ ਮਹਾਰਤ ਅਤੇ ਆਧੁਨਿਕ ਸਹੂਲਤਾਂ ਨਾਲ ਹਮਦਰਦੀ ਭਰੀ, ਸੁਰੱਖਿਅਤ ਅਤੇ ' +
+        'ਮਰੀਜ਼-ਕੇਂਦਰਿਤ ਸਿਹਤ ਸੇਵਾ ਦੇਣ ਲਈ ਸਮਰਪਿਤ। ਸਾਡੀ ਟੀਮ ਸਹੀ ਸਮੇਂ \'ਤੇ ਸਹੀ ਦੇਖਭਾਲ, ' +
+        'ਮਾਣ ਅਤੇ ਹਮਦਰਦੀ ਨਾਲ ਦੇਣ ਲਈ ਵਚਨਬੱਧ ਹੈ।',
+      highlights: ['24×7 ਐਮਰਜੈਂਸੀ ਦੇਖਭਾਲ', 'ਮਾਹਰ ਸੇਵਾਵਾਂ', 'ਮਰੀਜ਼ ਪਹਿਲਾਂ'],
+      promise: 'ਮਰੀਜ਼ ਦੀ ਦੇਖਭਾਲ ਸਾਡਾ ਵਾਅਦਾ ਹੈ।',
+    },
+    officerName: 'ਸੁਨੀਲ ਕੁਮਾਰ',
     shortAddress: 'ਜਿੰਦਲ ਚੌਂਕ, ਹਿਸਾਰ, ਹਰਿਆਣਾ',
   },
 }
@@ -62,6 +91,8 @@ const ENGLISH: SiteText = {
   locationName: primaryLocation.name,
   tagline: siteConfig.tagline,
   description: siteConfig.description,
+  about: siteConfig.about,
+  officerName: grievanceOfficer.name,
   shortAddress,
 }
 

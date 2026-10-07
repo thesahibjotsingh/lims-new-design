@@ -17,7 +17,7 @@ import { createPortal } from 'react-dom'
 import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { usePathname } from '@/i18n/navigation'
-import { CloseIcon, MenuIcon, SearchIcon } from '@/components/icons'
+import { CloseIcon, MenuIcon, SearchIcon, WhatsAppIcon } from '@/components/icons'
 import {
   SuggestionList,
   useCloseOnOutside,
@@ -25,7 +25,7 @@ import {
 } from '@/components/search/SearchSuggest'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
 import { searchPhrases } from '@/components/search/searchPhrases'
-import { contact, primaryNav } from '@/lib/site-config'
+import { contact, primaryNav, whatsappUrl } from '@/lib/site-config'
 import { siteText } from '@/lib/site-i18n'
 import { translatedChildLabel, translatedNavLabel, translatedOverviewLabel } from '@/lib/nav-i18n'
 import type { Locale } from '@/i18n/routing'
@@ -35,6 +35,7 @@ export function MobileMenu() {
   const locale = useLocale() as Locale
   const t = useTranslations('nav')
   const tMenu = useTranslations('menu')
+  const tCommon = useTranslations('common')
   const tSearch = useTranslations('search')
   const tA11y = useTranslations('a11y')
   const text = siteText(locale)
@@ -413,6 +414,16 @@ export function MobileMenu() {
                 className="tap-target w-full rounded-xl border border-white/30 px-4 text-sm font-semibold text-white"
               >
                 {tMenu('appointmentsLine')} &middot; {contact.secondaryDisplay}
+              </a>
+              {/* Green on the glyph only: on the dark drawer it is 3.8:1, where white on green is 3.1. */}
+              <a
+                href={whatsappUrl(tCommon('whatsappMessage'))}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="tap-target focus-ring-inverse w-full gap-2 rounded-xl border border-white/30 px-4 text-sm font-semibold text-white"
+              >
+                <WhatsAppIcon className="h-[18px] w-[18px] shrink-0 text-brand-whatsapp" />
+                {tCommon('whatsappLabel')}
               </a>
             </div>
           </div>

@@ -6,7 +6,11 @@ import { Link } from '@/i18n/navigation'
 import { PhoneIcon } from '@/components/icons'
 import { DoctorHero } from '@/components/doctor/DoctorHero'
 import { OpdList, TileGrid, Timeline } from '@/components/doctor/ProfileBlocks'
+import { DoctorRailCard } from '@/components/doctor/DoctorRailCard'
 import { DoctorCard } from '@/components/primitives/DoctorCard'
+import { PhoneActionBar } from '@/components/service/PhoneActionBar'
+import { buildPhoneActions } from '@/components/service/PhoneActions'
+import { PhoneTalkToUs } from '@/components/service/PhoneTalkToUs'
 import { ReviewBand } from '@/components/service/ReviewBand'
 import { SectionNav } from '@/components/service/SectionNav'
 import {
@@ -122,16 +126,43 @@ export default async function DoctorProfilePage({
   const colleagues = getDoctors(locale).filter((other) => other.id !== doctor.id)
   const slots = REVIEW_MODE ? doctorReviewSlots(doctor) : []
 
+  const phoneActions = buildPhoneActions({
+    slug: doctor.departmentSlug,
+    bookHref: `/appointments?doctor=${doctor.id}`,
+    emergencyFirst: false,
+    noAppointment: false,
+    labels: {
+      callEmergency: '',
+      call: tService('phoneCall'),
+      directions: tService('phoneDirections'),
+      book: tService('phoneBook'),
+      bookAria: t('requestWith', { name }),
+      whatsapp: tCommon('whatsappLabel'),
+      whatsappMessage: tCommon('whatsappMessageWith', { name }),
+    },
+  })
+
   const sections: Section[] = []
-  const add = (id: string, navKey: string, render: (tone: Tone) => ReactNode) =>
+  // Below lg every section is a row that opens (components/service/Collapse). The first one
+  // starts open, so the page does not open on a column of closed rows.
+  let openId = ''
+  const add = (id: string, navKey: string, render: (tone: Tone) => ReactNode) => {
+    if (!openId) openId = id
     sections.push({ id, navKey, render })
+  }
+  const isOpen = (id: string) => id === openId
 
   /* ---- sections that exist only when LIMS supplied the data ------------------------- */
 
   if (doctor.about) {
     const paragraphs = doctor.about.split(/\n{2,}/)
     add('about', 'about', (tone) => (
-      <Band id="about" tone={tone}>
+      <Band
+        id="about"
+        tone={tone}
+        title={t('aboutHeading', { name })}
+        open={isOpen('about')}
+      >
         <SectionHeading id="about">{t('aboutHeading', { name })}</SectionHeading>
         <div className="max-w-3xl space-y-4 text-lg leading-relaxed text-brand-dark-base/80">
           {paragraphs.map((paragraph) => (
@@ -145,7 +176,13 @@ export default async function DoctorProfilePage({
   if (doctor.specialisations?.length) {
     const items = doctor.specialisations
     add('expertise', 'expertise', (tone) => (
-      <Band id="expertise" tone={tone}>
+      <Band
+        id="expertise"
+        tone={tone}
+        title={t('expertiseHeading')}
+        count={items.length}
+        open={isOpen('expertise')}
+      >
         <SectionHeading id="expertise">{t('expertiseHeading')}</SectionHeading>
         <TileGrid items={items} />
       </Band>
@@ -159,7 +196,13 @@ export default async function DoctorProfilePage({
       detail: entry.institution,
     }))
     add('education', 'education', (tone) => (
-      <Band id="education" tone={tone}>
+      <Band
+        id="education"
+        tone={tone}
+        title={t('educationHeading')}
+        count={entries.length}
+        open={isOpen('education')}
+      >
         <SectionHeading id="education">{t('educationHeading')}</SectionHeading>
         <Timeline entries={entries} />
       </Band>
@@ -173,7 +216,13 @@ export default async function DoctorProfilePage({
       detail: entry.institution,
     }))
     add('experience', 'experience', (tone) => (
-      <Band id="experience" tone={tone}>
+      <Band
+        id="experience"
+        tone={tone}
+        title={t('experienceHeading')}
+        count={entries.length}
+        open={isOpen('experience')}
+      >
         <SectionHeading id="experience">{t('experienceHeading')}</SectionHeading>
         <Timeline entries={entries} />
       </Band>
@@ -183,7 +232,13 @@ export default async function DoctorProfilePage({
   if (doctor.awards?.length) {
     const entries = doctor.awards.map((award) => ({ when: award.year, title: award.title }))
     add('milestones', 'milestones', (tone) => (
-      <Band id="milestones" tone={tone}>
+      <Band
+        id="milestones"
+        tone={tone}
+        title={t('milestonesHeading')}
+        count={entries.length}
+        open={isOpen('milestones')}
+      >
         <SectionHeading id="milestones">{t('milestonesHeading')}</SectionHeading>
         <Timeline entries={entries} />
       </Band>
@@ -194,7 +249,13 @@ export default async function DoctorProfilePage({
     const half = Math.ceil(doctor.memberships.length / 2)
     const memberships = doctor.memberships
     add('memberships', 'memberships', (tone) => (
-      <Band id="memberships" tone={tone}>
+      <Band
+        id="memberships"
+        tone={tone}
+        title={t('membershipsHeading')}
+        count={memberships.length}
+        open={isOpen('memberships')}
+      >
         <SectionHeading id="memberships">{t('membershipsHeading')}</SectionHeading>
         <div className="grid grid-cols-1 gap-x-14 gap-y-3 md:grid-cols-2">
           <BulletList items={memberships.slice(0, half)} />
@@ -207,7 +268,13 @@ export default async function DoctorProfilePage({
   if (doctor.publications?.length) {
     const publications = doctor.publications
     add('publications', 'publications', (tone) => (
-      <Band id="publications" tone={tone}>
+      <Band
+        id="publications"
+        tone={tone}
+        title={t('publicationsHeading')}
+        count={publications.length}
+        open={isOpen('publications')}
+      >
         <SectionHeading id="publications">{t('publicationsHeading')}</SectionHeading>
         <div className="max-w-3xl">
           <BulletList items={publications} />
@@ -227,7 +294,13 @@ export default async function DoctorProfilePage({
       note: session.note,
     }))
     add('opd', 'opd', (tone) => (
-      <Band id="opd" tone={tone}>
+      <Band
+        id="opd"
+        tone={tone}
+        title={t('opdHeading')}
+        count={rows.length}
+        open={isOpen('opd')}
+      >
         <SectionHeading id="opd" lead={t('opdNote')}>
           {t('opdHeading')}
         </SectionHeading>
@@ -260,7 +333,13 @@ export default async function DoctorProfilePage({
     { title: tService('visitStepMeet'), body: tService('visitStepMeetBody') },
   ]
   add('visit', 'visit', (tone) => (
-    <Band id="visit" tone={tone}>
+    <Band
+      id="visit"
+      tone={tone}
+      title={t('bookHeading', { name })}
+      count={steps.length}
+      open={isOpen('visit')}
+    >
       <SectionHeading id="visit">{t('bookHeading', { name })}</SectionHeading>
       {!doctor.about && (
         // The honest note, small and plain, instead of a boxed "awaiting content" panel
@@ -287,25 +366,43 @@ export default async function DoctorProfilePage({
     { q: tService('faqBringQ'), a: tService('faqBringA') },
   ]
   add('faqs', 'faqs', (tone) => (
-    <Band id="faqs" tone={tone}>
+    <Band
+      id="faqs"
+      tone={tone}
+      title={tService('faqHeading')}
+      count={faqs.length}
+      open={isOpen('faqs')}
+    >
       <SectionHeading id="faqs">{tService('faqHeading')}</SectionHeading>
       <FaqGrid items={faqs} />
     </Band>
   ))
 
   add('colleagues', 'colleagues', (tone) => (
-    <Band id="colleagues" tone={tone}>
-      <SectionHeading id="colleagues">{t('colleaguesHeading')}</SectionHeading>
+    <Band id="colleagues" tone={tone} title={t('colleaguesHeading')} phone="plain">
+      <SectionHeading id="colleagues" keepOnPhone>
+        {t('colleaguesHeading')}
+      </SectionHeading>
       {colleagues.length > 0 && (
-        <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {colleagues.slice(0, 3).map((other) => (
-            <li key={other.id}>
-              <DoctorCard doctor={other} />
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="hidden grid-cols-1 gap-5 sm:grid sm:grid-cols-2 lg:grid-cols-3">
+            {colleagues.slice(0, 3).map((other) => (
+              <li key={other.id}>
+                <DoctorCard doctor={other} />
+              </li>
+            ))}
+          </ul>
+          {/* The same people, as small cards in a swipe row, for a phone. */}
+          <ul className="-mx-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 pb-1.5 [scroll-padding-left:1rem] [scrollbar-width:none] sm:hidden [&::-webkit-scrollbar]:hidden">
+            {colleagues.map((other) => (
+              <li key={other.id} className="w-[8.5rem] shrink-0 snap-start">
+                <DoctorRailCard doctor={other} locale={locale} />
+              </li>
+            ))}
+          </ul>
+        </>
       )}
-      <div className="mt-8 flex flex-wrap gap-3">
+      <div className="mt-5 flex flex-wrap gap-3 sm:mt-8">
         <Link
           href="/doctors"
           className="tap-target rounded-full border border-brand-teal/25 px-6 text-sm font-semibold text-brand-teal hover:bg-brand-mist"
@@ -323,11 +420,11 @@ export default async function DoctorProfilePage({
       </div>
 
       {/*
-        Not "24x7". See the note on `contact` in lib/site-config.ts: the published numbers'
-        hours are an unconfirmed assumption, so nothing on this site claims round-the-clock
-        cover until LIMS confirms it.
+        The emergency line goes straight to the hospital, which is open at all hours (confirmed from
+        its Business profile, see lib/site-config.ts). A consultant's own OPD timings are not
+        claimed here: none have been supplied.
       */}
-      <div className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-brand-mist p-5 sm:p-6">
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-4 sm:mt-12 sm:bg-brand-mist sm:p-6">
         <div className="flex items-center gap-3">
           <span
             aria-hidden="true"
@@ -379,9 +476,19 @@ export default async function DoctorProfilePage({
         </div>
       )}
 
-      <DoctorHero doctor={doctor} departmentName={departmentName} departmentHref={departmentHref} />
+      <DoctorHero
+        doctor={doctor}
+        departmentName={departmentName}
+        departmentHref={departmentHref}
+        phoneActions={phoneActions}
+        readMore={tService('readMore')}
+        readLess={tService('readLess')}
+      />
       <SectionNav items={navItems} label={tService('navLabel')} />
-      {body}
+      {/* Below lg the sections are white cards on this mist ground (see Band). */}
+      <div className="max-lg:bg-brand-mist max-lg:py-2">{body}</div>
+      <PhoneTalkToUs emergencyFirst={false} />
+      <PhoneActionBar actions={phoneActions} label={tService('talkToUs')} />
     </>
   )
 }

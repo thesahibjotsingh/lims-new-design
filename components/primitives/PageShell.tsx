@@ -7,6 +7,7 @@
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { HeroIntro } from '@/components/primitives/HeroIntro'
+import { NO_PICTURE } from '@/lib/media'
 import type { ReactNode } from 'react'
 
 export function PageHeader({
@@ -25,6 +26,11 @@ export function PageHeader({
   icon?: ReactNode
   /**
    * Path to a banner from public/banners/, e.g. "/banners/about.webp".
+   *
+   * NO PHOTO ON A PHONE. Below sm the band is the flat teal with the heading on it and the
+   * picture is neither shown nor downloaded: on a 390px screen the banner was a 220px strip of
+   * cropped corridor between the header and the page's first line, and a few hundred kB of
+   * image for it. From sm up it is as it always was.
    *
    * Decorative, so it carries alt="" — the heading already says what the page is, and a
    * description of a hospital corridor read out before every page title is noise.
@@ -75,7 +81,7 @@ export function PageHeader({
         as the decorative blur field in DesktopHero.
       */}
       {banner && (
-        <div aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden">
+        <div aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden max-sm:hidden">
           {/*
             HEIGHT-FIRST, NOT COVER. The art is 3:1 and this band renders at roughly 5:1
             on a wide screen, so stretching the image across the full width and cropping
@@ -99,15 +105,23 @@ export function PageHeader({
             bottom at 1900px. The band's min-height grows at 2xl instead, which scales
             the picture up on a wide screen without ever cropping it.
           */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={banner}
-            alt=""
-            aria-hidden="true"
-            width={1800}
-            height={600}
-            className="absolute right-0 top-1/2 h-full w-auto max-w-none -translate-y-1/2 object-cover object-[right_top] group-data-[collapsed]/banner:h-[var(--banner-h)]"
-          />
+          {/*
+            A <picture> so a phone never fetches the art: the <source> only matches from sm up,
+            and below that the <img> falls back to a one-pixel placeholder (which is never seen,
+            the wrapper is display: none there). `src` on its own would download the banner on
+            every screen even where it is hidden.
+          */}
+          <picture>
+            <source media="(min-width: 640px)" srcSet={banner} />
+            <img
+              src={NO_PICTURE}
+              alt=""
+              aria-hidden="true"
+              width={1800}
+              height={600}
+              className="absolute right-0 top-1/2 h-full w-auto max-w-none -translate-y-1/2 object-cover object-[right_top] group-data-[collapsed]/banner:h-[var(--banner-h)]"
+            />
+          </picture>
           {/*
             Opaque teal on the left fading out to the right. This is what makes the
             heading readable rather than the art happening to be flat there — on a phone
@@ -122,8 +136,10 @@ export function PageHeader({
       )}
       <div
         className={[
-          'mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:py-14',
-          banner ? 'flex min-h-[220px] flex-col justify-center lg:min-h-[300px] 2xl:min-h-[360px]' : '',
+          'mx-auto max-w-7xl px-5 py-6 sm:px-6 sm:py-10 lg:py-14',
+          banner
+            ? 'flex flex-col justify-center sm:min-h-[220px] lg:min-h-[300px] 2xl:min-h-[360px]'
+            : '',
           // The collapsed strip. Transitions are declared only in the collapsed state so
           // the band animates shut but snaps open when HeroIntro resets it.
           cinematicBanner
@@ -171,7 +187,7 @@ export function PageHeader({
                 <div className="min-h-0 overflow-hidden">
                   <p
                     className={[
-                      'mt-4 max-w-2xl text-base leading-relaxed',
+                      'mt-2 max-w-2xl text-base leading-relaxed sm:mt-4',
                       banner ? 'text-white/80' : 'text-brand-dark-base/70',
                     ].join(' ')}
                   >

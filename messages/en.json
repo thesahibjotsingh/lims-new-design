@@ -33,7 +33,8 @@
     "home": "Home",
     "doctors": "Doctors",
     "departments": "Departments",
-    "book": "Book"
+    "book": "Book",
+    "search": "Search"
   },
   "search": {
     "placeholder": "Search doctors, departments or tests",
@@ -60,7 +61,7 @@
   "menu": {
     "openLabel": "Open navigation menu",
     "closeLabel": "Close navigation menu",
-    "emergencyLine": "Emergency",
+    "emergencyLine": "24×7 Emergency",
     "appointmentsLine": "Appointments"
   },
   "emergency": {
@@ -68,7 +69,9 @@
   },
   "footer": {
     "allDepartments": "All {count} departments",
-    "patientServices": "Patient services"
+    "patientServices": "Patient services",
+    "openAllDay": "Open 24 hours, every day",
+    "grievanceLine": "Grievance officer: {name}"
   },
   "home": {
     "heroTitleLine1": "World class care,",
@@ -100,13 +103,31 @@
     "awaitingReview": "Awaiting clinician review",
     "viewMoreSections": "View more sections",
     "heroAlt": "Clinical team conferring in a hospital corridor",
-    "marqueeLabel": "Services available at LIMS Hisar"
+    "marqueeLabel": "Services available at LIMS Hisar",
+    "launcherBookHint": "We call you to confirm",
+    "launcherEmergency": "Emergency",
+    "launcherDoctorsHint": "{count, plural, one {# consultant} other {# consultants}}",
+    "launcherDirections": "Directions",
+    "launcherDirectionsHint": "Open in Maps",
+    "launcherDepartments": "Departments",
+    "launcherSeeAll": "See all {count}",
+    "launcherKind": "Kind of service",
+    "launcherSegSpecialities": "Specialities",
+    "launcherSegDiagnostics": "Diagnostics",
+    "launcherSegCare": "Patient care",
+    "launcherAllDoctors": "All doctors",
+    "launcherVisit": "Visit us"
   },
   "common": {
     "call": "Call {number}",
     "contactLims": "Contact LIMS",
     "requestAnAppointment": "Request an appointment",
-    "home": "Home"
+    "home": "Home",
+    "whatsappLabel": "Chat on WhatsApp",
+    "whatsapp": "WhatsApp",
+    "whatsappMessage": "Hello LIMS Hisar, I would like to book an appointment.",
+    "whatsappMessageFor": "Hello LIMS Hisar, I would like to book an appointment for {name}.",
+    "whatsappMessageWith": "Hello LIMS Hisar, I would like to book an appointment with {name}."
   },
   "doctorCard": {
     "viewProfile": "View profile",
@@ -283,7 +304,21 @@
       "bring": "What to bring",
       "uses": "What it shows",
       "performed": "How it is done"
-    }
+    },
+    "readMore": "Read more",
+    "readLess": "Show less",
+    "phoneCallEmergency": "Call emergency",
+    "phoneCall": "Call",
+    "phoneDirections": "Directions",
+    "phoneBook": "Book appointment",
+    "factConditionsClinical": "{count} conditions",
+    "factConditionsDiagnostics": "{count} uses",
+    "factConditionsSupport": "{count} situations",
+    "factTreatmentsClinical": "{count} treatments",
+    "factTreatmentsDiagnostics": "{count} steps",
+    "factTreatmentsSupport": "{count} approaches",
+    "factConsultants": "{count, plural, one {# consultant} other {# consultants}}",
+    "open247": "Open 24×7"
   },
   "awaitingContent": {
     "defaultBody": "This section is published from information supplied by LIMS and is not yet available. For anything urgent, please call the hospital directly."
@@ -319,14 +354,18 @@
     "mapTitle": "Map showing LIMS Hisar",
     "streetViewTitle": "Street View of the road outside LIMS Hisar",
     "streetViewNote": "The map and Street View are provided by Google and may set cookies. Street View images may not show recent changes. Use Get directions for the way in.",
-    "noHoursNote": "Opening hours are not published yet. Please call to check before travelling.",
     "reviewsHeading": "Patient reviews from Google",
     "reviewsLead": "A few reviews picked by the hospital. The rating beside them counts every review.",
     "reviewsCount": "{count} reviews on Google",
     "reviewsAsOf": "Rating as read on {date}",
     "reviewsHonesty": "The quotes here are reviews we selected. The rating counts every review on Google, the good and the bad.",
     "reviewsReadAll": "Read all {count} reviews on Google",
-    "reviewPosted": "Posted {when} on Google"
+    "reviewPosted": "Posted {when} on Google",
+    "hoursNote": "The hospital is open 24 hours, every day, and emergency care runs 24×7. For ward visiting hours, see visitor information.",
+    "grievanceHeading": "Grievance officer",
+    "grievanceBody": "If you have a complaint about your care, or about how the hospital has handled your information, contact the grievance officer.",
+    "grievanceMobile": "Mobile",
+    "grievanceLandline": "Landline"
   },
   "aboutPage": {
     "eyebrow": "About",
@@ -480,7 +519,32 @@
       "pastDate": "Choose today or a later date.",
       "tooFar": "Choose a date within the next {days} days.",
       "mustAccept": "Please accept the terms to continue."
-    }
+    },
+    "cancel": "Cancel",
+    "close": "Close the appointment form",
+    "discardHeading": "Discard this request?",
+    "discardBody": "What you've typed won't be saved.",
+    "keepEditing": "Keep editing",
+    "discard": "Discard",
+    "done": "Done",
+    "emergencyLine": "Emergency? Don't use this form. Call {number}.",
+    "loadingForm": "Loading the form",
+    "newExistingLabel": "Patient type",
+    "dialogHint": "Press Escape to close",
+    "dobShort": "DOB",
+    "requiredNote": "* required",
+    "selectDate": "Select date",
+    "today": "Today",
+    "clear": "Clear",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "prevYear": "Previous year",
+    "nextYear": "Next year",
+    "prevYears": "Earlier years",
+    "nextYears": "Later years",
+    "chooseMonthYear": "Choose month and year",
+    "chooseYear": "Choose year",
+    "calendarLabel": "Calendar"
   },
   "a11y": {
     "skipToContent": "Skip to main content",

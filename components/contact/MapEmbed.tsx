@@ -59,7 +59,7 @@ export function MapEmbed({
       type="button"
       aria-pressed={mode === value}
       onClick={() => setMode(value)}
-      className={`tap-target rounded-full px-5 text-sm font-semibold transition-colors ${
+      className={`tap-target flex-1 rounded-full px-4 text-sm font-semibold transition-colors sm:flex-none sm:px-5 ${
         mode === value
           ? 'bg-brand-teal text-white'
           : 'border border-brand-teal/25 bg-white text-brand-teal hover:bg-brand-mist'
@@ -73,7 +73,8 @@ export function MapEmbed({
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-brand-teal/10 bg-brand-mist">
       {mode !== 'none' && (
         <div className="flex flex-wrap items-center gap-2 border-b border-brand-teal/10 bg-white p-3">
-          <h3 className="mr-auto pl-1 text-sm font-semibold text-brand-dark-base">
+          {/* The two buttons say what this is; the heading is for a wider screen. */}
+          <h3 className="mr-auto hidden pl-1 text-sm font-semibold text-brand-dark-base sm:block">
             {labels.heading}
           </h3>
           {pill('street', labels.showStreetView)}
@@ -81,14 +82,14 @@ export function MapEmbed({
           <button
             type="button"
             onClick={() => setMode('none')}
-            className="tap-target rounded-full px-4 text-sm font-semibold text-brand-dark-base/70 hover:text-brand-dark-base"
+            className="tap-target shrink-0 rounded-full px-3 text-sm font-semibold text-brand-dark-base/70 hover:text-brand-dark-base sm:px-4"
           >
             {labels.close}
           </button>
         </div>
       )}
 
-      <div className="relative min-h-[420px] w-full flex-1 sm:min-h-[520px]">
+      <div className="relative min-h-[340px] w-full flex-1 sm:min-h-[520px]">
         {mode === 'none' ? (
           // The placeholder, shown after "Close". A faint street-grid pattern and a pin, so
           // the card reads as a map that has not been loaded rather than as an empty box.

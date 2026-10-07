@@ -14,6 +14,15 @@
 import type { ImageAsset } from '@/types'
 
 /**
+ * A transparent 1x1 GIF, for the <img> inside a <picture> whose <source> only applies on a
+ * wide screen. Below that width the browser shows (and fetches) the <img>'s own `src`, so
+ * giving it this instead of the real photograph is what stops a phone downloading art it
+ * is hiding. A plain `src` on a `display: none` ancestor is still fetched.
+ */
+export const NO_PICTURE =
+  'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
+
+/**
  * The home hero's full-bleed background.
  *
  * Composed with its subject on the right and a flat teal field across the left two

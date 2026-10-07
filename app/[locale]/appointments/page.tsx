@@ -2,12 +2,12 @@ import type { Metadata } from 'next'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { AppointmentForm } from '@/components/appointments/AppointmentForm'
 import { PageHeader, Section } from '@/components/primitives/PageShell'
-import { getDoctor, getDoctors } from '@/lib/doctors'
-import { SERVICE_CATEGORIES, getService, servicesByCategory } from '@/lib/services'
-import { translatedCategoryName, translatedServiceName } from '@/lib/services-i18n'
-import { contact, fullAddress } from '@/lib/site-config'
+import { getBookingOptions } from '@/lib/booking-options'
+import { getDoctor } from '@/lib/doctors'
+import { getService } from '@/lib/services'
+import { contact, fullAddress, whatsappUrl } from '@/lib/site-config'
 import { localizedLocation } from '@/lib/site-i18n'
-import { PhoneIcon, PinIcon } from '@/components/icons'
+import { PhoneIcon, PinIcon, WhatsAppIcon } from '@/components/icons'
 import type { Locale } from '@/i18n/routing'
 
 export async function generateMetadata({
@@ -39,6 +39,7 @@ export default async function AppointmentsPage({
   const params = await searchParams
   const locale = (await getLocale()) as Locale
   const t = await getTranslations('appointmentsPage')
+  const tCommon = await getTranslations('common')
 
   const doctorParam = Array.isArray(params.doctor) ? params.doctor[0] : params.doctor
   const departmentParam = Array.isArray(params.department)
@@ -49,19 +50,7 @@ export default async function AppointmentsPage({
   const location = localizedLocation(locale)
   const preselectedService = departmentParam ? getService(departmentParam) : undefined
 
-  // The doctor's name in the reader's script, then the department in their language.
-  const doctorOptions = getDoctors(locale).map((doctor) => ({
-    value: doctor.id,
-    label: `${doctor.name}, ${translatedServiceName(doctor.departmentSlug, locale)}`,
-  }))
-
-  const serviceGroups = SERVICE_CATEGORIES.map((category) => ({
-    label: translatedCategoryName(category.id, locale),
-    options: servicesByCategory(category.id).map((service) => ({
-      value: service.slug,
-      label: translatedServiceName(service.slug, locale),
-    })),
-  }))
+  const { doctorOptions, serviceGroups } = getBookingOptions(locale)
 
   return (
     <>
@@ -76,58 +65,64 @@ export default async function AppointmentsPage({
       />
 
       <Section>
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-5">
-          <div className="lg:col-span-3">
-            <AppointmentForm
-              doctorOptions={doctorOptions}
-              serviceGroups={serviceGroups}
-              initialDoctorId={preselectedDoctor?.id ?? ''}
-              initialDepartmentSlug={
-                preselectedService?.slug ?? preselectedDoctor?.departmentSlug ?? ''
-              }
-              fallbackPhone={contact.secondary}
-              fallbackPhoneDisplay={contact.secondaryDisplay}
-            />
+        <AppointmentForm
+          doctorOptions={doctorOptions}
+          serviceGroups={serviceGroups}
+          initialDoctorId={preselectedDoctor?.id ?? ''}
+          initialDepartmentSlug={preselectedService?.slug ?? preselectedDoctor?.departmentSlug ?? ''}
+          fallbackPhone={contact.secondary}
+          fallbackPhoneDisplay={contact.secondaryDisplay}
+          whatsappHref={whatsappUrl(tCommon('whatsappMessage'))}
+        />
+
+        <div className="mt-10 grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
+          <div className="scroll-reveal rounded-2xl border border-brand-emergency/20 bg-brand-emergency/5 p-6">
+            <h2 className="font-serif text-lg font-bold text-brand-dark-base">
+              {t('emergencyHeading')}
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-brand-dark-base/75">
+              {t('emergencyBody')}
+            </p>
+            <a
+              href={`tel:${contact.primary}`}
+              className="tap-target focus-ring-inverse mt-3 gap-2 rounded-full bg-brand-emergency px-6 text-sm font-bold text-white"
+            >
+              <PhoneIcon className="h-4 w-4" />
+              {contact.primaryDisplay}
+            </a>
           </div>
 
-          <aside className="space-y-5 lg:col-span-2">
-            <div className="scroll-reveal rounded-2xl border border-brand-emergency/20 bg-brand-emergency/5 p-6">
-              <h2 className="font-serif text-lg font-bold text-brand-dark-base">
-                {t('emergencyHeading')}
-              </h2>
-              <p className="mt-2 text-sm leading-relaxed text-brand-dark-base/75">
-                {t('emergencyBody')}
-              </p>
-              <a
-                href={`tel:${contact.primary}`}
-                className="tap-target focus-ring-inverse mt-3 gap-2 rounded-full bg-brand-emergency px-6 text-sm font-bold text-white"
-              >
-                <PhoneIcon className="h-4 w-4" />
-                {contact.primaryDisplay}
-              </a>
-            </div>
-
-            <div className="scroll-reveal rounded-2xl border border-brand-teal/10 bg-brand-mist/60 p-6">
-              <h2 className="font-serif text-lg font-bold text-brand-dark-base">
-                {t('whereHeading')}
-              </h2>
-              <p className="mt-2 flex items-start gap-2 text-sm leading-relaxed text-brand-dark-base/75">
-                <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-teal" />
-                <span>
-                  {location.name}
-                  <br />
-                  {fullAddress(location)}
-                </span>
-              </p>
+          <div className="scroll-reveal rounded-2xl border border-brand-teal/10 bg-brand-mist/60 p-6">
+            <h2 className="font-serif text-lg font-bold text-brand-dark-base">
+              {t('whereHeading')}
+            </h2>
+            <p className="mt-2 flex items-start gap-2 text-sm leading-relaxed text-brand-dark-base/75">
+              <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-teal" />
+              <span>
+                {location.name}
+                <br />
+                {fullAddress(location)}
+              </span>
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
               <a
                 href={`tel:${contact.secondary}`}
-                className="tap-target mt-3 gap-2 rounded-full border border-brand-teal/25 px-5 text-xs font-semibold text-brand-teal hover:bg-white"
+                className="tap-target gap-2 rounded-full border border-brand-teal/25 px-5 text-xs font-semibold text-brand-teal hover:bg-white"
               >
                 <PhoneIcon className="h-4 w-4" />
                 {t('appointmentsPhone', { number: contact.secondaryDisplay })}
               </a>
+              <a
+                href={whatsappUrl(tCommon('whatsappMessage'))}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="tap-target focus-ring-inverse gap-2 rounded-full bg-brand-whatsapp px-5 text-xs font-semibold text-white hover:bg-brand-whatsapp-hover"
+              >
+                <WhatsAppIcon className="h-4 w-4" />
+                {tCommon('whatsapp')}
+              </a>
             </div>
-          </aside>
+          </div>
         </div>
       </Section>
     </>

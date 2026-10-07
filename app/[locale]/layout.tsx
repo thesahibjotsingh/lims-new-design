@@ -3,13 +3,14 @@ import { notFound } from 'next/navigation'
 import { hasLocale, NextIntlClientProvider } from 'next-intl'
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import { DesktopHeader } from '@/components/layout/DesktopHeader'
+import { BookingHost } from '@/components/appointments/BookingHost'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
 import { Footer } from '@/components/layout/Footer'
 import { TranslationNotice } from '@/components/layout/TranslationNotice'
 import { serifEn, serifHi, serifPa } from '@/lib/fonts'
 import { googleListing } from '@/lib/google-listing'
-import { primaryLocation, siteConfig } from '@/lib/site-config'
+import { openAllHours, primaryLocation, siteConfig } from '@/lib/site-config'
 import { siteText } from '@/lib/site-i18n'
 import { routing, type Locale } from '@/i18n/routing'
 import '../globals.css'
@@ -146,11 +147,15 @@ export default async function LocaleLayout({
 
           <Footer />
           <MobileBottomNav />
+
+          {/* The full-screen booking sheet every "Book an appointment" link opens. */}
+          <BookingHost />
         </NextIntlClientProvider>
 
         {/*
-          Structured data. Only fields the hospital has actually published — no
-          openingHours, no aggregateRating, no medical specialty claims. Google will
+          Structured data. Only fields the hospital has actually published — opening hours (its own
+          Business profile says open 24 hours, every day), no aggregateRating, no medical specialty
+          claims. Google will
           happily index an invented rating, and then it is on the search results page.
         */}
         <script
@@ -177,6 +182,22 @@ export default async function LocaleLayout({
                 longitude: primaryLocation.geo.lng,
               },
               hasMap: googleListing.placeUrl,
+              openingHoursSpecification: openAllHours
+                ? {
+                    '@type': 'OpeningHoursSpecification',
+                    dayOfWeek: [
+                      'Monday',
+                      'Tuesday',
+                      'Wednesday',
+                      'Thursday',
+                      'Friday',
+                      'Saturday',
+                      'Sunday',
+                    ],
+                    opens: '00:00',
+                    closes: '23:59',
+                  }
+                : undefined,
             }),
           }}
         />

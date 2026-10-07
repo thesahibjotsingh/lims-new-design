@@ -54,7 +54,7 @@ export async function DesktopHero() {
             {t('heroTitleLine2')}
           </h1>
 
-          <p className="max-w-xl text-lg leading-relaxed text-white/80">{text.description}</p>
+          <p className="max-w-xl text-lg leading-relaxed text-white/80">{text.about.body}</p>
         </>
       }
       secondSlideText={

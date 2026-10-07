@@ -3,10 +3,15 @@
 // Single source of truth for navigation, contact details and locations.
 //
 // Contact details below are REAL, transcribed from the official LIMS card:
-//   Jindal Chowk, Hisar · 9254984121, 9254984122 · www.limshisar.com
+//   Jindal Chowk, Hisar · 9254984121, 9254984122 · limshisar.com
 //
 // Which number serves which purpose is confirmed — see the note on `contact` below.
-// Still unconfirmed: 24x7 coverage and whether there's a separate ambulance line.
+//
+// CONFIRMED 2026-10-08 from the hospital's own WhatsApp Business profile (the one on 84121),
+// which the user supplied: it is "Open 24 hours" on every day of the week, its description says
+// "24×7 Emergency Care", it names a grievance officer, and it gives limshisar.com as the website.
+// Those four are now used on the site (hours, the about text, the grievance officer, the domain).
+// Still unconfirmed: whether there's a separate ambulance line, and OPD / pharmacy / lab hours.
 
 import { getCategory, serviceHref, servicesByCategory } from '@/lib/services'
 import type { Location, NavItem } from '@/types'
@@ -19,12 +24,44 @@ export const siteConfig = {
   tagline: ['Compassion', 'Excellence', 'Care'] as const,
   // Names only services on LIMS's own list. Advertising a department LIMS does not run
   // is not a copy problem — it is a patient arriving for a department that is not there.
+  // This is the short factual line: the page <title>/<meta> description and the structured data.
   description:
-    'Multi-speciality hospital at Jindal Chowk, Hisar, Haryana: emergency care, ' +
+    'Multi-speciality hospital at Jindal Chowk, Hisar, Haryana: 24×7 emergency care, ' +
     'surgery, orthopaedics, obstetrics and gynaecology, with diagnostics, imaging and ' +
     'pathology on the same campus.',
-  url: 'https://www.limshisar.com',
-  urlDisplay: 'www.limshisar.com',
+  /**
+   * The hospital's own words about itself, from its WhatsApp Business profile (2026-10-08),
+   * verbatim. They are LIMS's description of LIMS, not ours: "modern facilities" and
+   * "trusted medical expertise" are claims the hospital makes. Shown on the About page, the home
+   * page and wherever the hospital introduces itself.
+   */
+  about: {
+    headline: 'Where Care Meets Excellence.',
+    body:
+      'Dedicated to providing compassionate, safe and patient-centered healthcare with trusted ' +
+      'medical expertise and modern facilities. Our team is committed to delivering the right ' +
+      'care, at the right time, with dignity and compassion.',
+    highlights: ['24×7 Emergency Care', 'Specialist Services', 'Patient First'] as const,
+    promise: 'Patient Care Is Our Promise',
+  },
+  url: 'https://limshisar.com',
+  urlDisplay: 'limshisar.com',
+} as const
+
+/**
+ * The hospital is open at all hours on all seven days (its Business profile says so for every
+ * day). That is the HOSPITAL: a consultant's OPD timings, the pharmacy's and the lab's are not
+ * supplied and are not claimed. Used for the structured data and the Contact page.
+ */
+export const openAllHours = true
+
+/**
+ * The grievance officer, as named on the hospital's WhatsApp Business profile (2026-10-08).
+ * The numbers are the two published lines; no email address was given for the officer, so none is
+ * shown. The name is transliterated for Hindi and Punjabi in lib/site-i18n.ts.
+ */
+export const grievanceOfficer = {
+  name: 'Sunil Kumar',
 } as const
 
 /**
@@ -37,21 +74,29 @@ export const siteConfig = {
  * the UI for the emergency line and `secondary` for the reception/appointments line;
  * only the digits underneath moved.
  *
- * Still unconfirmed:
- *   1. Whether either line is genuinely 24x7 (no "24x7" claim is made anywhere in the
- *      UI until this is confirmed).
- *   2. Whether there is a separate ambulance number. The top tier has a slot for one
- *      and currently renders without it rather than pointing at a guess.
+ * Still unconfirmed: whether there is a separate ambulance number. The top tier has a
+ * slot for one and currently renders without it rather than pointing at a guess.
+ * (Round-the-clock cover IS confirmed now: see the note at the top of this file.)
  */
 export const contact = {
   primary: '+919254984122',
   primaryDisplay: '+91 92549 84122',
   secondary: '+919254984121',
   secondaryDisplay: '+91 92549 84121',
+  /**
+   * The appointments line is also the hospital's WhatsApp Business number (confirmed from the
+   * business profile, 2026-10-08), in the international form wa.me wants: no plus, no spaces.
+   */
+  whatsapp: '919254984121',
   /** TODO: dedicated ambulance line, if LIMS operates one. */
   ambulance: undefined as string | undefined,
   ambulanceDisplay: undefined as string | undefined,
 } as const
+
+/** A WhatsApp chat with the hospital, opened with `message` already typed in the box. */
+export function whatsappUrl(message: string): string {
+  return `https://wa.me/${contact.whatsapp}?text=${encodeURIComponent(message)}`
+}
 
 export const primaryLocation: Location = {
   id: 'hisar-main',

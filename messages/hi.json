@@ -33,7 +33,8 @@
     "home": "होम",
     "doctors": "डॉक्टर",
     "departments": "विभाग",
-    "book": "बुक करें"
+    "book": "बुक करें",
+    "search": "खोजें"
   },
   "search": {
     "placeholder": "डॉक्टर, विभाग या जांच खोजें",
@@ -60,7 +61,7 @@
   "menu": {
     "openLabel": "नेविगेशन मेनू खोलें",
     "closeLabel": "नेविगेशन मेनू बंद करें",
-    "emergencyLine": "आपातकाल",
+    "emergencyLine": "24×7 आपातकाल",
     "appointmentsLine": "अपॉइंटमेंट"
   },
   "emergency": {
@@ -68,7 +69,9 @@
   },
   "footer": {
     "allDepartments": "सभी {count} विभाग",
-    "patientServices": "रोगी सेवाएं"
+    "patientServices": "रोगी सेवाएं",
+    "openAllDay": "हर दिन 24 घंटे खुला",
+    "grievanceLine": "शिकायत अधिकारी: {name}"
   },
   "home": {
     "heroTitleLine1": "विश्व स्तरीय देखभाल,",
@@ -100,13 +103,31 @@
     "awaitingReview": "चिकित्सक की समीक्षा की प्रतीक्षा में",
     "viewMoreSections": "और अनुभाग देखें",
     "heroAlt": "अस्पताल के गलियारे में विचार-विमर्श करती चिकित्सा टीम",
-    "marqueeLabel": "LIMS हिसार में उपलब्ध सेवाएं"
+    "marqueeLabel": "LIMS हिसार में उपलब्ध सेवाएं",
+    "launcherBookHint": "हम पुष्टि के लिए कॉल करेंगे",
+    "launcherEmergency": "आपातकाल",
+    "launcherDoctorsHint": "{count} परामर्शदाता",
+    "launcherDirections": "रास्ता देखें",
+    "launcherDirectionsHint": "मैप्स में खोलें",
+    "launcherDepartments": "विभाग",
+    "launcherSeeAll": "सभी {count} देखें",
+    "launcherKind": "सेवा का प्रकार",
+    "launcherSegSpecialities": "विशेषज्ञताएं",
+    "launcherSegDiagnostics": "डायग्नोस्टिक्स",
+    "launcherSegCare": "रोगी देखभाल",
+    "launcherAllDoctors": "सभी डॉक्टर",
+    "launcherVisit": "हमसे मिलें"
   },
   "common": {
     "call": "कॉल करें, {number}",
     "contactLims": "LIMS से संपर्क करें",
     "requestAnAppointment": "अपॉइंटमेंट का अनुरोध करें",
-    "home": "होम"
+    "home": "होम",
+    "whatsappLabel": "WhatsApp पर चैट करें",
+    "whatsapp": "WhatsApp",
+    "whatsappMessage": "नमस्ते LIMS हिसार, मुझे अपॉइंटमेंट बुक करना है।",
+    "whatsappMessageFor": "नमस्ते LIMS हिसार, मुझे {name} के लिए अपॉइंटमेंट बुक करना है।",
+    "whatsappMessageWith": "नमस्ते LIMS हिसार, मुझे {name} से अपॉइंटमेंट बुक करना है।"
   },
   "doctorCard": {
     "viewProfile": "प्रोफ़ाइल देखें",
@@ -283,7 +304,21 @@
       "bring": "क्या लाएं",
       "uses": "यह क्या दिखाता है",
       "performed": "यह कैसे किया जाता है"
-    }
+    },
+    "readMore": "और पढ़ें",
+    "readLess": "कम दिखाएँ",
+    "phoneCallEmergency": "आपातकाल में कॉल करें",
+    "phoneCall": "कॉल करें",
+    "phoneDirections": "रास्ता देखें",
+    "phoneBook": "अपॉइंटमेंट बुक करें",
+    "factConditionsClinical": "{count} स्थितियाँ",
+    "factConditionsDiagnostics": "{count} उपयोग",
+    "factConditionsSupport": "{count} परिस्थितियाँ",
+    "factTreatmentsClinical": "{count} उपचार",
+    "factTreatmentsDiagnostics": "{count} चरण",
+    "factTreatmentsSupport": "{count} तरीके",
+    "factConsultants": "{count} परामर्शदाता",
+    "open247": "24×7 उपलब्ध"
   },
   "awaitingContent": {
     "defaultBody": "यह भाग LIMS द्वारा उपलब्ध कराई गई जानकारी से प्रकाशित होता है और अभी उपलब्ध नहीं है। किसी भी तत्काल आवश्यकता के लिए, कृपया सीधे अस्पताल को कॉल करें।"
@@ -319,14 +354,18 @@
     "mapTitle": "LIMS हिसार दिखाता नक्शा",
     "streetViewTitle": "LIMS हिसार के बाहर की सड़क का स्ट्रीट व्यू",
     "streetViewNote": "नक्शा और स्ट्रीट व्यू Google द्वारा दिए जाते हैं और कुकीज़ सेट कर सकते हैं। स्ट्रीट व्यू की तस्वीरें हाल के बदलाव न दिखा सकती हैं। अंदर आने का रास्ता जानने के लिए 'रास्ता देखें' का उपयोग करें।",
-    "noHoursNote": "खुलने का समय अभी प्रकाशित नहीं है। आने से पहले कृपया कॉल करके जांच लें।",
     "reviewsHeading": "Google से मरीज़ों की समीक्षाएँ",
     "reviewsLead": "अस्पताल द्वारा चुनी गई कुछ समीक्षाएँ। उनके साथ दी गई रेटिंग हर समीक्षा को गिनती है।",
     "reviewsCount": "Google पर {count} समीक्षाएँ",
     "reviewsAsOf": "रेटिंग {date} को देखी गई",
     "reviewsHonesty": "यहाँ दिए उद्धरण हमारी चुनी हुई समीक्षाएँ हैं। रेटिंग Google की हर समीक्षा को गिनती है, अच्छी और बुरी दोनों।",
     "reviewsReadAll": "Google पर सभी {count} समीक्षाएँ पढ़ें",
-    "reviewPosted": "Google पर {when} पोस्ट किया गया"
+    "reviewPosted": "Google पर {when} पोस्ट किया गया",
+    "hoursNote": "अस्पताल हर दिन 24 घंटे खुला रहता है और आपातकालीन देखभाल 24×7 उपलब्ध है। वार्ड में मिलने के समय के लिए आगंतुक जानकारी देखें।",
+    "grievanceHeading": "शिकायत अधिकारी",
+    "grievanceBody": "अपनी देखभाल या अपनी जानकारी के संभाले जाने के बारे में शिकायत हो तो शिकायत अधिकारी से संपर्क करें।",
+    "grievanceMobile": "मोबाइल",
+    "grievanceLandline": "लैंडलाइन"
   },
   "aboutPage": {
     "eyebrow": "परिचय",
@@ -480,7 +519,32 @@
       "pastDate": "आज या उसके बाद की तारीख चुनें।",
       "tooFar": "अगले {days} दिनों के भीतर की तारीख चुनें।",
       "mustAccept": "आगे बढ़ने के लिए कृपया शर्तें स्वीकार करें।"
-    }
+    },
+    "cancel": "रद्द करें",
+    "close": "अपॉइंटमेंट फ़ॉर्म बंद करें",
+    "discardHeading": "इस अनुरोध को छोड़ दें?",
+    "discardBody": "आपने जो लिखा है वह सहेजा नहीं जाएगा।",
+    "keepEditing": "लिखना जारी रखें",
+    "discard": "छोड़ें",
+    "done": "ठीक है",
+    "emergencyLine": "आपातकाल है? इस फ़ॉर्म का उपयोग न करें। {number} पर फोन करें।",
+    "loadingForm": "फ़ॉर्म लोड हो रहा है",
+    "newExistingLabel": "मरीज का प्रकार",
+    "dialogHint": "बंद करने के लिए Escape दबाएं",
+    "dobShort": "जन्म तिथि",
+    "requiredNote": "* आवश्यक",
+    "selectDate": "तारीख चुनें",
+    "today": "आज",
+    "clear": "हटाएं",
+    "prevMonth": "पिछला महीना",
+    "nextMonth": "अगला महीना",
+    "prevYear": "पिछला साल",
+    "nextYear": "अगला साल",
+    "prevYears": "पहले के साल",
+    "nextYears": "बाद के साल",
+    "chooseMonthYear": "महीना और साल चुनें",
+    "chooseYear": "साल चुनें",
+    "calendarLabel": "कैलेंडर"
   },
   "a11y": {
     "skipToContent": "मुख्य सामग्री पर जाएं",

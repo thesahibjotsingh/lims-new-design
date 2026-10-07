@@ -26,6 +26,9 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { PhoneIcon, ShieldIcon } from '@/components/icons'
 import { ReviewBand, GROUP_TITLE } from '@/components/service/ReviewBand'
+import { PhoneActionBar } from '@/components/service/PhoneActionBar'
+import { buildPhoneActions } from '@/components/service/PhoneActions'
+import { PhoneTalkToUs } from '@/components/service/PhoneTalkToUs'
 import { SectionNav } from '@/components/service/SectionNav'
 import { ServiceHero } from '@/components/service/ServiceHero'
 import {
@@ -91,6 +94,7 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
   const locale = (await getLocale()) as Locale
   const t = await getTranslations('serviceDetail')
   const tCard = await getTranslations('doctorCard')
+  const tCommon = await getTranslations('common')
 
   // Overview, conditions, treatments and every list on the page in the reader's language
   // (lib/content-i18n). Anything not translated falls back to the English record.
@@ -108,8 +112,19 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
   const number = contact.secondaryDisplay
 
   const sections: Section[] = []
-  const add = (id: string, navKey: string, render: (tone: Tone) => ReactNode) =>
+  // Below lg every section is a row that opens. The first real section after the overview
+  // (the consultants on a department page, the first list elsewhere) starts open and the rest
+  // start shut; the hero's own text stands in for the overview. See components/service/Collapse.
+  let openId = ''
+  const add = (id: string, navKey: string, render: (tone: Tone) => ReactNode) => {
+    if (!openId && id !== 'overview') openId = id
     sections.push({ id, navKey, render })
+  }
+  const isOpen = (id: string) => id === openId
+  // A panel inside a section: mist on a white band, white on a mist one; always mist below lg,
+  // where the section itself is a white card.
+  const panelTone = (tone: Tone) =>
+    tone === 'white' ? 'bg-brand-mist' : 'bg-brand-mist lg:bg-white'
   const addReview = (group: SlotGroup) => {
     if (!REVIEW_MODE || !slots.some((slot) => slot.group === group)) return
     sections.push({
@@ -122,7 +137,14 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
   /* ---- overview --------------------------------------------------------------------- */
 
   add('overview', 'overview', (tone) => (
-    <Band id="overview" tone={tone}>
+    // Below lg the hero already carries the overview (clamped, with Read more), so this band
+    // survives there only to hold the "what it covers" chips, as a row of its own.
+    <Band
+      id="overview"
+      tone={tone}
+      title={extras.areas ? t('coversHeading', { name }) : undefined}
+      phone={extras.areas ? 'row' : 'hidden'}
+    >
       <div
         className={
           extras.areas
@@ -130,7 +152,7 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
             : ''
         }
       >
-        <div>
+        <div className="max-lg:hidden">
           <SectionHeading id="overview">{t('aboutHeading', { name })}</SectionHeading>
           <p className="max-w-2xl text-lg leading-relaxed text-brand-dark-base/80">
             {plain(service.overview ?? t('aboutServiceFallback'))}
@@ -141,17 +163,15 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
         </div>
 
         {extras.areas && (
-          <div
-            className={`self-start rounded-2xl p-6 sm:p-8 ${tone === 'white' ? 'bg-brand-mist' : 'bg-white'}`}
-          >
-            <h3 className="font-serif text-xl font-bold text-brand-dark-base">
+          <div className={`self-start rounded-2xl lg:p-8 ${panelTone(tone)} max-lg:bg-transparent`}>
+            <h3 className="font-serif text-xl font-bold text-brand-dark-base max-lg:hidden">
               {t('coversHeading', { name })}
             </h3>
-            <ul className="mt-4 flex flex-wrap gap-2">
+            <ul className="flex flex-wrap gap-2 lg:mt-4">
               {extras.areas.map((area) => (
                 <li
                   key={area}
-                  className="rounded-full border border-brand-teal/20 bg-white px-4 py-2 text-sm font-medium text-brand-dark-base/80"
+                  className="rounded-full border border-brand-teal/20 bg-brand-mist px-3.5 py-1.5 text-sm font-medium text-brand-dark-base/80 lg:bg-white lg:px-4 lg:py-2"
                 >
                   {area}
                 </li>
@@ -180,7 +200,13 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
     }))
 
     add('doctors', 'consultants', (tone) => (
-      <Band id="doctors" tone={tone}>
+      <Band
+        id="doctors"
+        tone={tone}
+        title={t('consultantsIn', { name })}
+        count={rows.length > 0 ? rows.length : undefined}
+        open={isOpen('doctors')}
+      >
         <SectionHeading id="doctors">{t('consultantsIn', { name })}</SectionHeading>
         {rows.length > 0 ? (
           <DoctorList
@@ -210,7 +236,13 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
   if (service.commonConditions?.length) {
     const items = service.commonConditions
     add('conditions', CONDITIONS_NAV_KEY[kind], (tone) => (
-      <Band id="conditions" tone={tone}>
+      <Band
+        id="conditions"
+        tone={tone}
+        title={t(CONDITIONS_HEADING_KEY[kind], { name })}
+        count={items.length}
+        open={isOpen('conditions')}
+      >
         <SectionHeading id="conditions">
           {t(CONDITIONS_HEADING_KEY[kind], { name })}
         </SectionHeading>
@@ -224,14 +256,20 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
   if (kind === 'clinical' && (extras.seeDoctorIf || extras.emergencyIf)) {
     const emergencyDept = Boolean(extras.emergencyDept)
     add('when', 'when', (tone) => (
-      <Band id="when" tone={tone}>
+      <Band
+        id="when"
+        tone={tone}
+        title={t(emergencyDept ? 'whenHeadingEmergency' : 'whenHeading')}
+        count={(extras.seeDoctorIf?.length ?? 0) + (extras.emergencyIf?.length ?? 0)}
+        open={isOpen('when')}
+      >
         <SectionHeading id="when" draft>
           {t(emergencyDept ? 'whenHeadingEmergency' : 'whenHeading')}
         </SectionHeading>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {extras.seeDoctorIf && (
-            <div className="rounded-2xl border border-brand-teal/10 bg-white p-6 shadow-sm sm:p-8">
-              <h3 className="font-serif text-xl font-bold text-brand-dark-base">
+            <div className="rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm max-lg:border-0 max-lg:bg-brand-mist max-lg:shadow-none sm:p-8">
+              <h3 className="font-serif text-lg font-bold text-brand-dark-base sm:text-xl">
                 {t(emergencyDept ? 'comeToEmergencyIf' : 'seeDoctorIf')}
               </h3>
               <div className="mt-5">
@@ -240,8 +278,8 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
             </div>
           )}
           {extras.emergencyIf && (
-            <div className="rounded-2xl border border-brand-emergency/25 bg-brand-emergency/5 p-6 sm:p-8">
-              <h3 className="font-serif text-xl font-bold text-brand-dark-base">
+            <div className="rounded-2xl border border-brand-emergency/25 bg-brand-emergency/5 p-4 sm:p-8">
+              <h3 className="font-serif text-lg font-bold text-brand-dark-base sm:text-xl">
                 {t(emergencyDept ? 'emergencyIfEmergencyDept' : 'emergencyIf')}
               </h3>
               <div className="mt-5">
@@ -282,7 +320,13 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
       }
     })
     add('diagnosis', 'diagnosis', (tone) => (
-      <Band id="diagnosis" tone={tone}>
+      <Band
+        id="diagnosis"
+        tone={tone}
+        title={t('diagnosisHeading')}
+        count={tiles.length}
+        open={isOpen('diagnosis')}
+      >
         <SectionHeading id="diagnosis" lead={t('diagnosisIntro')} draft>
           {t('diagnosisHeading')}
         </SectionHeading>
@@ -296,7 +340,13 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
   if (service.commonTreatments?.length) {
     const items = service.commonTreatments
     add('treatments', TREATMENTS_NAV_KEY[kind], (tone) => (
-      <Band id="treatments" tone={tone}>
+      <Band
+        id="treatments"
+        tone={tone}
+        title={t(TREATMENTS_HEADING_KEY[kind])}
+        count={items.length}
+        open={isOpen('treatments')}
+      >
         <SectionHeading id="treatments">{t(TREATMENTS_HEADING_KEY[kind])}</SectionHeading>
         <Accordion items={items} />
       </Band>
@@ -323,20 +373,26 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
       { title: t('visitStepPlan'), body: t('visitStepPlanBody') },
     ]
     add('visit', noAppointment ? 'bring' : 'visit', (tone) => (
-      <Band id="visit" tone={tone}>
+      <Band
+        id="visit"
+        tone={tone}
+        title={t(noAppointment ? 'bringHeading' : 'visitHeading')}
+        count={noAppointment ? bringItems.length : steps.length}
+        open={isOpen('visit')}
+      >
         <SectionHeading id="visit">
           {t(noAppointment ? 'bringHeading' : 'visitHeading')}
         </SectionHeading>
         {!noAppointment && <Stepper steps={steps} />}
         <div
-          className={`rounded-2xl p-6 sm:p-8 ${noAppointment ? '' : 'mt-10'} ${tone === 'white' ? 'bg-brand-mist' : 'bg-white'}`}
+          className={`rounded-2xl p-4 sm:p-8 ${noAppointment ? '' : 'mt-6 lg:mt-10'} ${panelTone(tone)}`}
         >
           {!noAppointment && (
-            <h3 className="font-serif text-xl font-bold text-brand-dark-base">
+            <h3 className="font-serif text-lg font-bold text-brand-dark-base sm:text-xl">
               {t('bringHeading')}
             </h3>
           )}
-          <div className={noAppointment ? '' : 'mt-4'}>
+          <div className={noAppointment ? '' : 'mt-3 lg:mt-4'}>
             <BulletList items={bringItems} />
           </div>
         </div>
@@ -350,7 +406,13 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
     const prevention = extras.prevention
     const half = Math.ceil(prevention.length / 2)
     add('prevention', 'prevention', (tone) => (
-      <Band id="prevention" tone={tone}>
+      <Band
+        id="prevention"
+        tone={tone}
+        title={t('preventionHeading')}
+        count={prevention.length}
+        open={isOpen('prevention')}
+      >
         <SectionHeading id="prevention" draft>
           {t('preventionHeading')}
         </SectionHeading>
@@ -371,8 +433,13 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
         body,
       }))
       add('prepare', 'prepare', (tone) => (
-        <Band id="prepare" tone={tone}>
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
+        <Band
+          id="prepare"
+          tone={tone}
+          title={extras.prepare ? t('prepareHeading') : t('duringHeading')}
+          open={isOpen('prepare')}
+        >
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-12">
             {extras.prepare && (
               <div>
                 <SectionHeading id="prepare" draft>
@@ -383,7 +450,9 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
             )}
             {during.length > 0 && (
               <div>
-                <h2 className="mb-8 font-serif text-3xl font-bold tracking-tight text-brand-dark-base">
+                <h2
+                  className={`mb-4 font-serif text-xl font-bold tracking-tight text-brand-dark-base lg:mb-8 lg:text-3xl ${extras.prepare ? '' : 'max-lg:hidden'}`}
+                >
                   {t('duringHeading')}
                 </h2>
                 <ol className="space-y-5">
@@ -407,8 +476,13 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
 
     if (extras.after || extras.safety) {
       add('after', 'after', (tone) => (
-        <Band id="after" tone={tone}>
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
+        <Band
+          id="after"
+          tone={tone}
+          title={extras.after ? t('afterHeading') : t('safetyHeading')}
+          open={isOpen('after')}
+        >
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-12">
             {extras.after && (
               <div>
                 <SectionHeading id="after" draft>
@@ -418,10 +492,8 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
               </div>
             )}
             {extras.safety && (
-              <div
-                className={`self-start rounded-2xl p-6 sm:p-8 ${tone === 'white' ? 'bg-brand-mist' : 'bg-white'}`}
-              >
-                <h3 className="flex items-center gap-2 font-serif text-xl font-bold text-brand-dark-base">
+              <div className={`self-start rounded-2xl p-4 sm:p-8 ${panelTone(tone)}`}>
+                <h3 className="flex items-center gap-2 font-serif text-lg font-bold text-brand-dark-base sm:text-xl">
                   <ShieldIcon className="h-5 w-5 text-brand-teal" />
                   {t('safetyHeading')}
                 </h3>
@@ -441,14 +513,18 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
   if (kind === 'support' && extras.steps) {
     const steps = extras.steps
     add('how', 'how', (tone) => (
-      <Band id="how" tone={tone}>
+      <Band
+        id="how"
+        tone={tone}
+        title={t('howHeading')}
+        count={steps.length}
+        open={isOpen('how')}
+      >
         <SectionHeading id="how">{t('howHeading')}</SectionHeading>
         <Stepper steps={steps} />
         {extras.prepare && (
-          <div
-            className={`mt-10 rounded-2xl p-6 sm:p-8 ${tone === 'white' ? 'bg-brand-mist' : 'bg-white'}`}
-          >
-            <h3 className="font-serif text-xl font-bold text-brand-dark-base">
+          <div className={`mt-6 rounded-2xl p-4 sm:p-8 lg:mt-10 ${panelTone(tone)}`}>
+            <h3 className="font-serif text-lg font-bold text-brand-dark-base sm:text-xl">
               {t(extras.keepReady ? 'keepReadyHeading' : 'bringHeading')}
             </h3>
             <div className="mt-4">
@@ -463,13 +539,17 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
   if (kind === 'support' && extras.safety) {
     const safety = extras.safety
     add('safety', 'safety', (tone) => (
-      <Band id="safety" tone={tone}>
+      <Band
+        id="safety"
+        tone={tone}
+        title={t('safetyHeading')}
+        count={safety.length}
+        open={isOpen('safety')}
+      >
         <SectionHeading id="safety" draft>
           {t('safetyHeading')}
         </SectionHeading>
-        <div
-          className={`rounded-2xl p-6 sm:p-8 ${tone === 'white' ? 'bg-brand-mist' : 'bg-white'}`}
-        >
+        <div className={`rounded-2xl p-4 sm:p-8 ${panelTone(tone)}`}>
           <div className="grid grid-cols-1 gap-x-14 gap-y-3 md:grid-cols-2">
             <BulletList items={safety.slice(0, Math.ceil(safety.length / 2))} />
             <BulletList items={safety.slice(Math.ceil(safety.length / 2))} />
@@ -490,7 +570,13 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
     if (kind !== 'support') faqs.push({ q: t('faqBringQ'), a: t('faqBringA') })
   }
   add('faqs', 'faqs', (tone) => (
-    <Band id="faqs" tone={tone}>
+    <Band
+      id="faqs"
+      tone={tone}
+      title={t('faqHeading')}
+      count={faqs.length}
+      open={isOpen('faqs')}
+    >
       <SectionHeading id="faqs" draft>
         {t('faqHeading')}
       </SectionHeading>
@@ -515,16 +601,19 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
   const siblings = servicesByCategory(kind).filter((entry) => entry.slug !== service.slug)
 
   add('related', 'related', (tone) => (
-    <Band id="related" tone={tone}>
-      <SectionHeading id="related">{t('relatedHeading')}</SectionHeading>
+    <Band id="related" tone={tone} title={t('relatedHeading')} phone="plain">
+      <SectionHeading id="related" keepOnPhone>
+        {t('relatedHeading')}
+      </SectionHeading>
       <RelatedGrid cards={related} />
 
-      <h3 className="mb-3 mt-12 font-serif text-lg font-bold text-brand-dark-base">
+      <h3 className="mb-3 mt-8 font-serif text-lg font-bold text-brand-dark-base lg:mt-12">
         {t('otherIn', { category: categoryName.toLowerCase() })}
       </h3>
-      <ul className="flex flex-wrap gap-2">
+      {/* One swipe row on a phone: fifteen wrapped pills were a screen of their own. */}
+      <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
         {siblings.map((sibling) => (
-          <li key={sibling.slug}>
+          <li key={sibling.slug} className="shrink-0">
             <Link
               href={serviceHref(sibling)}
               className="tap-target rounded-full border border-brand-teal/20 bg-white px-4 text-sm text-brand-dark-base/80 transition-colors hover:border-brand-teal/40 hover:bg-brand-mist hover:text-brand-teal"
@@ -536,7 +625,7 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
       </ul>
 
       {/* The honest footnote: what this page does not say, and why. */}
-      <p className="mt-12 max-w-2xl text-xs leading-relaxed text-brand-dark-base/55">
+      <p className="mt-8 max-w-2xl text-xs leading-relaxed text-brand-dark-base/55 lg:mt-12">
         {t('morePendingBody')}
       </p>
     </Band>
@@ -546,7 +635,12 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
 
   const navItems = sections
     .filter((section) => section.navKey)
-    .map((section) => ({ id: section.id, label: t(`nav.${section.navKey}`) }))
+    .map((section) => ({
+      id: section.id,
+      label: t(`nav.${section.navKey}`),
+      // The overview is a row on a phone only where there are "what it covers" chips to hold.
+      phoneHidden: section.id === 'overview' && !extras.areas,
+    }))
 
   // Tone alternates over the real sections only. Review bands have their own look and do
   // not take a turn, so removing them (as production does) never changes the rhythm.
@@ -556,6 +650,22 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
       {section.review ? section.render('white') : section.render(turn++ % 2 === 0 ? 'white' : 'mist')}
     </Fragment>
   ))
+
+  const emergencyFirst = noAppointment && service.slug !== 'pharmacy'
+  const phoneActions = buildPhoneActions({
+    slug: service.slug,
+    emergencyFirst,
+    noAppointment,
+    labels: {
+      callEmergency: t('phoneCallEmergency'),
+      call: t('phoneCall'),
+      directions: t('phoneDirections'),
+      book: t('phoneBook'),
+      bookAria: t('requestFor', { name }),
+      whatsapp: tCommon('whatsappLabel'),
+      whatsappMessage: tCommon('whatsappMessageFor', { name }),
+    },
+  })
 
   const reviewGroups = (['top', 'middle', 'practical', 'trust'] as SlotGroup[]).filter((group) =>
     slots.some((slot) => slot.group === group),
@@ -596,12 +706,19 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
         }
         doctorCount={doctors.length}
         noAppointment={noAppointment}
-        emergencyFirst={noAppointment && service.slug !== 'pharmacy'}
+        emergencyFirst={emergencyFirst}
+        phoneActions={phoneActions}
+        readMore={t('readMore')}
+        readLess={t('readLess')}
       />
 
       <SectionNav items={navItems} label={t('navLabel')} />
 
-      {body}
+      {/* Below lg the sections are white cards on this mist ground (see Band). */}
+      <div className="max-lg:bg-brand-mist max-lg:py-2">{body}</div>
+
+      <PhoneTalkToUs emergencyFirst={emergencyFirst} />
+      <PhoneActionBar actions={phoneActions} label={t('talkToUs')} />
     </>
   )
 }

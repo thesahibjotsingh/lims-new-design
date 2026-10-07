@@ -460,4 +460,242 @@
       transition: none;
     }
   }
+
+  /*
+   * The booking sheet's small motions (components/appointments/*).
+   *
+   * segmented-thumb  the white pill under "New patient | Existing patient" slides to the
+   *                  chosen side on the iOS drawer curve instead of the selection blinking.
+   * booking-check    the tick on "Request received" draws itself once.
+   * booking-alert    the "Discard this request?" card settles in (scale 0.96 -> 1, fade).
+   * All three stop under reduced motion; the thumb then simply sits where it belongs.
+   */
+  .segmented-thumb {
+    transition: transform 320ms var(--ease-drawer);
+  }
+  .booking-check path {
+    stroke-dasharray: 30;
+    stroke-dashoffset: 30;
+    animation: booking-check-draw 420ms var(--ease-out) 200ms forwards;
+  }
+  @keyframes booking-check-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  .booking-alert {
+    animation: booking-alert-in 220ms var(--ease-out);
+  }
+  @keyframes booking-alert-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .segmented-thumb {
+      transition: none;
+    }
+    .booking-check path {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+    .booking-alert {
+      animation: none;
+    }
+  }
+
+  /*
+   * The calendar and dropdown menu of the booking form (components/appointments/fields.tsx).
+   *
+   * popover-in  the floating panel arrives from its field: scale 0.96 -> 1 and a short rise,
+   *             pivoting on the field's edge (its transform-origin is set from the field).
+   * cal-slide-* the month grid slides in 14px from the side the user moved towards, so
+   *             stepping forward and back reads as moving along a strip of months.
+   * cal-zoom    switching between days, months and years is a quick scale-in, not a swap.
+   * All stop under reduced motion.
+   */
+  .popover-in {
+    animation: popover-in 190ms var(--ease-out);
+  }
+  @keyframes popover-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(-4px);
+    }
+  }
+  .cal-slide-next {
+    animation: cal-slide-next 220ms var(--ease-out);
+  }
+  .cal-slide-prev {
+    animation: cal-slide-prev 220ms var(--ease-out);
+  }
+  @keyframes cal-slide-next {
+    from {
+      opacity: 0;
+      transform: translateX(14px);
+    }
+  }
+  @keyframes cal-slide-prev {
+    from {
+      opacity: 0;
+      transform: translateX(-14px);
+    }
+  }
+  .cal-zoom {
+    animation: cal-zoom 200ms var(--ease-out);
+  }
+  @keyframes cal-zoom {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .popover-in,
+    .cal-slide-next,
+    .cal-slide-prev,
+    .cal-zoom {
+      animation: none;
+    }
+  }
+}
+
+/*
+ * Phone and tablet layout of the service pages and the bottom chrome.
+ *
+ * .collapse-panel  A section that opens from a row (components/service/Collapse.tsx). It is
+ *                  plain block content from lg up. Below lg the closed panel is 0fr tall and
+ *                  `visibility: hidden`, so its links leave the tab order and the reading
+ *                  order too; the visibility change waits for the height to finish on the
+ *                  way out and happens at once on the way in.
+ * .bottom-nav      The floating pill (MobileBottomNav). It slides off the bottom while the
+ *                  page is read downwards and comes back on the first scroll up. The scroll
+ *                  handler sets data-nav-hidden on <html>, so anything that sits above the
+ *                  pill (.phone-bar) can follow it down without knowing about it.
+ * .phone-bar       Call + Book/Directions, floating above the pill once the hero's own
+ *                  buttons have scrolled away (components/service/PhoneActionBar.tsx).
+ */
+@layer components {
+  @media (max-width: 1023.98px) {
+    .collapse-panel {
+      display: grid;
+      grid-template-rows: 0fr;
+      visibility: hidden;
+      transition:
+        grid-template-rows 360ms var(--ease-drawer),
+        visibility 0s linear 360ms;
+    }
+    .collapse-panel[data-open='true'] {
+      grid-template-rows: 1fr;
+      visibility: visible;
+      transition:
+        grid-template-rows 360ms var(--ease-drawer),
+        visibility 0s;
+    }
+    .collapse-inner {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .bottom-nav {
+      transition: transform 420ms var(--ease-drawer);
+    }
+    html[data-nav-hidden='true'] .bottom-nav {
+      transform: translateY(calc(100% + 24px));
+    }
+
+    .phone-bar {
+      bottom: calc(env(safe-area-inset-bottom) + 5.5rem);
+      transform: translateY(26px) scale(0.96);
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        transform 420ms var(--ease-drawer),
+        opacity 250ms ease,
+        bottom 420ms var(--ease-drawer);
+    }
+    .phone-bar[data-on='true'] {
+      transform: none;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    html[data-nav-hidden='true'] .phone-bar {
+      bottom: calc(env(safe-area-inset-bottom) + 0.875rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .collapse-panel,
+    .collapse-panel[data-open='true'],
+    .bottom-nav,
+    .phone-bar {
+      transition: none;
+    }
+  }
+}
+
+/*
+ * The footer's columns on a phone (components/layout/FooterCollapse.tsx): the same
+ * grid-rows open/close as .collapse-panel, but only below md, where the footer is one column.
+ */
+@layer components {
+  @media (max-width: 767.98px) {
+    .footer-panel {
+      display: grid;
+      grid-template-rows: 0fr;
+      visibility: hidden;
+      transition:
+        grid-template-rows 360ms var(--ease-drawer),
+        visibility 0s linear 360ms;
+    }
+    .footer-panel[data-open='true'] {
+      grid-template-rows: 1fr;
+      visibility: visible;
+      transition:
+        grid-template-rows 360ms var(--ease-drawer),
+        visibility 0s;
+    }
+    .footer-inner {
+      min-height: 0;
+      overflow: hidden;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .footer-panel,
+    .footer-panel[data-open='true'] {
+      transition: none;
+    }
+  }
+}
+
+/* A card sliding into the department row when the switch changes group (components/home/DepartmentRails.tsx). */
+@layer utilities {
+  .rail-in {
+    animation: rail-in 400ms var(--ease-drawer) both;
+  }
+  @keyframes rail-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rail-in {
+      animation: none;
+    }
+  }
+}
+
+/* A printed page shows every section, however it was left on screen. */
+@media print {
+  .collapse-panel,
+  .footer-panel {
+    grid-template-rows: 1fr !important;
+    visibility: visible !important;
+  }
+  .phone-bar,
+  .bottom-nav {
+    display: none !important;
+  }
 }

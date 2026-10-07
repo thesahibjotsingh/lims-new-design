@@ -16,14 +16,15 @@ import { Link } from '@/i18n/navigation'
 import { BrandMark } from '@/components/layout/BrandMark'
 import { PrimaryNavBar } from '@/components/layout/PrimaryNavBar'
 import { LanguageMenu } from '@/components/layout/LanguageSwitcher'
-import { CalendarIcon } from '@/components/icons'
+import { CalendarIcon, WhatsAppIcon } from '@/components/icons'
 import { HeaderSearch } from '@/components/layout/HeaderSearch'
-import { contact, primaryNav } from '@/lib/site-config'
+import { contact, primaryNav, whatsappUrl } from '@/lib/site-config'
 
 export async function DesktopHeader() {
   const tMenu = await getTranslations('menu')
   const tEmergency = await getTranslations('emergency')
   const tNav = await getTranslations('nav')
+  const tCommon = await getTranslations('common')
 
   return (
     <header className="sticky top-0 z-50 hidden w-full lg:block">
@@ -88,6 +89,21 @@ export async function DesktopHeader() {
               <CalendarIcon className="h-4 w-4" />
               {tNav('bookAppointment')}
             </Link>
+
+            {/*
+              WhatsApp, beside the button it is an alternative to: a round icon so it costs 44px of
+              a tier that is already full. The chat opens with a line already typed.
+            */}
+            <a
+              href={whatsappUrl(tCommon('whatsappMessage'))}
+              target="_blank"
+              rel="noreferrer noopener"
+              aria-label={tCommon('whatsappLabel')}
+              title={tCommon('whatsappLabel')}
+              className="tap-target focus-ring-inverse -ml-3 h-11 w-11 rounded-full bg-brand-whatsapp text-white shadow-sm transition-colors hover:bg-brand-whatsapp-hover"
+            >
+              <WhatsAppIcon className="h-[22px] w-[22px]" />
+            </a>
 
             {/*
               A visible border, not just a gap: three prior controls (search,

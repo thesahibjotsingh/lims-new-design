@@ -14,7 +14,9 @@ import { ServiceIcon } from '@/components/primitives/ServiceIcon'
 import { RevealMore } from '@/components/primitives/RevealMore'
 import type { ClinicalService } from '@/lib/services'
 
-const GRID_CLASSES = 'grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3'
+// Two across on a phone as well: a tile is the icon over the name there (a row of icon, name and
+// arrow is a third of the width for one service), and from sm up the wide row it always was.
+const GRID_CLASSES = 'grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-3'
 
 export async function ServiceGrid({
   services,
@@ -36,12 +38,12 @@ export async function ServiceGrid({
     <li key={service.slug}>
       <Link
         href={serviceHref(service)}
-        className="press group flex min-h-[76px] items-center gap-3.5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm transition-all hover:border-brand-teal/25 hover:shadow-md"
+        className="press group flex min-h-[104px] flex-col items-start justify-between gap-2.5 rounded-2xl border border-brand-teal/10 bg-white p-3.5 shadow-sm transition-all hover:border-brand-teal/25 hover:shadow-md sm:min-h-[76px] sm:flex-row sm:items-center sm:justify-start sm:gap-3.5 sm:p-4"
       >
         <ServiceIcon slug={service.slug} size={44} />
 
-        <span className="min-w-0 flex-1">
-          <span className="block font-serif text-base font-bold leading-snug text-brand-dark-base group-hover:text-brand-teal">
+        <span className="w-full min-w-0 sm:flex-1">
+          <span className="block font-serif text-[15px] font-bold leading-snug text-brand-dark-base group-hover:text-brand-teal sm:text-base">
             {translatedServiceName(service.slug, locale)}
           </span>
           {/*
@@ -57,7 +59,7 @@ export async function ServiceGrid({
         </span>
         <ArrowRightIcon
           aria-hidden="true"
-          className="h-4 w-4 shrink-0 text-brand-copper transition-transform group-hover:translate-x-0.5"
+          className="hidden h-4 w-4 shrink-0 text-brand-copper transition-transform group-hover:translate-x-0.5 sm:block"
         />
       </Link>
     </li>

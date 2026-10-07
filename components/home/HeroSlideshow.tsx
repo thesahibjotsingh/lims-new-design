@@ -41,6 +41,7 @@ import { useTranslations } from 'next-intl'
 import { ArrowRightIcon } from '@/components/icons'
 import { useCarouselRotation } from '@/components/primitives/useCarouselRotation'
 import { CAROUSEL_TRANSITION_MS, carouselTextTransition } from '@/lib/carousel'
+import { NO_PICTURE } from '@/lib/media'
 import type { ImageAsset } from '@/types'
 
 const TRANSITION_MS = CAROUSEL_TRANSITION_MS
@@ -77,21 +78,28 @@ export function HeroSlideshow({
         background unit) paint first, secondSlideBg paints over them, and the
         content layer (below) paints over everything.
       */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={firstBanner.src}
-        alt={firstBanner.alt}
-        width={firstBanner.width}
-        height={firstBanner.height}
-        // The LCP element on the home page: eager and high priority, never lazy.
-        fetchPriority="high"
-        decoding="async"
-        aria-hidden="true"
-        // Never fades. firstBanner is the floor the second photo dissolves in over and out
-        // of, so at no moment are both photos part-transparent over the section's teal
-        // (the dip in brightness that a two-way crossfade has at its midpoint).
-        className="absolute inset-0 h-full w-full object-cover object-[75%_center]"
-      />
+      {/*
+        Both photographs are in a <picture> whose <source> only matches from lg up, the width
+        this section is shown at. Without that a phone fetched both (the section is display:
+        none there, which does not stop an <img> loading), about 70 kB of art it never shows.
+      */}
+      <picture>
+        <source media="(min-width: 1024px)" srcSet={firstBanner.src} />
+        <img
+          src={NO_PICTURE}
+          alt={firstBanner.alt}
+          width={firstBanner.width}
+          height={firstBanner.height}
+          // The LCP element on the home page: eager and high priority, never lazy.
+          fetchPriority="high"
+          decoding="async"
+          aria-hidden="true"
+          // Never fades. firstBanner is the floor the second photo dissolves in over and out
+          // of, so at no moment are both photos part-transparent over the section's teal
+          // (the dip in brightness that a two-way crossfade has at its midpoint).
+          className="absolute inset-0 h-full w-full object-cover object-[75%_center]"
+        />
+      </picture>
       {/*
         A scrim anchored to the left, where the copy sits. It stays constant too: it sits
         BELOW secondSlideBg in paint order, so once that photo is fully in it covers the
@@ -106,22 +114,24 @@ export function HeroSlideshow({
         aria-hidden="true"
         className="absolute inset-0 bg-gradient-to-r from-brand-teal-dark/80 via-brand-teal-dark/35 to-transparent"
       />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={secondSlideBg.src}
-        alt={secondSlideBg.alt}
-        width={secondSlideBg.width}
-        height={secondSlideBg.height}
-        loading="eager"
-        decoding="async"
-        aria-hidden={active !== 1}
-        style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-        // ease-in-out, not ease-out: a dissolve that starts and ends gently has no moment
-        // at which the eye catches an edge, which is the whole point of the long duration.
-        className={`absolute inset-0 h-full w-full object-cover transition-opacity ease-in-out ${
-          active === 1 ? 'opacity-100' : 'opacity-0'
-        }`}
-      />
+      <picture>
+        <source media="(min-width: 1024px)" srcSet={secondSlideBg.src} />
+        <img
+          src={NO_PICTURE}
+          alt={secondSlideBg.alt}
+          width={secondSlideBg.width}
+          height={secondSlideBg.height}
+          loading="eager"
+          decoding="async"
+          aria-hidden={active !== 1}
+          style={{ transitionDuration: `${TRANSITION_MS}ms` }}
+          // ease-in-out, not ease-out: a dissolve that starts and ends gently has no moment
+          // at which the eye catches an edge, which is the whole point of the long duration.
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity ease-in-out ${
+            active === 1 ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+      </picture>
 
       <div className="relative mx-auto grid h-full max-w-7xl grid-cols-12 gap-12 px-6">
         {/*

@@ -10,12 +10,22 @@
 //
 // It states only what the data supports. The chips are COUNTS of what the page explains
 // (conditions, treatments, consultants listed), never claims about capability.
+//
+// ON A PHONE (below sm) the hero is a different, much shorter layout: a back link instead of the
+// breadcrumb, the overview cut to three lines with Read more, the counts on one line, and two
+// buttons (PhoneActions). The notepad is left out there: it was most of a screen between the
+// title and the first section, and PhoneTalkToUs carries its numbers at the end of the page.
+// Everything the wide layout shows is still in the page's HTML.
 
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import { ChevronLeftIcon } from '@/components/icons'
+import { ClampedText } from '@/components/service/ClampedText'
 import { ContactCard } from '@/components/service/ContactCard'
+import { HERO_ACTIONS_ID } from '@/components/service/PhoneActionBar'
+import { ActionButton, type PhoneAction } from '@/components/service/PhoneActions'
 import { ServiceIcon } from '@/components/primitives/ServiceIcon'
-import { firstSentence } from '@/lib/text'
+import { firstSentence, plain } from '@/lib/text'
 import type { ClinicalService } from '@/lib/services'
 
 export async function ServiceHero({
@@ -28,6 +38,9 @@ export async function ServiceHero({
   doctorCount,
   noAppointment,
   emergencyFirst,
+  phoneActions,
+  readMore,
+  readLess,
 }: {
   service: ClinicalService
   name: string
@@ -40,6 +53,10 @@ export async function ServiceHero({
   noAppointment: boolean
   /** Lead the contact card with the emergency number. */
   emergencyFirst: boolean
+  /** The two buttons a phone gets in place of the notepad. */
+  phoneActions: PhoneAction[]
+  readMore: string
+  readLess: string
 }) {
   const t = await getTranslations('serviceDetail')
   const tCommon = await getTranslations('common')
@@ -57,21 +74,54 @@ export async function ServiceHero({
     support: 'statTreatmentsSupport',
   }[category]
 
+  const factConditionsKey = {
+    clinical: 'factConditionsClinical',
+    diagnostics: 'factConditionsDiagnostics',
+    support: 'factConditionsSupport',
+  }[category]
+  const factTreatmentsKey = {
+    clinical: 'factTreatmentsClinical',
+    diagnostics: 'factTreatmentsDiagnostics',
+    support: 'factTreatmentsSupport',
+  }[category]
+
   const chips: string[] = []
+  // The same counts, shorter, for the one-line version on a phone.
+  const facts: string[] = []
+  // The emergency department is open at all hours (the hospital's own Business profile says so),
+  // and it is the first thing someone on this page needs to know.
+  if (service.slug === 'emergency-services') {
+    chips.push(t('open247'))
+    facts.push(t('open247'))
+  }
   if (service.commonConditions?.length) {
     chips.push(t(conditionsKey, { count: service.commonConditions.length }))
+    facts.push(t(factConditionsKey, { count: service.commonConditions.length }))
   }
   if (service.commonTreatments?.length) {
     chips.push(t(treatmentsKey, { count: service.commonTreatments.length }))
+    facts.push(t(factTreatmentsKey, { count: service.commonTreatments.length }))
   }
   if (category === 'clinical' && doctorCount > 0) {
     chips.push(t('statConsultants', { count: doctorCount }))
+    facts.push(t('factConsultants', { count: doctorCount }))
   }
 
   return (
-    <header className="bg-gradient-to-r from-brand-teal-dark to-brand-teal text-white">
-      <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:py-12">
-        <nav aria-label={tA11y('breadcrumb')}>
+    <header
+      id="service-hero"
+      className="bg-gradient-to-r from-brand-teal-dark to-brand-teal text-white"
+    >
+      <div className="mx-auto max-w-7xl px-5 pb-5 pt-1 sm:px-6 sm:py-8 lg:py-12">
+        {/* A phone gets one line back to the list; the breadcrumb is for wider screens. */}
+        <Link
+          href={categoryHref}
+          className="focus-ring-inverse -ml-1 inline-flex min-h-[44px] items-center gap-0.5 rounded-md pr-2 text-[13px] text-white/80 sm:hidden"
+        >
+          <ChevronLeftIcon className="h-4 w-4" />
+          {categoryTitle}
+        </Link>
+        <nav aria-label={tA11y('breadcrumb')} className="hidden sm:block">
           <ol className="flex flex-wrap items-center gap-2 text-xs text-white/75">
             <li>
               <Link href="/" className="hover:text-white">
@@ -91,31 +141,45 @@ export async function ServiceHero({
           </ol>
         </nav>
 
-        <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:gap-12">
+        <div className="mt-1 grid grid-cols-1 gap-8 sm:mt-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:gap-12">
           <div>
             <div className="flex items-center gap-4">
               <span className="hidden shrink-0 rounded-2xl bg-white p-3 shadow-sm sm:block">
                 <ServiceIcon slug={service.slug} size={56} />
               </span>
               <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/75">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/75 sm:text-xs">
                   {categoryName}
                 </p>
-                <h1 className="mt-1 text-balance font-serif text-4xl font-bold tracking-tight lg:text-5xl">
+                <h1 className="mt-1 text-balance font-serif text-[2rem] font-bold leading-[1.08] tracking-tight sm:text-4xl lg:text-5xl">
                   {name}
                 </h1>
               </div>
             </div>
 
             {service.overview && (
-              <p className="mt-5 max-w-2xl text-lg leading-relaxed text-white/90">
-                {firstSentence(service.overview)}
-              </p>
+              <>
+                <p className="mt-5 hidden max-w-2xl text-lg leading-relaxed text-white/90 sm:block">
+                  {firstSentence(service.overview)}
+                </p>
+                {/* The whole overview on a phone, clipped to three lines. */}
+                <ClampedText
+                  className="mt-3 sm:hidden"
+                  note={t('generalInfoNote')}
+                  readMore={readMore}
+                  readLess={readLess}
+                >
+                  {plain(service.overview)}
+                </ClampedText>
+              </>
             )}
             {alsoKnownAs && <p className="mt-2 text-sm text-white/75">{alsoKnownAs}</p>}
 
+            {facts.length > 0 && (
+              <p className="mt-1 text-[12.5px] text-white/75 sm:hidden">{facts.join(' · ')}</p>
+            )}
             {chips.length > 0 && (
-              <ul className="mt-6 flex flex-wrap gap-2">
+              <ul className="mt-6 hidden flex-wrap gap-2 sm:flex">
                 {chips.map((chip) => (
                   <li
                     key={chip}
@@ -136,14 +200,30 @@ export async function ServiceHero({
               <Link
                 href={`/appointments?department=${service.slug}`}
                 aria-label={t('requestFor', { name })}
-                className="tap-target mt-6 rounded-full border border-white/40 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                className="tap-target mt-6 hidden rounded-full border border-white/40 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10 sm:inline-flex"
               >
                 {tCommon('requestAnAppointment')}
               </Link>
             )}
+
+            {/* Phone: the two things to do first. PhoneActionBar takes over when this scrolls away. */}
+            {phoneActions.length > 0 && (
+              <div id={HERO_ACTIONS_ID} className="mt-4 flex gap-2.5 sm:hidden">
+                {phoneActions.map((action) => (
+                  <ActionButton
+                    key={action.kind}
+                    action={action}
+                    surface="onDark"
+                    dense={phoneActions.length > 2}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
-          <ContactCard heading={t('talkToUs')} tag={name} emergencyFirst={emergencyFirst} />
+          <div className="hidden sm:block">
+            <ContactCard heading={t('talkToUs')} tag={name} emergencyFirst={emergencyFirst} />
+          </div>
         </div>
       </div>
     </header>

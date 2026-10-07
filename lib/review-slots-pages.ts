@@ -44,8 +44,7 @@ export function contactReviewSlots(): ReviewSlot[] {
       'Large hospitals list emergency, OPD, pharmacy and lab collection hours separately.',
       ['Emergency: hours (format only)', 'OPD: days and hours', 'Pharmacy: hours', 'Lab sample collection: hours'],
       [
-        `Is the hospital open 24 hours? Its Google listing says "Open 24 hours". If that is true for emergency only, say so`,
-        'OPD and reception hours, and holiday arrangements',
+        'OPD and reception hours, and holiday arrangements (the hospital as a whole is shown as open 24 hours, every day, from its own Business profile)',
         'Whether the emergency line and the reception line are both answered at night',
       ],
     ),

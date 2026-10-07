@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getLocale, getTranslations, setRequestLocale } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { ArrowRightIcon, PinIcon } from '@/components/icons'
+import { DoctorRailCard } from '@/components/doctor/DoctorRailCard'
 import { InfoHero } from '@/components/page/InfoHero'
 import { ReviewBand } from '@/components/service/ReviewBand'
 import { SectionNav } from '@/components/service/SectionNav'
@@ -114,7 +115,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         current={tNav('aboutLims')}
         eyebrow={t('eyebrow')}
         title={text.name}
-        intro={text.description}
+        intro={`${text.about.headline} ${text.about.body}`}
         actions={
           <>
             <Link
@@ -134,15 +135,29 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       />
       <SectionNav items={navItems} label={t('navLabel')} />
 
+      {/* Below lg the three sections up to the consultants are white cards on one mist ground (see Band). */}
+      <div className="max-lg:bg-brand-mist max-lg:py-2">
       {/* ---- at a glance ------------------------------------------------------------------- */}
-      <Band id="overview" tone="white">
+      <Band id="overview" tone="white" title={t('overviewHeading')} open>
         <SectionHeading id="overview">{t('overviewHeading')}</SectionHeading>
 
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-14">
-          <dl className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 lg:grid-cols-2">
+        {/* What the hospital says it stands for, in its own words (siteConfig.about). */}
+        <ul className="mb-6 flex flex-wrap gap-2 lg:mb-10">
+          {text.about.highlights.map((highlight) => (
+            <li
+              key={highlight}
+              className="rounded-full bg-brand-teal/10 px-4 py-2 text-sm font-semibold text-brand-teal"
+            >
+              {highlight}
+            </li>
+          ))}
+        </ul>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-14">
+          <dl className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-4 sm:gap-y-10 lg:grid-cols-2">
             {stats.map((stat) => (
               <div key={stat.label} className="border-t-2 border-brand-teal/20 pt-4">
-                <dd className="font-serif text-5xl font-bold tabular-nums text-brand-teal">
+                <dd className="font-serif text-4xl font-bold tabular-nums text-brand-teal sm:text-5xl">
                   {stat.value}
                 </dd>
                 <dt className="mt-2 text-sm font-medium leading-snug text-brand-dark-base/70">
@@ -152,7 +167,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             ))}
           </dl>
 
-          <aside className="rounded-2xl border border-brand-teal/10 bg-brand-mist/60 p-6">
+          <aside className="rounded-2xl border border-brand-teal/10 bg-brand-mist/60 p-5 sm:p-6">
             <h3 className="font-serif text-lg font-bold text-brand-dark-base">{t('recordHeading')}</h3>
             <dl className="mt-4 space-y-4 text-sm">
               <div>
@@ -193,18 +208,24 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       />
 
       {/* ---- departments ------------------------------------------------------------------- */}
-      <Band id="departments" tone="mist">
+      <Band
+        id="departments"
+        tone="mist"
+        title={t('departmentsHeading')}
+        count={clinical.length}
+      >
         <SectionHeading id="departments" lead={t('departmentsLead', { count: clinical.length })}>
           {t('departmentsHeading')}
         </SectionHeading>
         <RelatedGrid cards={departmentCards} />
 
-        <div className="mt-14">
-          <h3 className="font-serif text-2xl font-bold text-brand-dark-base">{t('diagnosticsHeading')}</h3>
-          <p className="mt-2 max-w-2xl text-base text-brand-dark-base/70">{t('diagnosticsLead')}</p>
-          <ul className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-8 sm:mt-14">
+          <h3 className="font-serif text-lg font-bold text-brand-dark-base sm:text-2xl">{t('diagnosticsHeading')}</h3>
+          <p className="mt-1 max-w-2xl text-sm text-brand-dark-base/70 sm:mt-2 sm:text-base">{t('diagnosticsLead')}</p>
+          {/* One swipe row on a phone, wrapped pills from sm up. */}
+          <ul className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:mt-5 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
             {diagnostics.map((service) => (
-              <li key={service.slug}>
+              <li key={service.slug} className="shrink-0">
                 <Link
                   href={serviceHref(service)}
                   className="tap-target rounded-full border border-brand-teal/20 bg-white px-4 text-sm text-brand-dark-base/80 transition-colors hover:border-brand-teal/40 hover:text-brand-teal"
@@ -218,16 +239,31 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       </Band>
 
       {/* ---- consultants ------------------------------------------------------------------- */}
-      <Band id="doctors" tone="white">
+      <Band
+        id="doctors"
+        tone="white"
+        title={t('doctorsHeading')}
+        count={DOCTORS.length}
+      >
         <SectionHeading id="doctors" lead={t('doctorsLead', { count: DOCTORS.length })}>
           {t('doctorsHeading')}
         </SectionHeading>
-        <DoctorList
-          doctors={doctorRows}
-          regLabel={tCard('regNo')}
-          viewProfile={tCard('viewProfile')}
-          requestAppointment={tCard('requestAppointment')}
-        />
+        {/* Small cards, two across, on a phone; the long rows with both buttons from sm up. */}
+        <ul className="grid grid-cols-2 gap-3 sm:hidden">
+          {DOCTORS.map((doctor) => (
+            <li key={doctor.id}>
+              <DoctorRailCard doctor={doctor} locale={locale} credentials />
+            </li>
+          ))}
+        </ul>
+        <div className="hidden sm:block">
+          <DoctorList
+            doctors={doctorRows}
+            regLabel={tCard('regNo')}
+            viewProfile={tCard('viewProfile')}
+            requestAppointment={tCard('requestAppointment')}
+          />
+        </div>
         <Link
           href="/doctors"
           className="tap-target mt-6 gap-2 rounded-full border border-brand-teal/25 px-6 text-sm font-semibold text-brand-teal transition-colors hover:bg-brand-mist"
@@ -236,6 +272,8 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
           <ArrowRightIcon className="h-4 w-4" />
         </Link>
       </Band>
+
+      </div>
 
       <ReviewBand
         id="review-about-middle"
@@ -250,18 +288,19 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         aria-labelledby="values-heading"
         className="scroll-mt-40 bg-brand-teal-dark text-white lg:scroll-mt-[190px]"
       >
-        <div className="mx-auto max-w-7xl px-5 py-14 sm:px-6 lg:py-20">
+        <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 sm:py-14 lg:py-20">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/75">
             {t('valuesLead')}
           </p>
           <h2 id="values-heading" className="sr-only">
             {t('valuesHeading')}
           </h2>
-          <ul className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
+          {/* The three words side by side on a phone, each in a column from sm up. */}
+          <ul className="mt-4 grid grid-cols-3 gap-3 sm:mt-6 sm:gap-6">
             {text.tagline.map((word, index) => (
-              <li key={word} className="border-t border-white/25 pt-5">
-                <span className="text-sm font-semibold tabular-nums text-white/60">0{index + 1}</span>
-                <span className="mt-2 block font-serif text-4xl font-bold tracking-tight sm:text-5xl">
+              <li key={word} className="min-w-0 border-t border-white/25 pt-3 sm:pt-5">
+                <span className="text-xs font-semibold tabular-nums text-white/60 sm:text-sm">0{index + 1}</span>
+                <span className="mt-1 block break-words font-serif text-lg font-bold tracking-tight sm:mt-2 sm:text-4xl lg:text-5xl">
                   {word}
                 </span>
               </li>

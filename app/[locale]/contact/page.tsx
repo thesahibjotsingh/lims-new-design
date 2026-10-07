@@ -4,7 +4,7 @@ import { Link } from '@/i18n/navigation'
 import { CopyButton } from '@/components/contact/CopyButton'
 import { GoogleReviews } from '@/components/contact/GoogleReviews'
 import { MapEmbed } from '@/components/contact/MapEmbed'
-import { PhoneIcon, PinIcon } from '@/components/icons'
+import { PhoneIcon, PinIcon, WhatsAppIcon } from '@/components/icons'
 import { InfoHero } from '@/components/page/InfoHero'
 import { ReviewBand } from '@/components/service/ReviewBand'
 import { Band, SectionHeading } from '@/components/service/blocks'
@@ -12,7 +12,7 @@ import { embedUrls, googleListing } from '@/lib/google-listing'
 import { REVIEW_MODE } from '@/lib/review'
 import { contactReviewSlots } from '@/lib/review-slots-pages'
 import { REVIEW_PREVIEW, SELECTED_REVIEWS } from '@/lib/reviews'
-import { contact, directionsUrl, fullAddress } from '@/lib/site-config'
+import { contact, directionsUrl, fullAddress, whatsappUrl } from '@/lib/site-config'
 import { localizedLocation, siteText } from '@/lib/site-i18n'
 import type { Locale } from '@/i18n/routing'
 
@@ -66,6 +66,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   const tCommon = await getTranslations('common')
   const tNav = await getTranslations('nav')
   const location = localizedLocation(locale as Locale)
+  const text = siteText(locale as Locale)
 
   const slots = REVIEW_MODE ? contactReviewSlots() : []
 
@@ -101,6 +102,8 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
         intro={t('intro')}
         asideWidth="26rem"
         alignAside="center"
+        // The aside's numbers and the address card below already say all of this on a phone.
+        actionsOnPhone={false}
         actions={
           <>
             {directionsUrl && (
@@ -122,7 +125,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
           </>
         }
         aside={
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 sm:gap-4">
             {/*
               Two pills, built like the header's "Book an appointment" button: fully rounded,
               the same `bg-brand-copper` and white text, the same hover. The label and the
@@ -138,11 +141,11 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
             */}
             <a
               href={`tel:${contact.primary}`}
-              className="press flex min-h-[78px] w-full items-center gap-4 rounded-full bg-brand-emergency py-2.5 pl-3 pr-8 text-white shadow-md transition-[filter,box-shadow] hover:brightness-95 hover:shadow-lg"
+              className="press flex min-h-[68px] w-full items-center gap-3 rounded-full bg-brand-emergency py-2 pl-3 pr-5 text-white shadow-md transition-[filter,box-shadow] hover:brightness-95 hover:shadow-lg sm:min-h-[78px] sm:gap-4 sm:py-2.5 sm:pr-8"
             >
               <span
                 aria-hidden="true"
-                className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full bg-white/20"
+                className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-full bg-white/20 sm:h-[52px] sm:w-[52px]"
               >
                 <PhoneIcon className="h-6 w-6" />
               </span>
@@ -158,17 +161,44 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
 
             <a
               href={`tel:${contact.secondary}`}
-              className="press flex min-h-[78px] w-full items-center gap-4 rounded-full bg-brand-copper py-2.5 pl-3 pr-8 text-white shadow-md transition-colors hover:bg-brand-copper-hover hover:shadow-lg"
+              className="press flex min-h-[68px] w-full items-center gap-3 rounded-full bg-brand-copper py-2 pl-3 pr-5 text-white shadow-md transition-colors hover:bg-brand-copper-hover hover:shadow-lg sm:min-h-[78px] sm:gap-4 sm:py-2.5 sm:pr-8"
             >
               <span
                 aria-hidden="true"
-                className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full bg-white/20"
+                className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-full bg-white/20 sm:h-[52px] sm:w-[52px]"
               >
                 <PhoneIcon className="h-6 w-6" />
               </span>
               <span className="block">
                 <span className="block text-xs font-bold uppercase tracking-[0.14em]">
                   {t('appointmentsLabel')}
+                </span>
+                <span className="block text-[1.375rem] font-bold leading-tight tabular-nums max-[359px]:text-lg min-[360px]:whitespace-nowrap min-[400px]:text-2xl sm:text-[1.75rem]">
+                  {contact.secondaryDisplay}
+                </span>
+              </span>
+            </a>
+
+            {/*
+              The same reception number on WhatsApp: the hospital's WhatsApp Business account is on
+              it. The chat opens with a line already typed. WhatsApp's own green, with white on it
+              at 3.1:1 (bold and large, like the copper pill above).
+            */}
+            <a
+              href={whatsappUrl(tCommon('whatsappMessage'))}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="press flex min-h-[68px] w-full items-center gap-3 rounded-full bg-brand-whatsapp py-2 pl-3 pr-5 text-white shadow-md transition-colors hover:bg-brand-whatsapp-hover hover:shadow-lg sm:min-h-[78px] sm:gap-4 sm:py-2.5 sm:pr-8"
+            >
+              <span
+                aria-hidden="true"
+                className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-full bg-white/20 sm:h-[52px] sm:w-[52px]"
+              >
+                <WhatsAppIcon className="h-6 w-6" />
+              </span>
+              <span className="block">
+                <span className="block text-xs font-bold uppercase tracking-[0.14em]">
+                  {tCommon('whatsappLabel')}
                 </span>
                 <span className="block text-[1.375rem] font-bold leading-tight tabular-nums max-[359px]:text-lg min-[360px]:whitespace-nowrap min-[400px]:text-2xl sm:text-[1.75rem]">
                   {contact.secondaryDisplay}
@@ -197,32 +227,36 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
             natural height.
           */}
           <div className="grid grid-cols-1 gap-7 lg:grid-cols-[26rem_minmax(0,1fr)] lg:items-stretch">
-            <div className="flex flex-col rounded-2xl border border-brand-teal/15 bg-white p-7 sm:p-9">
+            <div className="flex flex-col rounded-2xl border border-brand-teal/15 bg-white p-5 sm:p-9">
               <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.12em] text-brand-teal">
                 <PinIcon className="h-5 w-5" />
                 {t('addressLabel')}
               </p>
-              <address className="mt-5 text-lg not-italic leading-8 text-brand-dark-base/85">
-                <strong className="mb-1 block font-serif text-2xl font-bold text-brand-dark-base">
+              <address className="mt-3 text-base not-italic leading-7 text-brand-dark-base/85 sm:mt-5 sm:text-lg sm:leading-8">
+                <strong className="mb-1 block font-serif text-xl font-bold text-brand-dark-base sm:text-2xl">
                   {location.name}
                 </strong>
-                {location.addressLines.map((line) => (
-                  <span key={line} className="block">
-                    {line}
+                {/* One paragraph on a phone; the address as the hospital prints it, a line each, from sm up. */}
+                <span className="block sm:hidden">{fullAddress(location)}</span>
+                <span className="hidden sm:block">
+                  {location.addressLines.map((line) => (
+                    <span key={line} className="block">
+                      {line}
+                    </span>
+                  ))}
+                  <span className="block">
+                    {location.city}, {location.state} {location.pincode}
                   </span>
-                ))}
-                <span className="block">
-                  {location.city}, {location.state} {location.pincode}
                 </span>
               </address>
 
-              <div className="mt-auto grid grid-cols-1 gap-3 pt-8">
+              <div className="mt-auto grid grid-cols-2 gap-2.5 pt-5 sm:grid-cols-1 sm:gap-3 sm:pt-8">
                 {directionsUrl && (
                   <a
                     href={directionsUrl}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="tap-target focus-ring-inverse min-h-[52px] w-full justify-center rounded-full bg-brand-teal px-6 text-base font-semibold text-white transition-colors hover:bg-brand-teal-dark"
+                    className="tap-target focus-ring-inverse col-span-2 min-h-[52px] w-full justify-center rounded-full bg-brand-teal px-6 text-base font-semibold text-white transition-colors hover:bg-brand-teal-dark sm:col-span-1"
                   >
                     {t('getDirections')}
                   </a>
@@ -231,7 +265,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                   href={googleListing.placeUrl}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className={`${outlineLink} min-h-[52px] w-full justify-center text-base`}
+                  className={`${outlineLink} min-h-[52px] w-full justify-center px-3 text-center text-sm sm:px-5 sm:text-base`}
                 >
                   {t('openInMaps')}
                 </a>
@@ -240,7 +274,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                   label={t('copyAddress')}
                   copiedLabel={t('addressCopied')}
                   failedLabel={t('addressCopyFailed')}
-                  className="min-h-[52px] w-full justify-center text-base"
+                  className="min-h-[52px] w-full justify-center px-3 text-sm sm:px-5 sm:text-base"
                 />
               </div>
             </div>
@@ -263,15 +297,52 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
         </div>
       </section>
 
-      {/* Hours and visiting: one honest sentence and a link, not a section. */}
-      <div className="mx-auto max-w-7xl px-5 pb-12 pt-7 sm:px-6">
+      {/* Hours and visiting: one sentence and a link, not a section. */}
+      <div className="mx-auto max-w-7xl px-5 pb-5 pt-7 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-brand-mist px-5 py-4">
-          <p className="text-sm leading-relaxed text-brand-dark-base/80">{t('noHoursNote')}</p>
+          <p className="text-sm leading-relaxed text-brand-dark-base/80">{t('hoursNote')}</p>
           <Link href="/patient-care/visitors" className={`${outlineLink} bg-white`}>
             {tNav('visitorInformation')}
           </Link>
         </div>
       </div>
+
+      {/*
+        The grievance officer, as the hospital's own Business profile names them (name and the two
+        published lines; no email address was supplied, so none is shown).
+      */}
+      <section
+        aria-labelledby="grievance-heading"
+        className="mx-auto max-w-7xl px-5 pb-12 sm:px-6"
+      >
+        <div className="flex flex-col gap-4 rounded-2xl border border-brand-teal/15 bg-white p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="max-w-xl">
+            <h2 id="grievance-heading" className="font-serif text-lg font-bold text-brand-dark-base">
+              {t('grievanceHeading')}
+            </h2>
+            <p className="mt-1 text-sm leading-relaxed text-brand-dark-base/70">
+              {t('grievanceBody')}
+            </p>
+            <p className="mt-3 text-base font-semibold text-brand-dark-base">{text.officerName}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={`tel:${contact.secondary}`}
+              className={`${outlineLink} gap-2 tabular-nums`}
+            >
+              <PhoneIcon className="h-4 w-4" />
+              {t('grievanceMobile')} {contact.secondaryDisplay}
+            </a>
+            <a
+              href={`tel:${contact.primary}`}
+              className={`${outlineLink} gap-2 tabular-nums`}
+            >
+              <PhoneIcon className="h-4 w-4" />
+              {t('grievanceLandline')} {contact.primaryDisplay}
+            </a>
+          </div>
+        </div>
+      </section>
 
       <ReviewBand
         id="review-contact-practical"

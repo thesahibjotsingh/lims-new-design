@@ -159,7 +159,15 @@ export function LanguageMenu({ variant = 'sheet' }: { variant?: 'sheet' | 'dropd
       setAnchor({ left, top: button ? button.top - BLEED : margin, width, origin: button })
     } else {
       const pillElement = document.querySelector<HTMLElement>('[data-bottom-pill]')
-      const pill = pillElement ? pillElement.getBoundingClientRect() : null
+      let pill = pillElement ? pillElement.getBoundingClientRect() : null
+      // The pill slides off the bottom while the page is read downwards (MobileBottomNav).
+      // Measure where it WILL be, not where it is mid-slide, and bring it back for the panel
+      // to grow out of: its wrapper's translateY is what to take off.
+      if (pillElement && pill && pillElement.parentElement) {
+        const shift = new DOMMatrixReadOnly(getComputedStyle(pillElement.parentElement).transform).m42
+        if (shift) pill = new DOMRect(pill.left, pill.top - shift, pill.width, pill.height)
+      }
+      document.documentElement.removeAttribute('data-nav-hidden')
       // Centre the panel over the pill, but never let it stop short of the pill: the clip
       // has to start from the pill's WHOLE rectangle, and on narrow phones the pill runs right
       // up to the screen edge, so the left limit relaxes to the pill's own left.

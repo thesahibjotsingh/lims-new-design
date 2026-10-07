@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import { ChevronLeftIcon } from '@/components/icons'
 import { DoctorFilters } from '@/components/doctor/DoctorFilters'
+import { DoctorRailCard } from '@/components/doctor/DoctorRailCard'
 import { DoctorSearchBox } from '@/components/doctors/DoctorSearchBox'
 import { DoctorCard } from '@/components/primitives/DoctorCard'
 import { ReviewBand } from '@/components/service/ReviewBand'
@@ -96,8 +98,15 @@ export default async function DoctorsPage({
       )}
 
       <header className="bg-gradient-to-r from-brand-teal-dark to-brand-teal text-white">
-        <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:py-12">
-          <nav aria-label={tA11y('breadcrumb')}>
+        <div className="mx-auto max-w-7xl px-5 pb-5 pt-1 sm:px-6 sm:py-8 lg:py-12">
+          <Link
+            href="/"
+            className="focus-ring-inverse -ml-1 inline-flex min-h-[44px] items-center gap-0.5 rounded-md pr-2 text-[13px] text-white/80 sm:hidden"
+          >
+            <ChevronLeftIcon className="h-4 w-4" />
+            {tCommon('home')}
+          </Link>
+          <nav aria-label={tA11y('breadcrumb')} className="hidden sm:block">
             <ol className="flex flex-wrap items-center gap-2 text-xs text-white/75">
               <li>
                 <Link href="/" className="hover:text-white">
@@ -110,13 +119,13 @@ export default async function DoctorsPage({
               </li>
             </ol>
           </nav>
-          <p className="mt-6 text-xs font-semibold uppercase tracking-[0.14em] text-white/75">
+          <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/75 sm:mt-6 sm:text-xs">
             {t('eyebrow')}
           </p>
-          <h1 className="mt-1 text-balance font-serif text-4xl font-bold tracking-tight lg:text-5xl">
+          <h1 className="mt-1 text-balance font-serif text-[2rem] font-bold leading-[1.08] tracking-tight sm:text-4xl lg:text-5xl">
             {t('title')}
           </h1>
-          <p className="mt-3 max-w-2xl text-lg text-white/90">{t('intro')}</p>
+          <p className="mt-2 max-w-2xl text-base text-white/90 sm:mt-3 sm:text-lg">{t('intro')}</p>
           <DoctorSearchBox defaultQuery={query} />
         </div>
       </header>
@@ -135,7 +144,7 @@ export default async function DoctorsPage({
           query={query}
         />
 
-        <p className="mb-6 mt-6 text-sm text-brand-dark-base/65">
+        <p className="mb-4 mt-4 text-sm text-brand-dark-base/65 sm:mb-6 sm:mt-6">
           {query ? (
             <>
               {t('matchingCount', { count: doctors.length, total: DOCTORS.length })}{' '}
@@ -152,13 +161,28 @@ export default async function DoctorsPage({
         </p>
 
         {doctors.length > 0 ? (
-          <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {doctors.map((doctor) => (
-              <li key={doctor.id}>
-                <DoctorCard doctor={doctor} />
-              </li>
-            ))}
-          </ul>
+          <>
+            {/*
+              A phone gets small cards, two across: photo, name, department, degrees. The full card
+              (registration number, two buttons) is a screen tall on its own, and a directory has
+              to show everyone at once, which a swipe row cannot. The whole small card is the link
+              to the profile, where the booking button is. From sm up, the full cards as before.
+            */}
+            <ul className="grid grid-cols-2 gap-3 sm:hidden">
+              {doctors.map((doctor) => (
+                <li key={doctor.id}>
+                  <DoctorRailCard doctor={doctor} locale={locale} credentials />
+                </li>
+              ))}
+            </ul>
+            <ul className="hidden grid-cols-2 gap-5 sm:grid lg:grid-cols-4">
+              {doctors.map((doctor) => (
+                <li key={doctor.id}>
+                  <DoctorCard doctor={doctor} />
+                </li>
+              ))}
+            </ul>
+          </>
         ) : (
           /*
             An empty result offers the phone. "No doctors found" with no next step is
@@ -226,11 +250,11 @@ export default async function DoctorsPage({
         <SectionHeading id="browse" lead={t('browseLead')}>
           {t('browseHeading')}
         </SectionHeading>
-        <ul className="flex flex-wrap gap-2">
+        <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
           {servicesByCategory('clinical').map((service) => {
             const count = getDoctorsByDepartment(service.slug).length
             return (
-              <li key={service.slug}>
+              <li key={service.slug} className="shrink-0">
                 <Link
                   href={serviceHref(service)}
                   className="tap-target rounded-full border border-brand-teal/20 bg-white px-4 text-sm text-brand-dark-base/80 transition-colors hover:border-brand-teal/40 hover:text-brand-teal"

@@ -19,9 +19,9 @@
 // claiming space at the other end of the screen. Collapsing to 52px past 70px of
 // scroll gives a little of that back on a long page, four things fit at 65px and no
 // more — the lockup, the emergency call, the language button and the menu — everything
-// else lives in the drawer or the bottom pill. To make room for the language button the
-// emergency call is a red phone circle with no word beside it (it used to be a pill that
-// said "Emergency"); its accessible name still says what it dials.
+// else lives in the drawer or the bottom pill (search is a tab in the pill). To make room
+// for the language button the emergency call is a red phone circle with no word beside it
+// (it used to be a pill that said "Emergency"); its accessible name still says what it dials.
 //
 // Client component (it was a server component before this): tracking live scroll
 // position has no server-renderable equivalent. The beacon is still a CSS animation

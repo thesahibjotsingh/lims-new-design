@@ -33,7 +33,8 @@
     "home": "ਹੋਮ",
     "doctors": "ਡਾਕਟਰ",
     "departments": "ਵਿਭਾਗ",
-    "book": "ਬੁੱਕ ਕਰੋ"
+    "book": "ਬੁੱਕ ਕਰੋ",
+    "search": "ਖੋਜੋ"
   },
   "search": {
     "placeholder": "ਡਾਕਟਰ, ਵਿਭਾਗ ਜਾਂ ਟੈਸਟ ਖੋਜੋ",
@@ -60,7 +61,7 @@
   "menu": {
     "openLabel": "ਨੈਵੀਗੇਸ਼ਨ ਮੀਨੂ ਖੋਲ੍ਹੋ",
     "closeLabel": "ਨੈਵੀਗੇਸ਼ਨ ਮੀਨੂ ਬੰਦ ਕਰੋ",
-    "emergencyLine": "ਐਮਰਜੈਂਸੀ",
+    "emergencyLine": "24×7 ਐਮਰਜੈਂਸੀ",
     "appointmentsLine": "ਮੁਲਾਕਾਤਾਂ"
   },
   "emergency": {
@@ -68,7 +69,9 @@
   },
   "footer": {
     "allDepartments": "ਸਾਰੇ {count} ਵਿਭਾਗ",
-    "patientServices": "ਮਰੀਜ਼ ਸੇਵਾਵਾਂ"
+    "patientServices": "ਮਰੀਜ਼ ਸੇਵਾਵਾਂ",
+    "openAllDay": "ਹਰ ਦਿਨ 24 ਘੰਟੇ ਖੁੱਲ੍ਹਾ",
+    "grievanceLine": "ਸ਼ਿਕਾਇਤ ਅਧਿਕਾਰੀ: {name}"
   },
   "home": {
     "heroTitleLine1": "ਵਿਸ਼ਵ ਪੱਧਰੀ ਦੇਖਭਾਲ,",
@@ -100,13 +103,31 @@
     "awaitingReview": "ਡਾਕਟਰ ਦੀ ਸਮੀਖਿਆ ਦੀ ਉਡੀਕ ਵਿੱਚ",
     "viewMoreSections": "ਹੋਰ ਭਾਗ ਵੇਖੋ",
     "heroAlt": "ਹਸਪਤਾਲ ਦੇ ਗਲਿਆਰੇ ਵਿੱਚ ਵਿਚਾਰ-ਵਟਾਂਦਰਾ ਕਰ ਰਹੀ ਮੈਡੀਕਲ ਟੀਮ",
-    "marqueeLabel": "LIMS ਹਿਸਾਰ ਵਿੱਚ ਉਪਲਬਧ ਸੇਵਾਵਾਂ"
+    "marqueeLabel": "LIMS ਹਿਸਾਰ ਵਿੱਚ ਉਪਲਬਧ ਸੇਵਾਵਾਂ",
+    "launcherBookHint": "ਅਸੀਂ ਪੁਸ਼ਟੀ ਲਈ ਫ਼ੋਨ ਕਰਾਂਗੇ",
+    "launcherEmergency": "ਐਮਰਜੈਂਸੀ",
+    "launcherDoctorsHint": "{count} ਸਲਾਹਕਾਰ",
+    "launcherDirections": "ਰਸਤਾ ਵੇਖੋ",
+    "launcherDirectionsHint": "ਮੈਪਸ ਵਿੱਚ ਖੋਲ੍ਹੋ",
+    "launcherDepartments": "ਵਿਭਾਗ",
+    "launcherSeeAll": "ਸਾਰੇ {count} ਵੇਖੋ",
+    "launcherKind": "ਸੇਵਾ ਦੀ ਕਿਸਮ",
+    "launcherSegSpecialities": "ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ",
+    "launcherSegDiagnostics": "ਡਾਇਗਨੌਸਟਿਕਸ",
+    "launcherSegCare": "ਮਰੀਜ਼ ਦੇਖਭਾਲ",
+    "launcherAllDoctors": "ਸਾਰੇ ਡਾਕਟਰ",
+    "launcherVisit": "ਸਾਡੇ ਕੋਲ ਆਓ"
   },
   "common": {
     "call": "ਕਾਲ ਕਰੋ, {number}",
     "contactLims": "LIMS ਨਾਲ ਸੰਪਰਕ ਕਰੋ",
     "requestAnAppointment": "ਮੁਲਾਕਾਤ ਦੀ ਬੇਨਤੀ ਕਰੋ",
-    "home": "ਹੋਮ"
+    "home": "ਹੋਮ",
+    "whatsappLabel": "WhatsApp 'ਤੇ ਚੈਟ ਕਰੋ",
+    "whatsapp": "WhatsApp",
+    "whatsappMessage": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ LIMS ਹਿਸਾਰ, ਮੈਨੂੰ ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰਨੀ ਹੈ।",
+    "whatsappMessageFor": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ LIMS ਹਿਸਾਰ, ਮੈਨੂੰ {name} ਲਈ ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰਨੀ ਹੈ।",
+    "whatsappMessageWith": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ LIMS ਹਿਸਾਰ, ਮੈਨੂੰ {name} ਨਾਲ ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰਨੀ ਹੈ।"
   },
   "doctorCard": {
     "viewProfile": "ਪ੍ਰੋਫਾਈਲ ਵੇਖੋ",
@@ -283,7 +304,21 @@
       "bring": "ਕੀ ਲਿਆਉਣਾ ਹੈ",
       "uses": "ਇਹ ਕੀ ਦਿਖਾਉਂਦਾ ਹੈ",
       "performed": "ਇਹ ਕਿਵੇਂ ਕੀਤਾ ਜਾਂਦਾ ਹੈ"
-    }
+    },
+    "readMore": "ਹੋਰ ਪੜ੍ਹੋ",
+    "readLess": "ਘੱਟ ਦਿਖਾਓ",
+    "phoneCallEmergency": "ਐਮਰਜੈਂਸੀ ਕਾਲ ਕਰੋ",
+    "phoneCall": "ਕਾਲ ਕਰੋ",
+    "phoneDirections": "ਰਸਤਾ ਵੇਖੋ",
+    "phoneBook": "ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰੋ",
+    "factConditionsClinical": "{count} ਸਥਿਤੀਆਂ",
+    "factConditionsDiagnostics": "{count} ਵਰਤੋਂ",
+    "factConditionsSupport": "{count} ਹਾਲਾਤ",
+    "factTreatmentsClinical": "{count} ਇਲਾਜ",
+    "factTreatmentsDiagnostics": "{count} ਪੜਾਅ",
+    "factTreatmentsSupport": "{count} ਤਰੀਕੇ",
+    "factConsultants": "{count} ਸਲਾਹਕਾਰ",
+    "open247": "24×7 ਉਪਲਬਧ"
   },
   "awaitingContent": {
     "defaultBody": "ਇਹ ਭਾਗ LIMS ਵੱਲੋਂ ਦਿੱਤੀ ਗਈ ਜਾਣਕਾਰੀ ਤੋਂ ਪ੍ਰਕਾਸ਼ਿਤ ਹੁੰਦਾ ਹੈ ਅਤੇ ਅਜੇ ਉਪਲਬਧ ਨਹੀਂ ਹੈ। ਕਿਸੇ ਵੀ ਤੁਰੰਤ ਲੋੜ ਲਈ, ਕਿਰਪਾ ਕਰਕੇ ਸਿੱਧੇ ਹਸਪਤਾਲ ਨੂੰ ਕਾਲ ਕਰੋ।"
@@ -319,14 +354,18 @@
     "mapTitle": "LIMS ਹਿਸਾਰ ਦਿਖਾਉਂਦਾ ਨਕਸ਼ਾ",
     "streetViewTitle": "LIMS ਹਿਸਾਰ ਦੇ ਬਾਹਰ ਦੀ ਸੜਕ ਦਾ ਸਟਰੀਟ ਵਿਊ",
     "streetViewNote": "ਨਕਸ਼ਾ ਅਤੇ ਸਟਰੀਟ ਵਿਊ Google ਵੱਲੋਂ ਦਿੱਤੇ ਜਾਂਦੇ ਹਨ ਅਤੇ ਕੂਕੀਜ਼ ਸੈੱਟ ਕਰ ਸਕਦੇ ਹਨ। ਸਟਰੀਟ ਵਿਊ ਦੀਆਂ ਤਸਵੀਰਾਂ ਹਾਲੀਆ ਬਦਲਾਅ ਨਾ ਦਿਖਾ ਸਕਦੀਆਂ ਹਨ। ਅੰਦਰ ਆਉਣ ਦੇ ਰਸਤੇ ਲਈ 'ਰਸਤਾ ਵੇਖੋ' ਵਰਤੋ।",
-    "noHoursNote": "ਖੁੱਲ੍ਹਣ ਦਾ ਸਮਾਂ ਅਜੇ ਪ੍ਰਕਾਸ਼ਿਤ ਨਹੀਂ ਹੈ। ਆਉਣ ਤੋਂ ਪਹਿਲਾਂ ਕਿਰਪਾ ਕਰਕੇ ਕਾਲ ਕਰਕੇ ਜਾਂਚ ਲਓ।",
     "reviewsHeading": "Google ਤੋਂ ਮਰੀਜ਼ਾਂ ਦੀਆਂ ਸਮੀਖਿਆਵਾਂ",
     "reviewsLead": "ਹਸਪਤਾਲ ਵੱਲੋਂ ਚੁਣੀਆਂ ਕੁਝ ਸਮੀਖਿਆਵਾਂ। ਉਨ੍ਹਾਂ ਨਾਲ ਦਿੱਤੀ ਰੇਟਿੰਗ ਹਰ ਸਮੀਖਿਆ ਨੂੰ ਗਿਣਦੀ ਹੈ।",
     "reviewsCount": "Google ਉੱਤੇ {count} ਸਮੀਖਿਆਵਾਂ",
     "reviewsAsOf": "ਰੇਟਿੰਗ {date} ਨੂੰ ਵੇਖੀ ਗਈ",
     "reviewsHonesty": "ਇੱਥੇ ਦਿੱਤੇ ਹਵਾਲੇ ਸਾਡੀਆਂ ਚੁਣੀਆਂ ਸਮੀਖਿਆਵਾਂ ਹਨ। ਰੇਟਿੰਗ Google ਦੀ ਹਰ ਸਮੀਖਿਆ ਨੂੰ ਗਿਣਦੀ ਹੈ, ਚੰਗੀ ਅਤੇ ਮਾੜੀ ਦੋਵੇਂ।",
     "reviewsReadAll": "Google ਉੱਤੇ ਸਾਰੀਆਂ {count} ਸਮੀਖਿਆਵਾਂ ਪੜ੍ਹੋ",
-    "reviewPosted": "Google ਉੱਤੇ {when} ਪੋਸਟ ਕੀਤਾ ਗਿਆ"
+    "reviewPosted": "Google ਉੱਤੇ {when} ਪੋਸਟ ਕੀਤਾ ਗਿਆ",
+    "hoursNote": "ਹਸਪਤਾਲ ਹਰ ਦਿਨ 24 ਘੰਟੇ ਖੁੱਲ੍ਹਾ ਰਹਿੰਦਾ ਹੈ ਅਤੇ ਐਮਰਜੈਂਸੀ ਦੇਖਭਾਲ 24×7 ਉਪਲਬਧ ਹੈ। ਵਾਰਡ ਵਿੱਚ ਮਿਲਣ ਦੇ ਸਮੇਂ ਲਈ ਮੁਲਾਕਾਤੀ ਜਾਣਕਾਰੀ ਵੇਖੋ।",
+    "grievanceHeading": "ਸ਼ਿਕਾਇਤ ਅਧਿਕਾਰੀ",
+    "grievanceBody": "ਜੇ ਤੁਹਾਨੂੰ ਆਪਣੀ ਦੇਖਭਾਲ ਜਾਂ ਆਪਣੀ ਜਾਣਕਾਰੀ ਦੇ ਸੰਭਾਲੇ ਜਾਣ ਬਾਰੇ ਸ਼ਿਕਾਇਤ ਹੈ, ਤਾਂ ਸ਼ਿਕਾਇਤ ਅਧਿਕਾਰੀ ਨਾਲ ਸੰਪਰਕ ਕਰੋ।",
+    "grievanceMobile": "ਮੋਬਾਈਲ",
+    "grievanceLandline": "ਲੈਂਡਲਾਈਨ"
   },
   "aboutPage": {
     "eyebrow": "ਬਾਰੇ",
@@ -480,7 +519,32 @@
       "pastDate": "ਅੱਜ ਜਾਂ ਉਸ ਤੋਂ ਬਾਅਦ ਦੀ ਤਾਰੀਖ਼ ਚੁਣੋ।",
       "tooFar": "ਅਗਲੇ {days} ਦਿਨਾਂ ਦੇ ਅੰਦਰ ਦੀ ਤਾਰੀਖ਼ ਚੁਣੋ।",
       "mustAccept": "ਅੱਗੇ ਵਧਣ ਲਈ ਕਿਰਪਾ ਕਰਕੇ ਸ਼ਰਤਾਂ ਮੰਨੋ।"
-    }
+    },
+    "cancel": "ਰੱਦ ਕਰੋ",
+    "close": "ਅਪਾਇੰਟਮੈਂਟ ਫਾਰਮ ਬੰਦ ਕਰੋ",
+    "discardHeading": "ਇਸ ਬੇਨਤੀ ਨੂੰ ਛੱਡ ਦੇਈਏ?",
+    "discardBody": "ਜੋ ਤੁਸੀਂ ਲਿਖਿਆ ਹੈ ਉਹ ਸੁਰੱਖਿਅਤ ਨਹੀਂ ਹੋਵੇਗਾ।",
+    "keepEditing": "ਲਿਖਣਾ ਜਾਰੀ ਰੱਖੋ",
+    "discard": "ਛੱਡੋ",
+    "done": "ਠੀਕ ਹੈ",
+    "emergencyLine": "ਐਮਰਜੈਂਸੀ ਹੈ? ਇਹ ਫਾਰਮ ਨਾ ਵਰਤੋ। {number} ’ਤੇ ਫ਼ੋਨ ਕਰੋ।",
+    "loadingForm": "ਫਾਰਮ ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ",
+    "newExistingLabel": "ਮਰੀਜ਼ ਦੀ ਕਿਸਮ",
+    "dialogHint": "ਬੰਦ ਕਰਨ ਲਈ Escape ਦਬਾਓ",
+    "dobShort": "ਜਨਮ ਮਿਤੀ",
+    "requiredNote": "* ਜ਼ਰੂਰੀ",
+    "selectDate": "ਤਾਰੀਖ਼ ਚੁਣੋ",
+    "today": "ਅੱਜ",
+    "clear": "ਹਟਾਓ",
+    "prevMonth": "ਪਿਛਲਾ ਮਹੀਨਾ",
+    "nextMonth": "ਅਗਲਾ ਮਹੀਨਾ",
+    "prevYear": "ਪਿਛਲਾ ਸਾਲ",
+    "nextYear": "ਅਗਲਾ ਸਾਲ",
+    "prevYears": "ਪਿਛਲੇ ਸਾਲ",
+    "nextYears": "ਅਗਲੇ ਸਾਲ",
+    "chooseMonthYear": "ਮਹੀਨਾ ਅਤੇ ਸਾਲ ਚੁਣੋ",
+    "chooseYear": "ਸਾਲ ਚੁਣੋ",
+    "calendarLabel": "ਕੈਲੰਡਰ"
   },
   "a11y": {
     "skipToContent": "ਮੁੱਖ ਸਮੱਗਰੀ ’ਤੇ ਜਾਓ",

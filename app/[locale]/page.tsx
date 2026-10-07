@@ -1,23 +1,25 @@
 import { setRequestLocale } from 'next-intl/server'
 import { DesktopHero } from '@/components/home/DesktopHero'
-import { MobileHero } from '@/components/home/MobileHero'
+import { PhoneHome } from '@/components/home/PhoneHome'
 import { MarqueeRibbon } from '@/components/home/MarqueeRibbon'
 import { ServiceArchitecture } from '@/components/home/ServiceArchitecture'
 import { ConsultantRoster } from '@/components/home/ConsultantRoster'
 import { SiteIndex } from '@/components/home/SiteIndex'
 
 /*
- * Two heroes, one rendered at a time.
+ * Two front pages, one shown at a time.
  *
  * Not a responsive single hero: the desktop layout is a 7/5 split with a card
- * straddling the seam, and the mobile layout is a full-bleed 16:9 photo with the search
- * bar floating over its lower edge. Those are different structures, not one structure
- * at two widths, and forcing them into one component produces markup that is wrong at
- * both ends.
+ * straddling the seam, and the phone layout is a launcher (four large errands, a search
+ * field, then swipe rows for departments and consultants). Those are different structures,
+ * not one structure at two widths, and forcing them into one component produces markup that
+ * is wrong at both ends.
  *
- * The cost is the hidden hero's markup in the HTML. The photograph is NOT duplicated —
- * each hero requests its own size and `sizes="(max-width: 1024px) 0px, 40vw"` on the
- * desktop image keeps the browser from fetching it on a phone.
+ * Below lg the long browsing sections (the service grids, the full roster, the map of the
+ * rest of the site) are hidden: the launcher covers the same ground in a fraction of the
+ * height, and every link in them is also in the menu and the footer. They stay in the HTML.
+ * Their images are lazy, so a hidden section costs a phone no image requests, and the
+ * desktop hero's photograph is not fetched on a phone either (`sizes` says 0px).
  */
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   // Static rendering needs the locale set here too, not only in the layout. See the note in
@@ -27,11 +29,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <>
       <DesktopHero />
-      <MobileHero />
-      <MarqueeRibbon />
-      <ServiceArchitecture />
-      <ConsultantRoster />
-      <SiteIndex />
+      <PhoneHome />
+      <div className="hidden lg:block">
+        <MarqueeRibbon />
+        <ServiceArchitecture />
+        <ConsultantRoster />
+        <SiteIndex />
+      </div>
     </>
   )
 }

@@ -2,19 +2,18 @@
 
 // components/home/TypewriterSearchBar.tsx
 //
-// The floating search card under the mobile hero photo. Above the field, a row of
-// chips: the reader's own recent searches when they have any (the same on-device
-// `lims:recent-searches` history the shared suggestion dropdown already keeps — see
-// SearchSuggest.tsx's readRecent()), or a set of popular departments for a first-time
-// visitor with no history yet. Then the field itself, with a placeholder that types
-// itself through a rotating list of real things a patient searches for.
+// The search field of the phone home page: one slim pill with a placeholder that types
+// itself through a rotating list of real things a patient searches for, and a row of chips
+// under it. The chips are the reader's own recent searches when they have any (the same
+// on-device `lims:recent-searches` history the shared suggestion dropdown already keeps, see
+// SearchSuggest.tsx's readRecent()), or a set of popular departments for a first-time visitor
+// with no history yet.
 //
-// Promoted from the "RecentFirst" direction explored in
-// app/prototypes/mobile-search-bar/ round 2 (Categorized and IconGrid were the two
-// not taken — a Clinical/Diagnostics/Support tab switcher above the chips, and real
-// per-service icons instead of text pills). Round 1's winner, "Guided" — chips above
-// the field at all, instead of a flush toolbar or a collapsed pill — is what both
-// rounds built on.
+// It was a card with the chips ABOVE the field and a caption above those, floating over the
+// hero photograph. The photograph is gone from phones (the home page is a launcher now, see
+// PhoneHome) and the card was most of a screen by itself, so it is the field and the chips
+// and nothing else. The direction itself, chips that give a head start, comes from the
+// "RecentFirst" prototype (app/prototypes/mobile-search-bar/ round 2).
 //
 // Four rules this obeys:
 //
@@ -122,32 +121,12 @@ export function TypewriterSearchBar() {
   }
 
   return (
-    <div
-      ref={rootRef}
-      className="relative space-y-2.5 rounded-2xl border border-white/40 bg-white/85 p-3 shadow-glass backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-white/95 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
-    >
-      <div>
-        <p className="mb-1.5 px-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-dark-base/45">
-          {showingHistory ? t('recentSearches') : t('popularDepartments')}
-        </p>
-        <div
-          role="group"
-          aria-label={showingHistory ? t('recentSearchesShort') : t('popularDepartments')}
-          className="flex gap-1.5 overflow-x-auto pb-0.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {displayedChips.map((chip) => (
-            <button
-              key={chip.key}
-              type="button"
-              onClick={() => pickChip(chip.label)}
-              className="tap-target shrink-0 whitespace-nowrap rounded-full border border-brand-teal/20 bg-white px-3 text-xs font-semibold text-brand-teal transition-colors hover:bg-brand-mist"
-            >
-              {chip.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
+    <div ref={rootRef} className="relative">
+      {/*
+        One slim pill, as wide as the page, with the chips under it. It used to be a card (chips
+        above the field, a caption above the chips), which was most of a screen on its own. The
+        input is 16px: anything smaller and iOS Safari zooms the page when it is focused.
+      */}
       <form
         role="search"
         onSubmit={(event) => {
@@ -155,14 +134,14 @@ export function TypewriterSearchBar() {
           const trimmed = query.trim()
           router.push(trimmed ? `/doctors?q=${encodeURIComponent(trimmed)}` : '/doctors')
         }}
-        className="flex items-center gap-2 rounded-xl bg-white p-1.5 shadow-inner"
+        className="flex h-[52px] items-center gap-2 rounded-full bg-brand-mist pl-4 pr-1.5 shadow-[inset_0_0_0_1px_rgba(15,91,102,0.13)] focus-within:shadow-[inset_0_0_0_2px_rgba(15,91,102,0.45)]"
       >
         <label htmlFor="mobile-hero-search" className="sr-only">
           {STATIC_PLACEHOLDER}
         </label>
 
-        <SearchIcon className="ml-2 h-4 w-4 shrink-0 text-brand-dark-base/45" />
-        <div className="relative flex-1">
+        <SearchIcon className="h-[18px] w-[18px] shrink-0 text-brand-dark-base/50" />
+        <div className="relative min-w-0 flex-1">
           <input
             {...inputProps}
             ref={inputRef}
@@ -185,7 +164,7 @@ export function TypewriterSearchBar() {
             // Always transparent: the overlay below owns every state of this hint, so
             // there is no swap between the two and no flash of the plain sentence before
             // the first typed character arrives.
-            className="min-h-[44px] w-full bg-transparent pr-2 text-sm text-brand-dark-base placeholder:text-transparent"
+            className="min-h-[44px] w-full bg-transparent pr-2 text-base text-brand-dark-base outline-none placeholder:text-transparent"
           />
 
           {query.length === 0 && (
@@ -193,14 +172,14 @@ export function TypewriterSearchBar() {
               phrases={searchPhrases(locale).general}
               idle={idle}
               staticText={STATIC_PLACEHOLDER}
-              className="pointer-events-none absolute left-0 right-0 top-1/2 -translate-y-1/2 truncate pr-2 text-sm text-brand-dark-base/45"
+              className="pointer-events-none absolute left-0 right-0 top-1/2 -translate-y-1/2 truncate pr-2 text-base text-brand-dark-base/50"
             />
           )}
         </div>
 
         <button
           type="submit"
-          className="tap-target focus-ring-inverse shrink-0 rounded-lg bg-brand-teal px-4 text-xs font-semibold text-white"
+          className="tap-target focus-ring-inverse h-10 shrink-0 rounded-full bg-brand-teal px-4 text-sm font-bold text-white"
         >
           {t('searchButton')}
         </button>
@@ -217,6 +196,23 @@ export function TypewriterSearchBar() {
           variant="inline"
         />
       )}
+
+      <div
+        role="group"
+        aria-label={showingHistory ? t('recentSearchesShort') : t('popularDepartments')}
+        className="-mx-5 mt-2.5 flex gap-2 overflow-x-auto px-5 pb-0.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {displayedChips.map((chip) => (
+          <button
+            key={chip.key}
+            type="button"
+            onClick={() => pickChip(chip.label)}
+            className="relative h-9 shrink-0 whitespace-nowrap rounded-full border border-brand-teal/15 bg-white px-3.5 text-[13px] font-semibold text-brand-teal transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] active:bg-brand-mist"
+          >
+            {chip.label}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

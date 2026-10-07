@@ -43,6 +43,14 @@ const config: Config = {
            * small "For" label, which is the ink at 85%).
            */
           sticky: '#F4C3AB',
+          /**
+           * WhatsApp's own green, for the chat buttons and for nothing else. It is the one colour on
+           * the site that is not ours, and it is kept to the button so it reads as "this opens
+           * WhatsApp" rather than as a second accent. White on it measures 3.1:1, which clears the
+           * 3:1 an icon needs; a text label on it must be large and bold.
+           */
+          whatsapp: '#1FA855',
+          'whatsapp-hover': '#178F47',
           'sticky-ink': '#5E2C18',
         },
       },
@@ -97,6 +105,8 @@ const config: Config = {
         // teal or on a photograph, so a teal-tinted shadow reads as the surface's own
         // cast shadow instead of a stock drop-shadow laid on top of it.
         glass: '0 20px 45px -20px rgba(15, 91, 102, 0.4)',
+        // A grouped row on a phone: a hairline plus a soft lift, so a white card reads on the mist ground.
+        row: '0 1px 2px rgba(11, 20, 22, 0.05), 0 10px 24px -16px rgba(11, 20, 22, 0.2)',
       },
     },
   },
