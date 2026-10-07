@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { notFound } from 'next/navigation'
 import { hasLocale, NextIntlClientProvider } from 'next-intl'
-import { getMessages, setRequestLocale } from 'next-intl/server'
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import { DesktopHeader } from '@/components/layout/DesktopHeader'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
@@ -10,6 +10,7 @@ import { TranslationNotice } from '@/components/layout/TranslationNotice'
 import { serifEn, serifHi, serifPa } from '@/lib/fonts'
 import { googleListing } from '@/lib/google-listing'
 import { primaryLocation, siteConfig } from '@/lib/site-config'
+import { siteText } from '@/lib/site-i18n'
 import { routing, type Locale } from '@/i18n/routing'
 import '../globals.css'
 
@@ -45,14 +46,16 @@ export async function generateMetadata({
   const languages = Object.fromEntries(
     routing.locales.map((loc) => [loc, loc === routing.defaultLocale ? '/' : `/${loc}`]),
   )
+  // Title, description and share text in the page's own language.
+  const text = siteText(locale as Locale)
 
   return {
     metadataBase: new URL(siteConfig.url),
     title: {
-      default: `${siteConfig.shortName} ${siteConfig.city} | ${siteConfig.name}`,
-      template: `%s | ${siteConfig.shortName} ${siteConfig.city}`,
+      default: `${siteConfig.shortName} ${text.city} | ${text.name}`,
+      template: `%s | ${siteConfig.shortName} ${text.city}`,
     },
-    description: siteConfig.description,
+    description: text.description,
     alternates: { languages },
     icons: {
       icon: [
@@ -69,8 +72,8 @@ export async function generateMetadata({
       type: 'website',
       locale: OPEN_GRAPH_LOCALES[locale as Locale],
       url: siteConfig.url,
-      siteName: `${siteConfig.name}, ${siteConfig.city}`,
-      description: siteConfig.description,
+      siteName: `${text.name}, ${text.city}`,
+      description: text.description,
     },
   }
 }
@@ -109,6 +112,7 @@ export default async function LocaleLayout({
   setRequestLocale(locale)
 
   const messages = await getMessages()
+  const tA11y = await getTranslations({ locale, namespace: 'a11y' })
 
   return (
     <html
@@ -124,7 +128,7 @@ export default async function LocaleLayout({
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-brand-teal focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white"
         >
-          Skip to main content
+          {tA11y('skipToContent')}
         </a>
 
         <NextIntlClientProvider messages={messages}>

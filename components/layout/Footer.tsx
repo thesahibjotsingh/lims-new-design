@@ -11,9 +11,9 @@ import {
   contact,
   diagnosticsNav,
   patientServicesNav,
-  primaryLocation,
   siteConfig,
 } from '@/lib/site-config'
+import { localizedLocation, siteText } from '@/lib/site-i18n'
 import { getCategory, servicesByCategory } from '@/lib/services'
 import { translatedCategoryName, translatedServiceName } from '@/lib/services-i18n'
 import { translatedNavLabel, slugFromHref } from '@/lib/nav-i18n'
@@ -25,6 +25,8 @@ export async function Footer() {
   const locale = (await getLocale()) as Locale
   const t = await getTranslations('nav')
   const tFooter = await getTranslations('footer')
+  const text = siteText(locale)
+  const location = localizedLocation(locale)
 
   return (
     <footer className="border-t border-white/10 bg-brand-dark-base text-white/80">
@@ -32,16 +34,16 @@ export async function Footer() {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
             <h2 className="font-serif text-xl font-bold text-white">
-              {siteConfig.shortName} {siteConfig.city}
+              {siteConfig.shortName} {text.city}
             </h2>
-            <p className="text-xs leading-relaxed text-white/55">{siteConfig.name}</p>
+            <p className="text-xs leading-relaxed text-white/55">{text.name}</p>
 
             <p className="flex items-start gap-2 text-xs leading-relaxed text-white/60">
               <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-copper" />
               <span>
-                {primaryLocation.addressLines.join(', ')}
+                {location.addressLines.join(', ')}
                 <br />
-                {primaryLocation.city}, {primaryLocation.state}
+                {location.city}, {location.state}
               </span>
             </p>
 
@@ -63,7 +65,7 @@ export async function Footer() {
             </div>
 
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-copper">
-              {siteConfig.tagline.join(' · ')}
+              {text.tagline.join(' · ')}
             </p>
           </div>
 
@@ -91,7 +93,7 @@ export async function Footer() {
 
         <div className="mt-12 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between">
           <p>
-            &copy; {new Date().getFullYear()} {siteConfig.name}, {siteConfig.city}.
+            &copy; {new Date().getFullYear()} {text.name}, {text.city}.
           </p>
           <p>
             {/*

@@ -4,10 +4,18 @@ import { Link } from '@/i18n/navigation'
 import { AwaitingContent, PageHeader, Section } from '@/components/primitives/PageShell'
 import { PhoneIcon, PinIcon } from '@/components/icons'
 import { contact, fullAddress } from '@/lib/site-config'
+import { localizedLocation } from '@/lib/site-i18n'
+import type { Locale } from '@/i18n/routing'
 
-export const metadata: Metadata = {
-  title: 'Visitor information',
-  description: 'Visiting hours, ward access and what to bring, at LIMS Hisar.',
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'pageMeta' })
+  const tNav = await getTranslations({ locale, namespace: 'nav' })
+  return { title: tNav('visitorInformation'), description: t('visitorsDescription') }
 }
 
 export default async function VisitorsPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -38,7 +46,7 @@ export default async function VisitorsPage({ params }: { params: Promise<{ local
               <p className="mt-2 flex items-start gap-2 text-sm leading-relaxed text-brand-dark-base/75">
                 <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-teal" />
                 <span>
-                  {fullAddress()}
+                  {fullAddress(localizedLocation(locale as Locale))}
                 </span>
               </p>
               <a

@@ -37,6 +37,7 @@
 //     site where what somebody searched for is itself sensitive.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
 import { SearchIcon } from '@/components/icons'
 import {
@@ -46,11 +47,11 @@ import {
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
-import { GENERAL_SEARCH_PHRASES } from '@/components/search/searchPhrases'
+import { searchPhrases } from '@/components/search/searchPhrases'
+import type { Locale } from '@/i18n/routing'
 import { SERVICES } from '@/lib/services'
+import { translatedServiceName } from '@/lib/services-i18n'
 import type { SearchSuggestion } from '@/lib/search'
-
-const STATIC_PLACEHOLDER = 'Search doctors, departments or tests'
 
 // Real catalogue entries, not invented chip labels. First six rather than all 26 —
 // enough to show the row scrolls without turning it into the services index. Shown
@@ -58,6 +59,9 @@ const STATIC_PLACEHOLDER = 'Search doctors, departments or tests'
 const POPULAR_CHIPS = SERVICES.slice(0, 6)
 
 export function TypewriterSearchBar() {
+  const locale = useLocale() as Locale
+  const t = useTranslations('search')
+  const STATIC_PLACEHOLDER = t('placeholder')
   const rootRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
@@ -97,7 +101,10 @@ export function TypewriterSearchBar() {
   // catalogue, not one glossed over as the other.
   const displayedChips = showingHistory
     ? recentChips.map((chip) => ({ key: chip.href, label: chip.label }))
-    : POPULAR_CHIPS.map((service) => ({ key: service.slug, label: service.name }))
+    : POPULAR_CHIPS.map((service) => ({
+        key: service.slug,
+        label: translatedServiceName(service.slug, locale),
+      }))
 
   function handleChoose(index: number) {
     choose(index)
@@ -121,11 +128,11 @@ export function TypewriterSearchBar() {
     >
       <div>
         <p className="mb-1.5 px-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-dark-base/45">
-          {showingHistory ? 'Based on your recent searches' : 'Popular departments'}
+          {showingHistory ? t('recentSearches') : t('popularDepartments')}
         </p>
         <div
           role="group"
-          aria-label={showingHistory ? 'Recent searches' : 'Popular departments'}
+          aria-label={showingHistory ? t('recentSearchesShort') : t('popularDepartments')}
           className="flex gap-1.5 overflow-x-auto pb-0.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {displayedChips.map((chip) => (
@@ -183,7 +190,7 @@ export function TypewriterSearchBar() {
 
           {query.length === 0 && (
             <TypewriterPlaceholder
-              phrases={GENERAL_SEARCH_PHRASES}
+              phrases={searchPhrases(locale).general}
               idle={idle}
               staticText={STATIC_PLACEHOLDER}
               className="pointer-events-none absolute left-0 right-0 top-1/2 -translate-y-1/2 truncate pr-2 text-sm text-brand-dark-base/45"
@@ -195,7 +202,7 @@ export function TypewriterSearchBar() {
           type="submit"
           className="tap-target focus-ring-inverse shrink-0 rounded-lg bg-brand-teal px-4 text-xs font-semibold text-white"
         >
-          Search
+          {t('searchButton')}
         </button>
       </form>
 

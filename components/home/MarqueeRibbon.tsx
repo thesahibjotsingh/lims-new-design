@@ -9,14 +9,19 @@
 // to assistive technology. `prefers-reduced-motion` stops the scroll globally via
 // globals.css, and the strip stays readable because it is duplicated, not offset.
 
+import { getLocale, getTranslations } from 'next-intl/server'
+import type { Locale } from '@/i18n/routing'
 import { SERVICES } from '@/lib/services'
+import { translatedServiceName } from '@/lib/services-i18n'
 
-export function MarqueeRibbon() {
-  const names = SERVICES.map((service) => service.name)
+export async function MarqueeRibbon() {
+  const locale = (await getLocale()) as Locale
+  const t = await getTranslations('home')
+  const names = SERVICES.map((service) => translatedServiceName(service.slug, locale))
 
   return (
     <div className="w-full overflow-hidden border-y border-brand-teal/10 bg-white py-5">
-      <h2 className="sr-only">Services available at LIMS Hisar</h2>
+      <h2 className="sr-only">{t('marqueeLabel')}</h2>
       <ul className="sr-only">
         {names.map((name) => (
           <li key={name}>{name}</li>

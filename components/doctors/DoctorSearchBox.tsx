@@ -15,7 +15,8 @@
 // two hero search inputs.
 
 import { useCallback, useRef, useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
+import type { Locale } from '@/i18n/routing'
 import { SearchIcon } from '@/components/icons'
 import {
   SuggestionList,
@@ -23,10 +24,11 @@ import {
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
-import { DOCTOR_SEARCH_PHRASES } from '@/components/search/searchPhrases'
+import { searchPhrases } from '@/components/search/searchPhrases'
 
 export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }) {
   const t = useTranslations('search')
+  const locale = useLocale() as Locale
   const tDoctors = useTranslations('doctorsPage')
   const placeholder = t('doctorPlaceholder')
   const [query, setQuery] = useState(defaultQuery)
@@ -98,7 +100,7 @@ export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }
           />
           {query.length === 0 && (
             <TypewriterPlaceholder
-              phrases={DOCTOR_SEARCH_PHRASES}
+              phrases={searchPhrases(locale).doctor}
               idle={!focused && query.length === 0}
               staticText={placeholder}
               className="pointer-events-none absolute left-10 right-0 top-1/2 -translate-y-1/2 truncate pr-4 text-sm text-brand-dark-base/45"

@@ -13,6 +13,8 @@
 // only needs a key for the items messages/*.json actually has a `nav.*`
 // translation for.
 
+import type { Locale } from '@/i18n/routing'
+import { translatedServiceName } from '@/lib/services-i18n'
 import type { NavItem } from '@/types'
 
 export const NAV_KEY_BY_HREF: Record<string, string> = {
@@ -35,6 +37,7 @@ export const OVERVIEW_KEY_BY_HREF: Record<string, string> = {
   '/specialities': 'allSpecialities',
   '/services': 'allDiagnostics',
   '/patient-care': 'allPatientServices',
+  '/contact': 'allContactDetails',
 }
 
 /**
@@ -54,6 +57,24 @@ export function translatedOverviewLabel(
   if (!item.overviewLabel) return undefined
   const key = OVERVIEW_KEY_BY_HREF[item.href]
   return key ? t(key) : item.overviewLabel
+}
+
+/**
+ * A dropdown child's label in the reader's language.
+ *
+ * A child is one of two things: a service (its href ends in the catalogue slug, so the
+ * name comes from lib/services-i18n.ts) or a plain page such as "Locations & directions"
+ * (listed in NAV_KEY_BY_HREF, so the name comes from messages/*.json). Running a page link
+ * through the service lookup returns its URL fragment as the label, which is what the
+ * "Contact Us" dropdown used to show.
+ */
+export function translatedChildLabel(
+  child: NavItem,
+  t: (key: string) => string,
+  locale: Locale,
+): string {
+  const key = NAV_KEY_BY_HREF[child.href]
+  return key ? t(key) : translatedServiceName(slugFromHref(child.href), locale)
 }
 
 /**

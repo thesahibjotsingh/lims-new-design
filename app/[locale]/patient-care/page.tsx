@@ -1,10 +1,18 @@
 import type { Metadata } from 'next'
 import { CategoryIndex } from '@/components/primitives/CategoryIndex'
-import { getCategory } from '@/lib/services'
+import type { Locale } from '@/i18n/routing'
+import { translatedCategoryBlurb, translatedCategoryTitle } from '@/lib/services-i18n'
 
-export const metadata: Metadata = {
-  title: getCategory('support').pageTitle,
-  description: getCategory('support').blurb,
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  return {
+    title: translatedCategoryTitle('support', locale as Locale),
+    description: translatedCategoryBlurb('support', locale as Locale),
+  }
 }
 
 export default async function PatientCarePage({

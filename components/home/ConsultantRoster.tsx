@@ -3,15 +3,18 @@
 // The named consultants LIMS has supplied. Five, at time of writing, and the section
 // shows exactly those rather than padding the row out to a tidy eight with invented people.
 
-import { getTranslations } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
-import { DOCTORS } from '@/lib/doctors'
+import type { Locale } from '@/i18n/routing'
+import { getDoctors } from '@/lib/doctors'
 import { RosterSlider } from '@/components/home/RosterSlider'
 import { DoctorCard } from '@/components/primitives/DoctorCard'
 import { Section } from '@/components/primitives/PageShell'
 
 export async function ConsultantRoster() {
   const t = await getTranslations('doctorCard')
+  const tHome = await getTranslations('home')
+  const locale = (await getLocale()) as Locale
   return (
     // The dark band between the two mist ones — see ServiceArchitecture. Dark so the
     // white panels on the portrait cards read as floating rather than as more page.
@@ -24,10 +27,10 @@ export async function ConsultantRoster() {
               4.5:1 this size of text needs. Same call as the banner eyebrows in PageShell.
             */}
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/75">
-              Meet our consultants
+              {tHome('meetConsultants')}
             </p>
             <h2 className="text-balance font-serif text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Doctors at LIMS
+              {tHome('doctorsAtLims')}
             </h2>
           </div>
           {/*
@@ -39,7 +42,7 @@ export async function ConsultantRoster() {
             href="/doctors"
             className="tap-target self-start rounded-full bg-white px-5 text-sm font-semibold text-brand-teal transition-colors hover:bg-brand-mist md:self-auto"
           >
-            View the full roster &rarr;
+            {tHome('viewFullRoster')} &rarr;
           </Link>
         </div>
 
@@ -57,7 +60,7 @@ export async function ConsultantRoster() {
           the peek, so change this and the slider's fade length together.
         */}
         <RosterSlider prevLabel={t('scrollPrev')} nextLabel={t('scrollNext')}>
-          {DOCTORS.map((doctor) => (
+          {getDoctors(locale).map((doctor) => (
             <li key={doctor.id} className="w-[78%] shrink-0 snap-start md:w-[16.25rem]">
               <DoctorCard doctor={doctor} onDark />
             </li>
@@ -70,15 +73,16 @@ export async function ConsultantRoster() {
           that says the rest are still being published reads as an honest one.
         */}
         <p className="mt-6 text-xs text-white/70">
-          Consultant profiles are published as LIMS supplies them. For a department not
-          listed here, please{' '}
-          <Link
-            href="/contact"
-            className="font-semibold text-white underline underline-offset-2 hover:no-underline"
-          >
-            contact the hospital
-          </Link>
-          .
+          {tHome.rich('rosterNote', {
+            contact: (chunks) => (
+              <Link
+                href="/contact"
+                className="font-semibold text-white underline underline-offset-2 hover:no-underline"
+              >
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       </Section>
     </div>

@@ -20,10 +20,15 @@ import { translatedServiceName } from '@/lib/services-i18n'
 import { contact } from '@/lib/site-config'
 import type { Locale } from '@/i18n/routing'
 
-export const metadata: Metadata = {
-  title: 'Find a doctor',
-  description:
-    'The consultant roster at LIMS Hisar, searchable by name, speciality or department.',
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'pageMeta' })
+  const tNav = await getTranslations({ locale, namespace: 'nav' })
+  return { title: tNav('findADoctor'), description: t('doctorsDescription') }
 }
 
 /*
@@ -46,6 +51,7 @@ export default async function DoctorsPage({
   const t = await getTranslations('doctorsPage')
   const tCommon = await getTranslations('common')
   const tNav = await getTranslations('nav')
+  const tA11y = await getTranslations('a11y')
   const locale = (await getLocale()) as Locale
 
   const params = await searchParams
@@ -59,12 +65,12 @@ export default async function DoctorsPage({
   const requested = first(params.department).trim()
   const department = withDoctors.includes(requested) ? requested : undefined
 
-  const matches = searchDoctors(query)
+  const matches = searchDoctors(query, locale)
   const doctors = department
     ? matches.filter((doctor) => doctor.departmentSlug === department)
     : matches
   // Only computed when there is nothing to show, so the happy path pays nothing.
-  const alternatives = doctors.length === 0 && query ? didYouMean(query) : []
+  const alternatives = doctors.length === 0 && query ? didYouMean(query, 3, locale) : []
 
   const options = withDoctors.map((slug) => ({
     slug,
@@ -91,7 +97,7 @@ export default async function DoctorsPage({
 
       <header className="bg-gradient-to-r from-brand-teal-dark to-brand-teal text-white">
         <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:py-12">
-          <nav aria-label="Breadcrumb">
+          <nav aria-label={tA11y('breadcrumb')}>
             <ol className="flex flex-wrap items-center gap-2 text-xs text-white/75">
               <li>
                 <Link href="/" className="hover:text-white">

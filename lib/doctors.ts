@@ -52,7 +52,10 @@
 //
 // Phase 3 moves this behind the CMS or HIS loader. The shape stays the same.
 
+import type { Locale } from '@/i18n/routing'
+import { localizeDoctor } from '@/lib/doctors-i18n'
 import { getService, serviceName } from '@/lib/services'
+import { translatedServiceName } from '@/lib/services-i18n'
 import type { Doctor } from '@/types'
 
 export const DOCTORS: Doctor[] = [
@@ -176,12 +179,27 @@ function assertDoctorDepartments(): void {
 
 assertDoctorDepartments()
 
-export function getDoctor(id: string): Doctor | undefined {
-  return DOCTORS.find((doctor) => doctor.id === id)
+/*
+ * Every accessor below takes an optional `locale`. With none (or 'en') it returns the English
+ * record above, exactly as before. With 'hi' or 'pa' it returns the same doctors with their
+ * name, designation, qualifications and portrait alt text in that language
+ * (lib/doctors-i18n.ts). The id, department and registration number are never translated.
+ */
+
+/** The whole roster, in the given language. */
+export function getDoctors(locale: Locale = 'en'): Doctor[] {
+  return DOCTORS.map((doctor) => localizeDoctor(doctor, locale))
 }
 
-export function getDoctorsByDepartment(slug: string): Doctor[] {
-  return DOCTORS.filter((doctor) => doctor.departmentSlug === slug)
+export function getDoctor(id: string, locale: Locale = 'en'): Doctor | undefined {
+  const doctor = DOCTORS.find((entry) => entry.id === id)
+  return doctor ? localizeDoctor(doctor, locale) : undefined
+}
+
+export function getDoctorsByDepartment(slug: string, locale: Locale = 'en'): Doctor[] {
+  return DOCTORS.filter((doctor) => doctor.departmentSlug === slug).map((doctor) =>
+    localizeDoctor(doctor, locale),
+  )
 }
 
 /**
@@ -199,20 +217,27 @@ export function getDoctorsByDepartment(slug: string): Doctor[] {
  * An empty or whitespace-only query returns the whole roster rather than nothing,
  * so ?q= reads as "no filter" instead of "no doctors".
  */
-export function searchDoctors(query: string): Doctor[] {
+export function searchDoctors(query: string, locale: Locale = 'en'): Doctor[] {
   const needle = query.trim().toLowerCase()
-  if (!needle) return DOCTORS
+  if (!needle) return getDoctors(locale)
 
-  return DOCTORS.filter((doctor) =>
-    [
+  // Matches the English fields AND the reader's own language, whichever script they type in:
+  // "godara" and "गोदारा" both find Dr Harshal Godara, and so do "ortho" and "ऑर्थो".
+  return DOCTORS.filter((doctor) => {
+    const local = localizeDoctor(doctor, locale)
+    return [
       doctor.name,
       doctor.qualifications,
       doctor.designation,
       serviceName(doctor.departmentSlug),
+      local.name,
+      local.qualifications,
+      local.designation,
+      translatedServiceName(doctor.departmentSlug, locale),
     ]
       .filter(Boolean)
-      .some((field) => (field as string).toLowerCase().includes(needle)),
-  )
+      .some((field) => (field as string).toLowerCase().includes(needle))
+  }).map((doctor) => localizeDoctor(doctor, locale))
 }
 
 /** Service slugs that currently have at least one named consultant. */

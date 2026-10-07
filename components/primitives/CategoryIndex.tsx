@@ -7,9 +7,16 @@
 // Filtering matches `alsoKnownAs` as well as the name: someone who typed "Orthopedics"
 // from their referral slip should find "Ortho & Joint Replacement".
 
-import { getTranslations } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
 import { getCategory, servicesByCategory } from '@/lib/services'
+import {
+  translatedCategoryBlurb,
+  translatedCategoryName,
+  translatedCategoryTitle,
+  translatedServiceName,
+} from '@/lib/services-i18n'
 import { ServiceGrid } from '@/components/primitives/ServiceGrid'
 import { PageHeader, Section } from '@/components/primitives/PageShell'
 import type { ServiceCategory } from '@/lib/services'
@@ -35,13 +42,20 @@ export async function CategoryIndex({
   query?: string
 }) {
   const t = await getTranslations('categoryIndex')
+  const locale = (await getLocale()) as Locale
   const definition = getCategory(category)
+  const title = translatedCategoryTitle(category, locale)
+  const categoryName = translatedCategoryName(category, locale)
   const all = servicesByCategory(category)
   const needle = query?.trim().toLowerCase() ?? ''
 
   const services = needle
     ? all.filter((service) =>
-        [service.name, ...(service.alsoKnownAs ?? [])].some((label) =>
+        [
+          service.name,
+          translatedServiceName(service.slug, locale),
+          ...(service.alsoKnownAs ?? []),
+        ].some((label) =>
           label.toLowerCase().includes(needle),
         ),
       )
@@ -51,8 +65,8 @@ export async function CategoryIndex({
     <>
       <PageHeader
         eyebrow={t('serviceCount', { count: all.length })}
-        title={definition.pageTitle}
-        intro={definition.blurb}
+        title={title}
+        intro={translatedCategoryBlurb(category, locale)}
         banner={CATEGORY_BANNERS[category]}
         cinematic
       />
@@ -62,7 +76,7 @@ export async function CategoryIndex({
           <p className="scroll-reveal mb-5 text-sm text-brand-dark-base/70">
             {services.length === 0
               ? t.rich('noMatch', {
-                  title: definition.pageTitle.toLowerCase(),
+                  title: title.toLowerCase(),
                   query: query ?? '',
                   b: (chunks) => <strong className="font-semibold text-brand-dark-base">{chunks}</strong>,
                 })
@@ -89,7 +103,7 @@ export async function CategoryIndex({
           */
           <div className="rounded-2xl border border-dashed border-brand-teal/25 bg-brand-mist/60 p-8 text-center">
             <p className="text-sm text-brand-dark-base/70">
-              {t('browseAllFallback', { count: all.length, name: definition.name.toLowerCase() })}
+              {t('browseAllFallback', { count: all.length, name: categoryName.toLowerCase() })}
             </p>
             <Link
               href={definition.basePath}

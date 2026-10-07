@@ -42,7 +42,7 @@ const SERVICE_NAMES: Record<string, Partial<Record<Locale, string>>> = {
   urology: { hi: 'यूरोलॉजी', pa: 'ਯੂਰੋਲੋਜੀ' },
   'spine-surgery': { hi: 'स्पाइन सर्जरी', pa: 'ਸਪਾਈਨ ਸਰਜਰੀ' },
   ophthalmology: { hi: 'नेत्र रोग (ऑप्थल्मोलॉजी)', pa: 'ਅੱਖਾਂ ਦੇ ਰੋਗ' },
-  ent: { hi: 'ईएनटी (कान, नाक, गला)', pa: 'ENT (ਕੰਨ, ਨੱਕ, ਗਲਾ)' },
+  ent: { hi: 'ईएनटी (कान, नाक, गला)', pa: 'ਈਐਨਟੀ (ਕੰਨ, ਨੱਕ, ਗਲਾ)' },
   dentistry: { hi: 'दंत चिकित्सा', pa: 'ਦੰਦਾਂ ਦਾ ਇਲਾਜ' },
   'anaesthesia-pain-management': {
     hi: 'एनेस्थीसिया एवं दर्द प्रबंधन',

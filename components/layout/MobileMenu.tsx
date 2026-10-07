@@ -18,17 +18,16 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { usePathname } from '@/i18n/navigation'
 import { CloseIcon, MenuIcon, SearchIcon } from '@/components/icons'
-import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
 import {
   SuggestionList,
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
-import { GENERAL_SEARCH_PHRASES } from '@/components/search/searchPhrases'
-import { contact, primaryNav, siteConfig } from '@/lib/site-config'
-import { translatedNavLabel, translatedOverviewLabel, slugFromHref } from '@/lib/nav-i18n'
-import { translatedServiceName } from '@/lib/services-i18n'
+import { searchPhrases } from '@/components/search/searchPhrases'
+import { contact, primaryNav } from '@/lib/site-config'
+import { siteText } from '@/lib/site-i18n'
+import { translatedChildLabel, translatedNavLabel, translatedOverviewLabel } from '@/lib/nav-i18n'
 import type { Locale } from '@/i18n/routing'
 
 export function MobileMenu() {
@@ -37,6 +36,8 @@ export function MobileMenu() {
   const t = useTranslations('nav')
   const tMenu = useTranslations('menu')
   const tSearch = useTranslations('search')
+  const tA11y = useTranslations('a11y')
+  const text = siteText(locale)
   const searchPlaceholder = tSearch('drawerPlaceholder')
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -193,7 +194,7 @@ export function MobileMenu() {
             id="mobile-menu-panel"
             role="dialog"
             aria-modal="true"
-            aria-label="Navigation"
+            aria-label={tA11y('navigation')}
             /*
               A long, shallow teal gradient rather than a flat fill.
 
@@ -226,7 +227,7 @@ export function MobileMenu() {
               <Link
                 href="/"
                 onClick={() => setOpen(false)}
-                aria-label={`${siteConfig.name}, ${siteConfig.city} — home`}
+                aria-label={tA11y('homeLink', { name: text.name, city: text.city })}
                 className="focus-ring-inverse rounded-full"
               >
                 <img
@@ -297,7 +298,7 @@ export function MobileMenu() {
                   />
                   {query.length === 0 && (
                     <TypewriterPlaceholder
-                      phrases={GENERAL_SEARCH_PHRASES}
+                      phrases={searchPhrases(locale).general}
                       idle={!searchFocused && query.length === 0}
                       staticText={searchPlaceholder}
                       className="pointer-events-none absolute left-3 right-0 top-1/2 -translate-y-1/2 truncate pr-3 text-base text-brand-dark-base/45"
@@ -325,15 +326,12 @@ export function MobileMenu() {
             </div>
 
             {/*
-              Language, right under search — the other control someone opens
-              this drawer for specifically, not buried at the foot of a list
-              of unrelated department links.
+              No language row here any more: the language button lives in the phone
+              header itself (LanguageMenu), so it is one tap away without opening this
+              drawer.
             */}
-            <div className="flex shrink-0 justify-center px-3 pb-2">
-              <LanguageSwitcher variant="dark" />
-            </div>
 
-            <nav aria-label="All sections" className="flex-1 overflow-y-auto px-3 py-3">
+            <nav aria-label={tA11y('allSections')} className="flex-1 overflow-y-auto px-3 py-3">
               <ul className="space-y-1">
                 {primaryNav.map((item) =>
                   item.children?.length ? (
@@ -366,7 +364,7 @@ export function MobileMenu() {
                                 href={child.href}
                                 className="flex min-h-[44px] items-center rounded-lg px-3 text-sm text-white/80 hover:bg-white/10"
                               >
-                                {translatedServiceName(slugFromHref(child.href), locale)}
+                                {translatedChildLabel(child, t, locale)}
                               </Link>
                             </li>
                           ))}

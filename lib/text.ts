@@ -14,8 +14,11 @@ export function plain(text: string): string {
   return text.replace(/\s+[—–]\s+/g, ', ')
 }
 
-/** The first sentence of a paragraph, for a one-line summary. */
+/**
+ * The first sentence of a paragraph, for a one-line summary. Hindi and Punjabi end a
+ * sentence with a danda (।), so that counts as a full stop here too.
+ */
 export function firstSentence(text: string): string {
-  const match = text.match(/^.*?[.!?](?=\s|$)/)
+  const match = text.match(/^.*?[.!?।](?=\s|$)/)
   return plain(match ? match[0] : text)
 }

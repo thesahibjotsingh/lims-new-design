@@ -1,10 +1,16 @@
 import type { Metadata } from 'next'
-import { setRequestLocale } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { AwaitingContent, PageHeader, Section } from '@/components/primitives/PageShell'
 
-export const metadata: Metadata = {
-  title: 'Health library',
-  description: 'Patient health information from LIMS Hisar.',
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'pageMeta' })
+  const tNav = await getTranslations({ locale, namespace: 'nav' })
+  return { title: tNav('healthLibrary'), description: t('healthLibraryDescription') }
 }
 
 /*
@@ -20,21 +26,18 @@ export default async function HealthLibraryPage({ params }: { params: Promise<{ 
   // app/[locale]/layout.tsx.
   const { locale } = await params
   setRequestLocale(locale)
+  const t = await getTranslations('healthLibraryPage')
   return (
     <>
       <PageHeader
         banner="/banners/health-library.webp"
         cinematic
-        eyebrow="Patient information"
-        title="Health library"
-        intro="Clinically reviewed articles on conditions, procedures and recovery."
+        eyebrow={t('eyebrow')}
+        title={t('title')}
+        intro={t('intro')}
       />
       <Section>
-        <AwaitingContent what="Articles">
-          Health information is published only once a LIMS clinician has written or
-          reviewed it. Nothing is published here yet. For advice about your own health,
-          please speak to a doctor rather than relying on a web page.
-        </AwaitingContent>
+        <AwaitingContent what={t('awaitingWhat')}>{t('awaitingBody')}</AwaitingContent>
       </Section>
     </>
   )

@@ -15,7 +15,7 @@ import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { BrandMark } from '@/components/layout/BrandMark'
 import { PrimaryNavBar } from '@/components/layout/PrimaryNavBar'
-import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
+import { LanguageMenu } from '@/components/layout/LanguageSwitcher'
 import { CalendarIcon } from '@/components/icons'
 import { HeaderSearch } from '@/components/layout/HeaderSearch'
 import { contact, primaryNav } from '@/lib/site-config'
@@ -90,14 +90,17 @@ export async function DesktopHeader() {
             </Link>
 
             {/*
-              A visible border, not just a gap — three prior controls (search,
+              A visible border, not just a gap: three prior controls (search,
               emergency, book) all read as "one thing to do", and language is
               a different kind of choice. The rule is what says "these are two
               groups", the way the drawer's own language row is spaced away
               from the nav list below it for the same reason.
+
+              The same globe-and-code button as on the phone header, opening the
+              same three-row panel; here the panel drops out of the button itself.
             */}
             <div className="border-l border-brand-teal/10 pl-6">
-              <LanguageSwitcher />
+              <LanguageMenu variant="dropdown" />
             </div>
           </div>
         </div>

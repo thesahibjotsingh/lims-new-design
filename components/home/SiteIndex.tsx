@@ -17,11 +17,14 @@
 // like a live section and lands on a placeholder wastes the visitor's tap; one that
 // says "not published yet" lets them skip it and call instead.
 
+import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
+import { siteText } from '@/lib/site-i18n'
 import { ArrowRightIcon } from '@/components/icons'
 import { RevealMore } from '@/components/primitives/RevealMore'
 import { Section } from '@/components/primitives/PageShell'
-import { contact, shortAddress, siteConfig } from '@/lib/site-config'
+import { contact } from '@/lib/site-config'
 
 interface Destination {
   label: string
@@ -31,47 +34,54 @@ interface Destination {
   status?: string
 }
 
-const DESTINATIONS: Destination[] = [
-  {
-    label: 'Health library',
-    href: '/health-library',
-    description: 'Clinically reviewed articles on conditions, procedures and recovery.',
-    status: 'Awaiting clinician review',
-  },
-  {
-    label: 'About LIMS',
-    href: '/about',
-    description: siteConfig.description,
-  },
-  {
-    label: 'Contact Us',
-    href: '/contact',
-    description: `${shortAddress}. Emergency ${contact.primaryDisplay}.`,
-  },
-]
+export async function SiteIndex() {
+  const locale = (await getLocale()) as Locale
+  const t = await getTranslations('home')
+  const tNav = await getTranslations('nav')
+  const text = siteText(locale)
 
-export function SiteIndex() {
+  const DESTINATIONS: Destination[] = [
+    {
+      label: tNav('healthLibrary'),
+      href: '/health-library',
+      description: t('healthLibraryDesc'),
+      status: t('awaitingReview'),
+    },
+    {
+      label: tNav('aboutLims'),
+      href: '/about',
+      description: text.description,
+    },
+    {
+      label: tNav('contactUs'),
+      href: '/contact',
+      description: t('contactDesc', {
+        address: text.shortAddress,
+        number: contact.primaryDisplay,
+      }),
+    },
+  ]
+
   return (
     // Mist band — see ServiceArchitecture.
     <div className="bg-brand-mist">
       <Section>
         <div className="scroll-reveal mb-8 max-w-2xl">
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-copper-ink">
-            Everything else
+            {t('everythingElse')}
           </p>
           <h2 className="text-balance font-serif text-3xl font-bold tracking-tight text-brand-dark-base sm:text-4xl">
-            The rest of the site
+            {t('restOfSite')}
           </h2>
           <p className="mt-3 text-base leading-relaxed text-brand-dark-base/70">
-            Departments, diagnostics, patient services and the consultant roster are
-            above. These are the remaining sections in the main menu.
+            {t('restOfSiteIntro')}
           </p>
         </div>
 
         <RevealMore
           limit={3}
           className="grid grid-cols-1 gap-3 sm:grid-cols-3"
-          moreLabel="View more sections"
+          moreLabel={t('viewMoreSections')}
         >
           {DESTINATIONS.map((destination) => (
             <li key={destination.href}>

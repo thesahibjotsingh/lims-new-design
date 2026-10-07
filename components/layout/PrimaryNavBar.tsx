@@ -10,18 +10,22 @@
 // lives in the leaf that needs it, not in a client wrapper around the whole chrome.
 
 import { useEffect, useRef, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { usePathname, useRouter } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
 import { isActiveHref } from '@/lib/is-active'
+import { translatedChildLabel, translatedNavLabel, translatedOverviewLabel } from '@/lib/nav-i18n'
 import { ChevronDownIcon, HomeIcon, SearchIcon } from '@/components/icons'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
-import { DOCTOR_SEARCH_PHRASES } from '@/components/search/searchPhrases'
+import { searchPhrases } from '@/components/search/searchPhrases'
 import type { NavItem } from '@/types'
-
-const DOCTOR_SEARCH_PLACEHOLDER = 'Name, speciality or department'
 
 export function PrimaryNavBar({ items }: { items: NavItem[] }) {
   const pathname = usePathname()
+  const locale = useLocale() as Locale
+  const t = useTranslations('nav')
+  const tA11y = useTranslations('a11y')
   const [openLabel, setOpenLabel] = useState<string | null>(null)
   const navRef = useRef<HTMLDivElement>(null)
   // Hover-out should not slam the menu shut while the pointer crosses the gap between
@@ -71,7 +75,7 @@ export function PrimaryNavBar({ items }: { items: NavItem[] }) {
     // brand teal all the way down makes the header and hero one mass.
     <div ref={navRef} className="bg-brand-teal">
       <nav
-        aria-label="Primary"
+        aria-label={tA11y('primaryNav')}
         className="mx-auto flex max-w-7xl items-stretch gap-1 px-6"
         onMouseLeave={scheduleClose}
       >
@@ -91,7 +95,7 @@ export function PrimaryNavBar({ items }: { items: NavItem[] }) {
       <div className="relative flex items-stretch">
         <Link
           href="/"
-          aria-label="Home"
+          aria-label={t('home')}
           aria-current={isActiveHref(pathname, '/') ? 'page' : undefined}
           className="tap-target relative px-3 text-white/80 transition-colors hover:text-white"
         >
@@ -110,6 +114,10 @@ export function PrimaryNavBar({ items }: { items: NavItem[] }) {
           const active = isActiveHref(pathname, item.href)
           const hasPanel = Boolean(item.children?.length) || Boolean(item.panel)
           const open = openLabel === item.label
+          // `item.label` stays the English key (open/closed state is tracked by it); what
+          // the reader sees is the translated label.
+          const label = translatedNavLabel(item, t)
+          const overviewLabel = translatedOverviewLabel(item, t)
 
           return (
             <div
@@ -130,7 +138,7 @@ export function PrimaryNavBar({ items }: { items: NavItem[] }) {
                     : 'font-medium text-white/80 hover:text-white',
                 ].join(' ')}
               >
-                {item.label}
+                {label}
                 {/*
                   The active marker is an underline AND a weight change, never colour
                   alone — colour on its own fails WCAG 1.4.1, and white-on-teal has even
@@ -154,7 +162,7 @@ export function PrimaryNavBar({ items }: { items: NavItem[] }) {
                   onClick={() => setOpenLabel(open ? null : item.label)}
                   aria-expanded={open}
                   aria-haspopup="true"
-                  aria-label={`${item.label} menu`}
+                  aria-label={tA11y('menuFor', { label })}
                   className="tap-target -ml-2 w-8 min-w-0 text-white/65 transition-colors hover:text-white"
                 >
                   <ChevronDownIcon
@@ -186,17 +194,17 @@ export function PrimaryNavBar({ items }: { items: NavItem[] }) {
                             href={child.href}
                             className="flex min-h-[44px] items-center rounded-lg px-3 text-sm text-brand-dark-base/85 transition-colors hover:bg-brand-mist hover:text-brand-teal-dark"
                           >
-                            {child.label}
+                            {translatedChildLabel(child, t, locale)}
                           </Link>
                         </li>
                       ))}
-                      {item.overviewLabel && (
+                      {overviewLabel && (
                         <li className="mt-1 border-t border-brand-teal/10 pt-1">
                           <Link
                             href={item.href}
                             className="flex min-h-[44px] items-center gap-2 rounded-lg px-3 text-sm font-semibold text-brand-teal transition-colors hover:bg-brand-mist"
                           >
-                            {item.overviewLabel}
+                            {overviewLabel}
                             <span aria-hidden="true">&rarr;</span>
                           </Link>
                         </li>
@@ -222,6 +230,9 @@ export function PrimaryNavBar({ items }: { items: NavItem[] }) {
  */
 function DoctorSearchPanel({ onDone }: { onDone: () => void }) {
   const router = useRouter()
+  const locale = useLocale() as Locale
+  const t = useTranslations('search')
+  const placeholder = t('doctorPlaceholder')
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
 
@@ -239,7 +250,7 @@ function DoctorSearchPanel({ onDone }: { onDone: () => void }) {
         htmlFor="nav-doctor-search"
         className="mb-2 block text-xs font-semibold uppercase tracking-wider text-brand-dark-base/60"
       >
-        Search the consultant roster
+        {t('consultantRosterLabel')}
       </label>
       <div className="relative">
         <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-dark-base/40" />
@@ -251,14 +262,14 @@ function DoctorSearchPanel({ onDone }: { onDone: () => void }) {
           onChange={(event) => setQuery(event.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          placeholder={DOCTOR_SEARCH_PLACEHOLDER}
+          placeholder={placeholder}
           className="min-h-[44px] w-full rounded-xl border border-brand-teal/15 bg-brand-mist/60 pl-9 pr-3 text-sm text-brand-dark-base placeholder:text-transparent focus:bg-white"
         />
         {query.length === 0 && (
           <TypewriterPlaceholder
-            phrases={DOCTOR_SEARCH_PHRASES}
+            phrases={searchPhrases(locale).doctor}
             idle={!focused && query.length === 0}
-            staticText={DOCTOR_SEARCH_PLACEHOLDER}
+            staticText={placeholder}
             className="pointer-events-none absolute left-9 right-0 top-1/2 -translate-y-1/2 truncate pr-3 text-sm text-brand-dark-base/45"
           />
         )}
@@ -267,7 +278,7 @@ function DoctorSearchPanel({ onDone }: { onDone: () => void }) {
         type="submit"
         className="tap-target focus-ring-inverse mt-2 w-full rounded-xl bg-brand-teal px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-teal-dark"
       >
-        Search doctors
+        {t('searchDoctors')}
       </button>
     </form>
   )

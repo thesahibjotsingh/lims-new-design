@@ -3,7 +3,7 @@
 // components/layout/MobileHeader.tsx
 //
 // A compact header that continuously compacts as the reader scrolls — the badge
-// scales down and the emergency label shrinks away, tracking scrollY 1:1 rather than
+// scales down and the bar itself shortens, tracking scrollY 1:1 rather than
 // snapping past a fixed threshold. That is what makes scrolling back up reverse it
 // immediately, with no "let the animation finish first" moment: every frame just
 // re-reads the live scroll position, so there is no fire-and-forget transition to a
@@ -17,9 +17,11 @@
 // 65px at rest is the budget, not a suggestion: on a 667pt viewport every point spent
 // on chrome is a point taken from the hero, and the bottom navigation pill is already
 // claiming space at the other end of the screen. Collapsing to 52px past 70px of
-// scroll gives a little of that back on a long page, three things fit at 65px and no
-// more — the lockup, the emergency call, and the menu — everything else lives in the
-// drawer or the bottom pill.
+// scroll gives a little of that back on a long page, four things fit at 65px and no
+// more — the lockup, the emergency call, the language button and the menu — everything
+// else lives in the drawer or the bottom pill. To make room for the language button the
+// emergency call is a red phone circle with no word beside it (it used to be a pill that
+// said "Emergency"); its accessible name still says what it dials.
 //
 // Client component (it was a server component before this): tracking live scroll
 // position has no server-renderable equivalent. The beacon is still a CSS animation
@@ -28,18 +30,22 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
+import { LanguageMenu } from '@/components/layout/LanguageSwitcher'
 import { MobileMenu } from '@/components/layout/MobileMenu'
 import { PhoneIcon } from '@/components/icons'
-import { contact, siteConfig } from '@/lib/site-config'
+import { contact } from '@/lib/site-config'
+import { siteText } from '@/lib/site-i18n'
 
 /** Scroll distance, in px, over which the header goes from resting to fully collapsed. */
 const COLLAPSE_RANGE = 70
 
 export function MobileHeader() {
-  const t = useTranslations('menu')
   const tEmergency = useTranslations('emergency')
+  const tA11y = useTranslations('a11y')
+  const text = siteText(useLocale() as Locale)
   const [scrollY, setScrollY] = useState(0)
   const [reduceMotion, setReduceMotion] = useState(false)
 
@@ -75,8 +81,6 @@ export function MobileHeader() {
   const progress = reduceMotion ? 0 : Math.min(Math.max(scrollY / COLLAPSE_RANGE, 0), 1)
   const height = 65 - progress * 13 // 65px -> 52px
   const badgeScale = 1 - progress * 0.18
-  const labelMaxWidth = (1 - progress) * 84
-  const labelOpacity = Math.max(1 - progress * 1.6, 0)
 
   return (
     <header
@@ -110,7 +114,7 @@ export function MobileHeader() {
       */}
       <Link
         href="/"
-        aria-label={`${siteConfig.name}, ${siteConfig.city} — home`}
+        aria-label={tA11y('homeLink', { name: text.name, city: text.city })}
         className="press shrink-0 rounded-lg"
         style={{ transform: `scale(${badgeScale})`, transformOrigin: 'left center' }}
       >
@@ -124,42 +128,25 @@ export function MobileHeader() {
         />
       </Link>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         {/*
-          The emergency beacon.
+          The emergency call.
 
-          The ring is aria-hidden decoration; the accessible name is on the link and
-          says what the control does and which number it calls, because "Emergency" on
-          its own does not tell a screen reader user whether this dials or navigates.
-          Red is reserved for this control alone — a red used decoratively elsewhere is
-          a red that stops meaning "emergency". The label's own shrink on scroll is
-          purely visual (`aria-label` on the link carries the full sentence regardless
-          of how little of "Emergency" is currently visible) and the icon plus the tap
-          target never shrink below the 44px `.tap-target` floor.
+          The accessible name is on the link and says what the control does and which
+          number it calls, because a bare phone icon does not tell a screen reader user
+          whether this dials or navigates. Red is reserved for this control alone — a red
+          used decoratively elsewhere is a red that stops meaning "emergency". The tap
+          target is the 44px `.tap-target` floor.
         */}
         <a
           href={`tel:${contact.primary}`}
           aria-label={tEmergency('callLine', { number: contact.primaryDisplay })}
-          className="tap-target focus-ring-inverse relative gap-2 rounded-full bg-brand-emergency px-3.5 text-xs font-bold text-white shadow-sm"
+          className="tap-target focus-ring-inverse rounded-full bg-brand-emergency text-white shadow-sm"
         >
-          <span className="relative flex h-2.5 w-2.5 shrink-0">
-            <span
-              aria-hidden="true"
-              className="absolute inline-flex h-full w-full animate-beacon rounded-full bg-white"
-            />
-            <span
-              aria-hidden="true"
-              className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white"
-            />
-          </span>
-          <PhoneIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span
-            className="overflow-hidden whitespace-nowrap"
-            style={{ maxWidth: `${labelMaxWidth}px`, opacity: labelOpacity }}
-          >
-            {t('emergencyLine')}
-          </span>
+          <PhoneIcon className="h-5 w-5" aria-hidden="true" />
         </a>
+
+        <LanguageMenu />
 
         <MobileMenu />
       </div>

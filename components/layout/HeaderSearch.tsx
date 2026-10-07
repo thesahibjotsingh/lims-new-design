@@ -20,6 +20,8 @@
 // handled globally in globals.css, which flattens the duration to nothing.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
+import type { Locale } from '@/i18n/routing'
 import { CloseIcon, SearchIcon } from '@/components/icons'
 import {
   SuggestionList,
@@ -27,10 +29,10 @@ import {
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
-import { GENERAL_SEARCH_PHRASES } from '@/components/search/searchPhrases'
+import { searchPhrases } from '@/components/search/searchPhrases'
 
 /**
- * "Search for " is fixed and the rest types itself.
+ * "Search for " is fixed and the rest types itself (`search.prefix` in messages/*.json).
  *
  * The fixed half is what makes the moving half readable: the eye settles on a stable
  * left edge and only the last word changes, instead of the whole line reflowing. Every
@@ -39,12 +41,12 @@ import { GENERAL_SEARCH_PHRASES } from '@/components/search/searchPhrases'
  * the only field with a fixed prefix; the phrases themselves are the same
  * GENERAL_SEARCH_PHRASES every other general search field cycles.
  */
-const SEARCH_PREFIX = 'Search for '
-
-/** Shown to assistive tech and whenever motion is off. Stable, and says the same thing. */
-const STATIC_PLACEHOLDER = 'Search doctors, departments and pages'
-
 export function HeaderSearch() {
+  const locale = useLocale() as Locale
+  const t = useTranslations('search')
+  const tA11y = useTranslations('a11y')
+  // Shown to assistive tech and whenever motion is off. Stable, and says the same thing.
+  const STATIC_PLACEHOLDER = t('pagesPlaceholder')
   const [expanded, setExpanded] = useState(false)
   const [query, setQuery] = useState('')
   const rootRef = useRef<HTMLDivElement>(null)
@@ -94,7 +96,7 @@ export function HeaderSearch() {
         ].join(' ')}
       >
         <label htmlFor="header-search" className="sr-only">
-          Search doctors, departments and pages
+          {STATIC_PLACEHOLDER}
         </label>
         <input
           {...inputProps}
@@ -141,12 +143,12 @@ export function HeaderSearch() {
         */}
         {expanded && query.length === 0 && (
           <TypewriterPlaceholder
-            phrases={GENERAL_SEARCH_PHRASES}
+            phrases={searchPhrases(locale).general}
             // Only while the field is open, empty and unfocused-by-typing. A
             // placeholder that keeps animating under a caret is the thing rule 1
             // in useTypewriter forbids.
             idle={expanded && query.length === 0}
-            prefix={SEARCH_PREFIX}
+            prefix={t('prefix')}
             staticText={STATIC_PLACEHOLDER}
             className="pointer-events-none absolute left-5 right-0 top-1/2 -translate-y-1/2 truncate pr-14 text-sm text-brand-dark-base/45"
           />
@@ -164,7 +166,7 @@ export function HeaderSearch() {
             setOpen(true)
           }}
           aria-expanded={expanded}
-          aria-label={expanded ? 'Close search' : 'Search doctors, departments and pages'}
+          aria-label={expanded ? tA11y('closeSearch') : STATIC_PLACEHOLDER}
           // Stays pinned at the right edge at both widths, so the icon is the fixed
           // point the field appears to grow out of.
           className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-brand-teal transition-colors hover:bg-brand-mist"

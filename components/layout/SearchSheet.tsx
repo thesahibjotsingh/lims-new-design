@@ -16,7 +16,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal, flushSync } from 'react-dom'
+import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
 import { CloseIcon, SearchIcon } from '@/components/icons'
 import {
   SuggestionList,
@@ -24,9 +26,7 @@ import {
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
-import { GENERAL_SEARCH_PHRASES } from '@/components/search/searchPhrases'
-
-const SEARCH_PLACEHOLDER = 'Search doctors, departments, pages'
+import { searchPhrases } from '@/components/search/searchPhrases'
 
 /**
  * Progressive resistance for the one direction a drag on this handle shouldn't just
@@ -40,6 +40,10 @@ function rubberband(overshoot: number, dimension: number, constant = 0.55): numb
 
 export function SearchSheet() {
   const router = useRouter()
+  const locale = useLocale() as Locale
+  const tSearch = useTranslations('search')
+  const tA11y = useTranslations('a11y')
+  const SEARCH_PLACEHOLDER = tSearch('drawerPlaceholder')
   const [query, setQuery] = useState('')
   const rootRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -260,7 +264,7 @@ export function SearchSheet() {
           })
           inputRef.current?.focus()
         }}
-        aria-label="Search doctors, departments and pages"
+        aria-label={tA11y('searchSite')}
         aria-haspopup="dialog"
         aria-expanded={open}
         className="tap-target focus-ring-inverse pointer-events-auto grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/40 bg-brand-teal text-white shadow-glass"
@@ -295,7 +299,7 @@ export function SearchSheet() {
               }}
               role="dialog"
               aria-modal="true"
-              aria-label="Search"
+              aria-label={tA11y('searchTitle')}
               style={{
                 // dragY carries every state now — resting open (0), resting closed
                 // (offscreen), and everything in between while a drag is live — see
@@ -336,12 +340,12 @@ export function SearchSheet() {
 
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-brand-dark-base">
-                  Search LIMS
+                  {tSearch('searchLims')}
                 </h2>
                 <button
                   type="button"
                   onClick={closeSheet}
-                  aria-label="Close search"
+                  aria-label={tA11y('closeSearch')}
                   className="tap-target -mr-2 h-9 w-9 rounded-full text-brand-dark-base/50 hover:bg-brand-mist"
                 >
                   <CloseIcon className="h-4 w-4" strokeWidth={2} />
@@ -351,7 +355,7 @@ export function SearchSheet() {
               <form onSubmit={handleSubmit}>
                 <div ref={rootRef} className="relative">
                   <label htmlFor="bottom-sheet-search" className="sr-only">
-                    Search doctors, departments or pages
+                    {tSearch('drawerPlaceholder')}
                   </label>
                   <div className="relative">
                     <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-dark-base/45" />
@@ -375,7 +379,7 @@ export function SearchSheet() {
                     />
                     {query.length === 0 && (
                       <TypewriterPlaceholder
-                        phrases={GENERAL_SEARCH_PHRASES}
+                        phrases={searchPhrases(locale).general}
                         // No `focused` gate here unlike the other search fields — this
                         // one auto-focuses the instant the sheet opens (see the
                         // trigger button's onClick), so gating on focus would mean it

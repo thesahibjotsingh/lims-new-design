@@ -2,10 +2,11 @@ import type { Metadata } from 'next'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { AppointmentForm } from '@/components/appointments/AppointmentForm'
 import { PageHeader, Section } from '@/components/primitives/PageShell'
-import { DOCTORS, getDoctor } from '@/lib/doctors'
+import { getDoctor, getDoctors } from '@/lib/doctors'
 import { SERVICE_CATEGORIES, getService, servicesByCategory } from '@/lib/services'
 import { translatedCategoryName, translatedServiceName } from '@/lib/services-i18n'
-import { contact, fullAddress, primaryLocation } from '@/lib/site-config'
+import { contact, fullAddress } from '@/lib/site-config'
+import { localizedLocation } from '@/lib/site-i18n'
 import { PhoneIcon, PinIcon } from '@/components/icons'
 import type { Locale } from '@/i18n/routing'
 
@@ -44,12 +45,12 @@ export default async function AppointmentsPage({
     ? params.department[0]
     : params.department
 
-  const preselectedDoctor = doctorParam ? getDoctor(doctorParam) : undefined
+  const preselectedDoctor = doctorParam ? getDoctor(doctorParam, locale) : undefined
+  const location = localizedLocation(locale)
   const preselectedService = departmentParam ? getService(departmentParam) : undefined
 
-  // Doctor names are proper nouns and stay as supplied; the department after the dash is
-  // a descriptive term patients read in their own language.
-  const doctorOptions = DOCTORS.map((doctor) => ({
+  // The doctor's name in the reader's script, then the department in their language.
+  const doctorOptions = getDoctors(locale).map((doctor) => ({
     value: doctor.id,
     label: `${doctor.name}, ${translatedServiceName(doctor.departmentSlug, locale)}`,
   }))
@@ -113,9 +114,9 @@ export default async function AppointmentsPage({
               <p className="mt-2 flex items-start gap-2 text-sm leading-relaxed text-brand-dark-base/75">
                 <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-teal" />
                 <span>
-                  {primaryLocation.name}
+                  {location.name}
                   <br />
-                  {fullAddress()}
+                  {fullAddress(location)}
                 </span>
               </p>
               <a

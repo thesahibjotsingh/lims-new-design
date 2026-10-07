@@ -4,8 +4,9 @@
 //
 // Composition follows the larger hospital sites surveyed (Medanta puts an enquiry form
 // beside the title, Fortis and Max put the actions in the banner): the title and summary
-// on the left, a "Talk to us" card on the right. The card is the one place on the page
-// that carries a booking link, so the page does not repeat the header's global button.
+// on the left, a "Talk to us" card on the right. The page's one booking link sits under the
+// chips on the left, as a quiet outline pill: the site header already has a filled global
+// "Book an appointment", so this one only opens the form with THIS department chosen.
 //
 // It states only what the data supports. The chips are COUNTS of what the page explains
 // (conditions, treatments, consultants listed), never claims about capability.
@@ -42,6 +43,7 @@ export async function ServiceHero({
 }) {
   const t = await getTranslations('serviceDetail')
   const tCommon = await getTranslations('common')
+  const tA11y = await getTranslations('a11y')
   const category = service.category
 
   const conditionsKey = {
@@ -69,7 +71,7 @@ export async function ServiceHero({
   return (
     <header className="bg-gradient-to-r from-brand-teal-dark to-brand-teal text-white">
       <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:py-12">
-        <nav aria-label="Breadcrumb">
+        <nav aria-label={tA11y('breadcrumb')}>
           <ol className="flex flex-wrap items-center gap-2 text-xs text-white/75">
             <li>
               <Link href="/" className="hover:text-white">
@@ -124,16 +126,24 @@ export async function ServiceHero({
                 ))}
               </ul>
             )}
+
+            {/*
+              The booking link. It sits here, not in the "Talk to us" card, so the card is the
+              same height on every page; styled like the Contact and About heroes' secondary
+              action. The accessible name still says which department the form opens with.
+            */}
+            {!noAppointment && (
+              <Link
+                href={`/appointments?department=${service.slug}`}
+                aria-label={t('requestFor', { name })}
+                className="tap-target mt-6 rounded-full border border-white/40 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              >
+                {tCommon('requestAnAppointment')}
+              </Link>
+            )}
           </div>
 
-          <ContactCard
-            heading={t('talkToUs')}
-            tag={name}
-            requestHref={noAppointment ? undefined : `/appointments?department=${service.slug}`}
-            requestLabel={noAppointment ? undefined : tCommon('requestAnAppointment')}
-            requestAriaLabel={noAppointment ? undefined : t('requestFor', { name })}
-            emergencyFirst={emergencyFirst}
-          />
+          <ContactCard heading={t('talkToUs')} tag={name} emergencyFirst={emergencyFirst} />
         </div>
       </div>
     </header>

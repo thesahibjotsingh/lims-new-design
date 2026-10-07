@@ -16,8 +16,9 @@
 // a faster route to a specific destination.
 
 import { useEffect, useId, useMemo, useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
 import { SearchIcon } from '@/components/icons'
 import { suggestSearch } from '@/lib/search'
 import type { SearchSuggestion, SuggestionKind } from '@/lib/search'
@@ -74,6 +75,7 @@ export function useSearchSuggest({
   kinds?: SuggestionKind[]
 }) {
   const router = useRouter()
+  const locale = useLocale() as Locale
   const [open, setOpen] = useState(false)
   // -1 is "nothing highlighted", which is NOT the same as "the first row is
   // highlighted". With nothing highlighted, Enter submits the form as an ordinary
@@ -88,7 +90,7 @@ export function useSearchSuggest({
 
   // Filtering happens inside the matcher rather than after it, so a narrowed list is
   // still a full-length list rather than whatever survives from the top seven.
-  const matches = useMemo(() => suggestSearch(query, { kinds }), [query, kinds])
+  const matches = useMemo(() => suggestSearch(query, { kinds, locale }), [query, kinds, locale])
 
   // With nothing typed, the list shows where this reader went last time. It is the one
   // moment a search box can be useful before it has been used.

@@ -6,18 +6,24 @@ import { InfoHero } from '@/components/page/InfoHero'
 import { ReviewBand } from '@/components/service/ReviewBand'
 import { SectionNav } from '@/components/service/SectionNav'
 import { Band, DoctorList, RelatedGrid, SectionHeading } from '@/components/service/blocks'
-import { DOCTORS, registrationDisplay } from '@/lib/doctors'
+import { getDoctors, registrationDisplay } from '@/lib/doctors'
 import { googleListing } from '@/lib/google-listing'
 import { REVIEW_MODE } from '@/lib/review'
 import { aboutReviewSlots } from '@/lib/review-slots-pages'
 import { serviceHref, servicesByCategory } from '@/lib/services'
 import { translatedServiceName } from '@/lib/services-i18n'
-import { contact, fullAddress, primaryLocation, siteConfig } from '@/lib/site-config'
+import { contact, fullAddress } from '@/lib/site-config'
+import { localizedLocation, siteText } from '@/lib/site-i18n'
 import type { Locale } from '@/i18n/routing'
 
-export const metadata: Metadata = {
-  title: 'About LIMS',
-  description: siteConfig.description,
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'nav' })
+  return { title: t('aboutLims'), description: siteText(locale as Locale).description }
 }
 
 /*
@@ -45,6 +51,9 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
   const tContact = await getTranslations('contactPage')
   const tCard = await getTranslations('doctorCard')
   const locale = (await getLocale()) as Locale
+  const text = siteText(locale)
+  const location = localizedLocation(locale)
+  const DOCTORS = getDoctors(locale)
 
   const slots = REVIEW_MODE ? aboutReviewSlots() : []
 
@@ -104,8 +113,8 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         homeLabel={tCommon('home')}
         current={tNav('aboutLims')}
         eyebrow={t('eyebrow')}
-        title={siteConfig.name}
-        intro={siteConfig.description}
+        title={text.name}
+        intro={text.description}
         actions={
           <>
             <Link
@@ -150,7 +159,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                 <dt className="text-xs font-semibold uppercase tracking-wider text-brand-dark-base/50">
                   {t('labelAddress')}
                 </dt>
-                <dd className="mt-1 leading-relaxed text-brand-dark-base/80">{fullAddress()}</dd>
+                <dd className="mt-1 leading-relaxed text-brand-dark-base/80">{fullAddress(location)}</dd>
               </div>
               <div>
                 <dt className="text-xs font-semibold uppercase tracking-wider text-brand-dark-base/50">
@@ -169,7 +178,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                 <dt className="text-xs font-semibold uppercase tracking-wider text-brand-dark-base/50">
                   {t('labelTagline')}
                 </dt>
-                <dd className="mt-1 text-brand-dark-base/80">{siteConfig.tagline.join(' · ')}</dd>
+                <dd className="mt-1 text-brand-dark-base/80">{text.tagline.join(' · ')}</dd>
               </div>
             </dl>
           </aside>
@@ -249,7 +258,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             {t('valuesHeading')}
           </h2>
           <ul className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
-            {siteConfig.tagline.map((word, index) => (
+            {text.tagline.map((word, index) => (
               <li key={word} className="border-t border-white/25 pt-5">
                 <span className="text-sm font-semibold tabular-nums text-white/60">0{index + 1}</span>
                 <span className="mt-2 block font-serif text-4xl font-bold tracking-tight sm:text-5xl">
@@ -280,7 +289,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             </h2>
             <p className="mt-3 flex items-start gap-2 text-base leading-relaxed text-brand-dark-base/80">
               <PinIcon className="mt-1 h-4 w-4 shrink-0 text-brand-teal" />
-              <span>{fullAddress(primaryLocation)}</span>
+              <span>{fullAddress(location)}</span>
             </p>
             <p className="mt-3 text-sm leading-relaxed text-brand-dark-base/65">{t('findBody')}</p>
           </div>

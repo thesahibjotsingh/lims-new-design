@@ -30,6 +30,7 @@ const TABS = [
 export function MobileBottomNav() {
   const pathname = usePathname()
   const t = useTranslations('bottomNav')
+  const tA11y = useTranslations('a11y')
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center gap-2.5 pb-[env(safe-area-inset-bottom)] lg:hidden">
@@ -43,8 +44,13 @@ export function MobileBottomNav() {
         The pill's own max-width comes down from max-w-md to max-w-[19rem] to leave
         room for the circle beside it without either one crowding a 375px phone.
       */}
+      {/*
+        `data-bottom-pill` is how LanguageMenu finds this pill: its panel opens out of this
+        exact rectangle and closes back into it.
+      */}
       <nav
-        aria-label="Quick navigation"
+        data-bottom-pill=""
+        aria-label={tA11y('quickNav')}
         className="pointer-events-auto mb-4 flex w-full max-w-[19rem] items-center justify-around rounded-full border border-white/40 bg-white/75 px-2 py-1.5 shadow-glass backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-white/95 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
       >
         {TABS.map(({ labelKey, href, Icon, ...rest }) => {

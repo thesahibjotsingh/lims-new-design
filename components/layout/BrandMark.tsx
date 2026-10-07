@@ -17,8 +17,11 @@
 
 /* eslint-disable @next/next/no-img-element */
 
+import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
 import { siteConfig } from '@/lib/site-config'
+import { siteText } from '@/lib/site-i18n'
 
 export function BrandMark({
   size = 'default',
@@ -35,6 +38,10 @@ export function BrandMark({
    */
   tone?: 'light' | 'dark' | 'badge'
 }) {
+  // The name, city and tagline in the reader's language (lib/site-i18n.ts). "LIMS" stays as
+  // printed on the building.
+  const text = siteText(useLocale() as Locale)
+  const tA11y = useTranslations('a11y')
   const compact = size === 'compact'
   const badgeOnly = tone === 'badge'
   // Both sit on teal or near-black, so both take the badge artwork — the colour wordmark
@@ -47,7 +54,7 @@ export function BrandMark({
       // The aria-label names the link, so every child below is decorative — that is why
       // the marks carry alt="" and the visible wordmark is not announced twice.
       className={`press group flex items-center rounded-lg ${badgeOnly ? '' : 'pr-2'} ${onDark ? 'gap-2.5' : 'gap-4'}`}
-      aria-label={`${siteConfig.name}, ${siteConfig.city} — home`}
+      aria-label={tA11y('homeLink', { name: text.name, city: text.city })}
     >
       {onDark ? (
         <>
@@ -74,7 +81,7 @@ export function BrandMark({
                 compact ? 'text-lg' : 'text-2xl',
               ].join(' ')}
             >
-              {siteConfig.shortName} {siteConfig.city}
+              {siteConfig.shortName} {text.city}
             </span>
             {/*
               Hidden under 480px. The lockup, the emergency button and the menu all have
@@ -83,7 +90,7 @@ export function BrandMark({
               desktop header and the footer both carry it in full.
             */}
             <span className="mt-1 hidden whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.14em] text-white/70 min-[480px]:block">
-              {siteConfig.tagline.join(' · ')}
+              {text.tagline.join(' · ')}
             </span>
           </span>
           )}
@@ -111,10 +118,10 @@ export function BrandMark({
           */}
           <span className="hidden flex-col leading-tight xl:flex">
             <span className="text-[13px] font-bold uppercase tracking-[0.06em] text-brand-dark-base">
-              {siteConfig.name}, {siteConfig.city}
+              {text.name}, {text.city}
             </span>
             <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-copper">
-              {siteConfig.tagline.join(' · ')}
+              {text.tagline.join(' · ')}
             </span>
           </span>
         </>

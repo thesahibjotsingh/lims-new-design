@@ -5,10 +5,11 @@
 // and, on a wide screen, an aside card to the right. Built once so those pages read as one
 // site, and so none of them invents its own idea of how high a hero is.
 //
-// It takes already-translated strings and already-built actions/aside, so it reads no
-// message file and knows nothing about either page.
+// It takes already-translated strings and already-built actions/aside, so it knows nothing
+// about either page. The one string it supplies itself is the breadcrumb's accessible name.
 
 import type { CSSProperties, ReactNode } from 'react'
+import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 
 export function InfoHero({
@@ -37,10 +38,11 @@ export function InfoHero({
   /** Where the aside sits against the text: level with its bottom, or centred on it. */
   alignAside?: 'end' | 'center'
 }) {
+  const tA11y = useTranslations('a11y')
   return (
     <header className="bg-gradient-to-r from-brand-teal-dark to-brand-teal text-white">
       <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:py-12">
-        <nav aria-label="Breadcrumb">
+        <nav aria-label={tA11y('breadcrumb')}>
           <ol className="flex flex-wrap items-center gap-2 text-xs text-white/75">
             <li>
               <Link href="/" className="hover:text-white">

@@ -12,11 +12,26 @@ import { embedUrls, googleListing } from '@/lib/google-listing'
 import { REVIEW_MODE } from '@/lib/review'
 import { contactReviewSlots } from '@/lib/review-slots-pages'
 import { REVIEW_PREVIEW, SELECTED_REVIEWS } from '@/lib/reviews'
-import { contact, directionsUrl, fullAddress, primaryLocation, siteConfig } from '@/lib/site-config'
+import { contact, directionsUrl, fullAddress } from '@/lib/site-config'
+import { localizedLocation, siteText } from '@/lib/site-i18n'
+import type { Locale } from '@/i18n/routing'
 
-export const metadata: Metadata = {
-  title: 'Contact',
-  description: `Phone numbers, address and directions for ${siteConfig.name}, ${siteConfig.city}. ${fullAddress()}.`,
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'pageMeta' })
+  const text = siteText(locale as Locale)
+  return {
+    title: t('contactTitle'),
+    description: t('contactDescription', {
+      name: text.name,
+      city: text.city,
+      address: fullAddress(localizedLocation(locale as Locale)),
+    }),
+  }
 }
 
 /*
@@ -50,6 +65,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   const t = await getTranslations('contactPage')
   const tCommon = await getTranslations('common')
   const tNav = await getTranslations('nav')
+  const location = localizedLocation(locale as Locale)
 
   const slots = REVIEW_MODE ? contactReviewSlots() : []
 
@@ -188,15 +204,15 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
               </p>
               <address className="mt-5 text-lg not-italic leading-8 text-brand-dark-base/85">
                 <strong className="mb-1 block font-serif text-2xl font-bold text-brand-dark-base">
-                  {primaryLocation.name}
+                  {location.name}
                 </strong>
-                {primaryLocation.addressLines.map((line) => (
+                {location.addressLines.map((line) => (
                   <span key={line} className="block">
                     {line}
                   </span>
                 ))}
                 <span className="block">
-                  {primaryLocation.city}, {primaryLocation.state} {primaryLocation.pincode}
+                  {location.city}, {location.state} {location.pincode}
                 </span>
               </address>
 
@@ -220,7 +236,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                   {t('openInMaps')}
                 </a>
                 <CopyButton
-                  text={fullAddress()}
+                  text={fullAddress(location)}
                   label={t('copyAddress')}
                   copiedLabel={t('addressCopied')}
                   failedLabel={t('addressCopyFailed')}

@@ -20,8 +20,11 @@
 // Runs on the client (the suggestion box is a client component), so it holds no secrets
 // and does no I/O.
 
+import type { Locale } from '@/i18n/routing'
 import { DOCTORS } from '@/lib/doctors'
+import { localizeDoctor } from '@/lib/doctors-i18n'
 import { SERVICES, serviceHref, serviceName } from '@/lib/services'
+import { translatedServiceName } from '@/lib/services-i18n'
 
 export type SuggestionKind = 'doctor' | 'department' | 'page'
 
@@ -45,17 +48,22 @@ interface IndexEntry extends SearchSuggestion {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Lowercase, strip accents, and reduce anything that is not a letter or digit to a
- * space. "Café" and "cafe" become the same string, and so do "X-Ray", "x ray" and
- * "xray" once the tokens are joined — which matters here because patients type the
- * punctuation from a referral slip and the catalogue writes it differently.
+ * Lowercase, strip accents, and reduce anything that is not a letter, a combining mark
+ * or a digit to a space. "Café" and "cafe" become the same string, and so do "X-Ray",
+ * "x ray" and "xray" once the tokens are joined — which matters here because patients
+ * type the punctuation from a referral slip and the catalogue writes it differently.
+ *
+ * Letters of ANY script survive, not just a-z: Hindi (Devanagari) and Punjabi (Gurmukhi)
+ * words are kept whole, vowel signs and all (those are combining marks, hence \p{M}).
+ * Stripping everything outside a-z turned a Hindi query into an empty string, which is
+ * why the search box used to answer "nothing" to anything not typed in English.
  */
 function normalise(value: string): string {
   return value
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/[^\p{L}\p{M}\p{N}]+/gu, ' ')
     .trim()
 }
 
@@ -67,6 +75,8 @@ function normalise(value: string): string {
 const STOP_WORDS = new Set([
   'and', 'the', 'of', 'for', 'in', 'at', 'to', 'a', 'an', 'or', 'with', 'my', 'me',
   'i', 'is', 'are', 'do', 'does', 'need', 'want', 'looking', 'find', 'search', 'show',
+  // The same kind of filler in Hindi and Punjabi: "and", "of", "in".
+  'एवं', 'और', 'के', 'का', 'की', 'में', 'ਅਤੇ', 'ਦੇ', 'ਦਾ', 'ਦੀ', 'ਵਿੱਚ',
 ])
 
 /**
@@ -219,6 +229,152 @@ const SYNONYMS: Record<string, string[]> = {
   hospital: ['about', 'lims'],
 }
 
+/**
+ * The same idea in Hindi and Punjabi: the words a patient says out loud for a body part,
+ * a complaint or a service, mapped to the English tokens the index already knows. Kept to
+ * everyday words, not a medical dictionary, and (like the English list above) deliberately
+ * not a symptom checker: "पेट" leads to the gastroenterology department, not to a diagnosis.
+ * The keys are run through normalise() on the way in, so they match however the browser
+ * composes the characters.
+ */
+const LOCAL_SYNONYMS: Record<string, string[]> = {
+  // ---- Hindi ----
+  हड्डी: ['ortho', 'orthopedic', 'joint'],
+  जोड़: ['ortho', 'joint', 'orthopedic'],
+  जोड़ों: ['ortho', 'joint', 'orthopedic'],
+  घुटना: ['ortho', 'joint', 'orthopedic'],
+  घुटने: ['ortho', 'joint', 'orthopedic'],
+  कमर: ['spine'],
+  रीढ़: ['spine'],
+  दिल: ['echocardiogram', 'tmt', 'cardiac'],
+  दिमाग: ['neurosurgery', 'neuro'],
+  सिर: ['neurosurgery', 'neuro'],
+  आंख: ['ophthalmology'],
+  आंखों: ['ophthalmology'],
+  आँख: ['ophthalmology'],
+  आँखों: ['ophthalmology'],
+  कान: ['ent'],
+  नाक: ['ent'],
+  गला: ['ent'],
+  दांत: ['dentistry', 'dental'],
+  दाँत: ['dentistry', 'dental'],
+  पेट: ['gastroenterology', 'gastro'],
+  किडनी: ['urology'],
+  गुर्दा: ['urology'],
+  गुर्दे: ['urology'],
+  पथरी: ['urology'],
+  पेशाब: ['urology'],
+  गर्भावस्था: ['obstetrics', 'gynaecology'],
+  गर्भवती: ['obstetrics', 'gynaecology'],
+  प्रसव: ['obstetrics', 'gynaecology'],
+  डिलीवरी: ['obstetrics', 'gynaecology'],
+  महिला: ['gynaecology', 'obstetrics'],
+  स्त्री: ['gynaecology', 'obstetrics'],
+  बच्चा: ['paediatrics', 'pediatrics', 'neonatology'],
+  बच्चे: ['paediatrics', 'pediatrics', 'neonatology'],
+  बच्चों: ['paediatrics', 'pediatrics', 'neonatology'],
+  शिशु: ['neonatology', 'paediatrics'],
+  इमरजेंसी: ['emergency', 'ambulance', 'casualty'],
+  आपातकाल: ['emergency', 'ambulance', 'casualty'],
+  आपातकालीन: ['emergency', 'ambulance', 'casualty'],
+  एम्बुलेंस: ['ambulance', 'emergency'],
+  एंबुलेंस: ['ambulance', 'emergency'],
+  दुर्घटना: ['trauma', 'emergency'],
+  चोट: ['trauma', 'emergency'],
+  ऑपरेशन: ['surgery'],
+  सर्जरी: ['surgery'],
+  दर्द: ['anaesthesia', 'pain'],
+  खून: ['pathology', 'microbiology', 'lab'],
+  रक्त: ['pathology', 'microbiology', 'lab'],
+  जांच: ['pathology', 'radiology', 'packages'],
+  जाँच: ['pathology', 'radiology', 'packages'],
+  टेस्ट: ['pathology', 'radiology', 'packages'],
+  रिपोर्ट: ['pathology', 'radiology'],
+  एक्सरे: ['xray', 'x', 'ray', 'ct', 'radiology'],
+  स्कैन: ['ct', 'radiology', 'ultrasound', 'imaging'],
+  सोनोग्राफी: ['ultrasound'],
+  दवा: ['pharmacy'],
+  दवाई: ['pharmacy'],
+  दवाइयां: ['pharmacy'],
+  आहार: ['dietetics', 'nutrition'],
+  खाना: ['dietetics', 'nutrition'],
+  व्यायाम: ['physiotherapy', 'rehabilitation'],
+  डॉक्टर: ['doctor', 'consultant', 'physician'],
+  चिकित्सक: ['doctor', 'consultant', 'physician'],
+  अपॉइंटमेंट: ['appointment', 'booking'],
+  बुकिंग: ['appointment', 'booking'],
+  पता: ['contact', 'location', 'directions'],
+  नंबर: ['contact', 'call'],
+  फोन: ['contact', 'call'],
+  मिलने: ['visitors', 'visiting'],
+  मुलाकात: ['visitors', 'visiting'],
+  आगंतुक: ['visitors', 'visiting'],
+  अस्पताल: ['about', 'lims'],
+
+  // ---- Punjabi ----
+  ਹੱਡੀ: ['ortho', 'orthopedic', 'joint'],
+  ਹੱਡੀਆਂ: ['ortho', 'orthopedic', 'joint'],
+  ਜੋੜ: ['ortho', 'joint', 'orthopedic'],
+  ਗੋਡਾ: ['ortho', 'joint', 'orthopedic'],
+  ਗੋਡੇ: ['ortho', 'joint', 'orthopedic'],
+  ਪਿੱਠ: ['spine'],
+  ਰੀੜ੍ਹ: ['spine'],
+  ਦਿਲ: ['echocardiogram', 'tmt', 'cardiac'],
+  ਦਿਮਾਗ: ['neurosurgery', 'neuro'],
+  ਸਿਰ: ['neurosurgery', 'neuro'],
+  ਅੱਖ: ['ophthalmology'],
+  ਅੱਖਾਂ: ['ophthalmology'],
+  ਕੰਨ: ['ent'],
+  ਨੱਕ: ['ent'],
+  ਗਲਾ: ['ent'],
+  ਦੰਦ: ['dentistry', 'dental'],
+  ਦੰਦਾਂ: ['dentistry', 'dental'],
+  ਪੇਟ: ['gastroenterology', 'gastro'],
+  ਢਿੱਡ: ['gastroenterology', 'gastro'],
+  ਗੁਰਦਾ: ['urology'],
+  ਗੁਰਦੇ: ['urology'],
+  ਪਥਰੀ: ['urology'],
+  ਪਿਸ਼ਾਬ: ['urology'],
+  ਗਰਭ: ['obstetrics', 'gynaecology'],
+  ਗਰਭਵਤੀ: ['obstetrics', 'gynaecology'],
+  ਜਣੇਪਾ: ['obstetrics', 'gynaecology'],
+  ਡਿਲੀਵਰੀ: ['obstetrics', 'gynaecology'],
+  ਔਰਤ: ['gynaecology', 'obstetrics'],
+  ਇਸਤਰੀ: ['gynaecology', 'obstetrics'],
+  ਬੱਚਾ: ['paediatrics', 'pediatrics', 'neonatology'],
+  ਬੱਚੇ: ['paediatrics', 'pediatrics', 'neonatology'],
+  ਬੱਚਿਆਂ: ['paediatrics', 'pediatrics', 'neonatology'],
+  ਨਵਜੰਮੇ: ['neonatology', 'paediatrics'],
+  ਐਮਰਜੈਂਸੀ: ['emergency', 'ambulance', 'casualty'],
+  ਹੰਗਾਮੀ: ['emergency', 'ambulance', 'casualty'],
+  ਐਂਬੂਲੈਂਸ: ['ambulance', 'emergency'],
+  ਹਾਦਸਾ: ['trauma', 'emergency'],
+  ਸੱਟ: ['trauma', 'emergency'],
+  ਅਪਰੇਸ਼ਨ: ['surgery'],
+  ਸਰਜਰੀ: ['surgery'],
+  ਦਰਦ: ['anaesthesia', 'pain'],
+  ਖੂਨ: ['pathology', 'microbiology', 'lab'],
+  ਜਾਂਚ: ['pathology', 'radiology', 'packages'],
+  ਟੈਸਟ: ['pathology', 'radiology', 'packages'],
+  ਰਿਪੋਰਟ: ['pathology', 'radiology'],
+  ਐਕਸਰੇ: ['xray', 'x', 'ray', 'ct', 'radiology'],
+  ਸਕੈਨ: ['ct', 'radiology', 'ultrasound', 'imaging'],
+  ਦਵਾਈ: ['pharmacy'],
+  ਦਵਾਈਆਂ: ['pharmacy'],
+  ਖੁਰਾਕ: ['dietetics', 'nutrition'],
+  ਡਾਕਟਰ: ['doctor', 'consultant', 'physician'],
+  ਮੁਲਾਕਾਤ: ['appointment', 'booking'],
+  ਅਪਾਇੰਟਮੈਂਟ: ['appointment', 'booking'],
+  ਪਤਾ: ['contact', 'location', 'directions'],
+  ਨੰਬਰ: ['contact', 'call'],
+  ਫ਼ੋਨ: ['contact', 'call'],
+  ਹਸਪਤਾਲ: ['about', 'lims'],
+}
+
+for (const [word, targets] of Object.entries(LOCAL_SYNONYMS)) {
+  SYNONYMS[normalise(word)] = targets
+}
+
 /** Normalise, drop stop words, stem, then add synonym expansions. */
 function tokenise(value: string, expand = true): string[] {
   const base = normalise(value)
@@ -250,96 +406,158 @@ function tokenise(value: string, expand = true): string[] {
  * these the only honest answer would be no results. `keywords` carries the words a
  * person uses that do not appear in the page's own title.
  */
-const PAGES: { label: string; detail: string; href: string; keywords: string }[] = [
+interface PageEntry {
+  label: string
+  detail: string
+  href: string
+  keywords: string
+  /** The same label and detail in the other two languages. */
+  local: Record<Exclude<Locale, 'en'>, { label: string; detail: string }>
+}
+
+const PAGES: PageEntry[] = [
   {
     label: 'Book an appointment',
     detail: 'Request a consultation',
     href: '/appointments',
     keywords: 'book booking appointment opd consult request slot',
+    local: {
+      hi: { label: 'अपॉइंटमेंट बुक करें', detail: 'परामर्श के लिए अनुरोध करें' },
+      pa: { label: 'ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰੋ', detail: 'ਸਲਾਹ-ਮਸ਼ਵਰੇ ਲਈ ਬੇਨਤੀ ਕਰੋ' },
+    },
   },
   {
     label: 'Find a doctor',
     detail: 'The consultant roster',
     href: '/doctors',
     keywords: 'doctor consultant physician specialist roster directory',
+    local: {
+      hi: { label: 'डॉक्टर खोजें', detail: 'परामर्शदाताओं की सूची' },
+      pa: { label: 'ਡਾਕਟਰ ਲੱਭੋ', detail: 'ਸਲਾਹਕਾਰਾਂ ਦੀ ਸੂਚੀ' },
+    },
   },
   {
     label: 'Contact LIMS',
     detail: 'Phone numbers, address and directions',
     href: '/contact',
     keywords: 'contact phone number call address location directions map reach',
+    local: {
+      hi: { label: 'LIMS से संपर्क करें', detail: 'फ़ोन नंबर, पता और दिशा-निर्देश' },
+      pa: { label: 'LIMS ਨਾਲ ਸੰਪਰਕ ਕਰੋ', detail: 'ਫ਼ੋਨ ਨੰਬਰ, ਪਤਾ ਅਤੇ ਦਿਸ਼ਾ-ਨਿਰਦੇਸ਼' },
+    },
   },
   {
     label: 'Health library',
     detail: 'Clinically reviewed articles',
     href: '/health-library',
     keywords: 'library article information advice reading condition',
+    local: {
+      hi: { label: 'स्वास्थ्य पुस्तकालय', detail: 'चिकित्सकीय रूप से समीक्षित लेख' },
+      pa: { label: 'ਸਿਹਤ ਲਾਇਬ੍ਰੇਰੀ', detail: 'ਡਾਕਟਰੀ ਤੌਰ ’ਤੇ ਪਰਖੇ ਹੋਏ ਲੇਖ' },
+    },
   },
   {
     label: 'Patient care',
     detail: 'Services alongside treatment',
     href: '/patient-care',
     keywords: 'patient care support services',
+    local: {
+      hi: { label: 'रोगी देखभाल', detail: 'उपचार के साथ चलने वाली सेवाएं' },
+      pa: { label: 'ਮਰੀਜ਼ ਦੇਖਭਾਲ', detail: 'ਇਲਾਜ ਦੇ ਨਾਲ ਚੱਲਣ ਵਾਲੀਆਂ ਸੇਵਾਵਾਂ' },
+    },
   },
   {
     label: 'Visitor information',
     detail: 'Visiting hours and ward policy',
     href: '/patient-care/visitors',
     keywords: 'visitor visiting hours timing ward policy attendant admission',
+    local: {
+      hi: { label: 'आगंतुक जानकारी', detail: 'मिलने का समय और वार्ड नीति' },
+      pa: { label: 'ਮੁਲਾਕਾਤੀ ਜਾਣਕਾਰੀ', detail: 'ਮਿਲਣ ਦਾ ਸਮਾਂ ਅਤੇ ਵਾਰਡ ਨੀਤੀ' },
+    },
   },
   {
     label: 'About LIMS',
     detail: 'The hospital',
     href: '/about',
     keywords: 'about hospital lims lifeline institute who',
+    local: {
+      hi: { label: 'LIMS के बारे में', detail: 'अस्पताल' },
+      pa: { label: 'LIMS ਬਾਰੇ', detail: 'ਹਸਪਤਾਲ' },
+    },
   },
   {
     label: 'Patient portal',
     detail: 'Reports and records',
     href: '/portal',
     keywords: 'portal login report record result',
+    local: {
+      hi: { label: 'रोगी पोर्टल', detail: 'रिपोर्ट और रिकॉर्ड' },
+      pa: { label: 'ਮਰੀਜ਼ ਪੋਰਟਲ', detail: 'ਰਿਪੋਰਟਾਂ ਅਤੇ ਰਿਕਾਰਡ' },
+    },
   },
 ]
 
-function buildIndex(): IndexEntry[] {
-  const entries: Omit<IndexEntry, 'tokens' | 'normalisedLabel'>[] = [
-    ...DOCTORS.map((doctor) => ({
-      label: doctor.name,
-      detail: [doctor.qualifications, serviceName(doctor.departmentSlug)]
+/** "Also known as", the prefix on a department's alternative names. */
+const ALSO: Record<Locale, string> = { en: 'Also', hi: 'इन्हें भी', pa: 'ਇਹਨਾਂ ਨੂੰ ਵੀ' }
+
+/**
+ * One index per language. The SHOWN label and detail are in the reader's language; the
+ * MATCHING tokens are the English ones plus the reader's own, so a patient can type
+ * either "orthopaedics" or "ऑर्थो" and land on the same department, whichever page
+ * language they happen to be on.
+ */
+function buildIndex(locale: Locale): IndexEntry[] {
+  const entries: (Omit<IndexEntry, 'tokens' | 'normalisedLabel'> & { englishText: string })[] = [
+    ...DOCTORS.map((doctor) => {
+      const local = localizeDoctor(doctor, locale)
+      const english = [doctor.name, doctor.qualifications, serviceName(doctor.departmentSlug)]
         .filter(Boolean)
-        .join(' · '),
-      kind: 'doctor' as const,
-      href: `/doctors/${doctor.id}`,
-    })),
+        .join(' ')
+      return {
+        label: local.name,
+        detail: [local.qualifications, translatedServiceName(doctor.departmentSlug, locale)]
+          .filter(Boolean)
+          .join(' · '),
+        kind: 'doctor' as const,
+        href: `/doctors/${doctor.id}`,
+        englishText: english,
+      }
+    }),
     // Departments come from the catalogue, not the roster, so a speciality with no
     // published consultant still suggests — it lands on the department page, which says
     // so honestly, instead of on a blank result.
     ...SERVICES.map((service) => ({
-      label: service.name,
+      label: translatedServiceName(service.slug, locale),
       // The wording from a referral slip is what people type — "Obs and Gynae", not
       // "Obstetrics & Gynaecology" — so it is searchable and shown.
       detail: service.alsoKnownAs?.length
-        ? `Also: ${service.alsoKnownAs.join(', ')}`
+        ? `${ALSO[locale]}: ${service.alsoKnownAs.join(', ')}`
         : undefined,
       kind: 'department' as const,
       href: serviceHref(service),
+      englishText: `${service.name} ${(service.alsoKnownAs ?? []).join(' ')}`,
     })),
-    ...PAGES.map((page) => ({
-      label: page.label,
-      detail: page.detail,
-      kind: 'page' as const,
-      href: page.href,
-    })),
+    ...PAGES.map((page) => {
+      const text = locale === 'en' ? page : page.local[locale]
+      return {
+        label: text.label,
+        detail: text.detail,
+        kind: 'page' as const,
+        href: page.href,
+        englishText: `${page.label} ${page.detail}`,
+      }
+    }),
   ]
 
-  const extraKeywords = new Map(PAGES.map((page) => [page.href, page.keywords]))
+  const extraKeywords = new Map<string, string>(PAGES.map((page) => [page.href, page.keywords]))
   // A consultant should be findable by the words that describe their department, not
   // only by their own name: "bone doctor" has to reach Dr Harshal Godara.
   for (const doctor of DOCTORS) {
     extraKeywords.set(`/doctors/${doctor.id}`, 'doctor consultant physician')
   }
 
-  return entries.map((entry) => ({
+  return entries.map(({ englishText, ...entry }) => ({
     ...entry,
     normalisedLabel: normalise(entry.label),
     // EXPANSION IS OFF HERE — query side only.
@@ -354,14 +572,23 @@ function buildIndex(): IndexEntry[] {
     // "bone", that expands to "ortho", and the literal token in the index is hit.
     tokens: new Set(
       tokenise(
-        [entry.label, entry.detail ?? '', extraKeywords.get(entry.href) ?? ''].join(' '),
+        [
+          entry.label,
+          entry.detail ?? '',
+          englishText,
+          extraKeywords.get(entry.href) ?? '',
+        ].join(' '),
         false,
       ),
     ),
   }))
 }
 
-const INDEX = buildIndex()
+const INDEXES: Partial<Record<Locale, IndexEntry[]>> = {}
+
+function indexFor(locale: Locale): IndexEntry[] {
+  return (INDEXES[locale] ??= buildIndex(locale))
+}
 
 /* -------------------------------------------------------------------------- */
 /* Matching                                                                    */
@@ -430,7 +657,11 @@ function scoreToken(token: string, entry: IndexEntry): number {
  */
 export function suggestSearch(
   query: string,
-  { limit = 7, kinds }: { limit?: number; kinds?: SuggestionKind[] } = {},
+  {
+    limit = 7,
+    kinds,
+    locale = 'en',
+  }: { limit?: number; kinds?: SuggestionKind[]; locale?: Locale } = {},
 ): SearchSuggestion[] {
   const cleaned = normalise(query)
   if (cleaned.length < 2) return []
@@ -441,7 +672,7 @@ export function suggestSearch(
 
   const scored: { entry: IndexEntry; score: number }[] = []
 
-  for (const entry of INDEX) {
+  for (const entry of indexFor(locale)) {
     if (kinds && !kinds.includes(entry.kind)) continue
 
     // Score the words actually typed; the synonym expansions are a fallback that can
@@ -503,7 +734,7 @@ export function suggestSearch(
  * sends someone to the wrong speciality, and silence is recoverable where a confident
  * wrong answer is not.
  */
-export function didYouMean(query: string, limit = 3): SearchSuggestion[] {
+export function didYouMean(query: string, limit = 3, locale: Locale = 'en'): SearchSuggestion[] {
   if (normalise(query).length < 3) return []
-  return suggestSearch(query, { limit })
+  return suggestSearch(query, { limit, locale })
 }

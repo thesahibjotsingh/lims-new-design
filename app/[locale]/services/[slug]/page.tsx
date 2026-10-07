@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ServiceDetail } from '@/components/primitives/ServiceDetail'
+import type { Locale } from '@/i18n/routing'
 import { getService, servicesByCategory } from '@/lib/services'
+import { translatedServiceName } from '@/lib/services-i18n'
 
 /**
  * Resolve a slug, but only if it belongs to THIS category.
@@ -23,12 +25,12 @@ export function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ locale: string; slug: string }>
 }): Promise<Metadata> {
-  const { slug } = await params
+  const { locale, slug } = await params
   const service = resolve(slug)
   if (!service) return {}
-  return { title: service.name }
+  return { title: translatedServiceName(service.slug, locale as Locale) }
 }
 
 export default async function DiagnosticPage({

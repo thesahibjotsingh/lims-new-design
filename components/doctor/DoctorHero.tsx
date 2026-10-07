@@ -7,8 +7,8 @@
 // link, qualifications, locations, a booking panel beside it). The one difference is the
 // booking panel. Theirs is a live date picker over a real schedule. LIMS has published no
 // timetable, so a date picker here would be an invented availability. This is the shared
-// "Talk to us" card instead: both phone numbers and a link that opens the request form
-// with this consultant already chosen.
+// "Talk to us" card instead (both phone numbers), with a link under the chips that opens the
+// request form with this consultant already chosen.
 //
 // Every chip below is a field LIMS supplied. A missing field is a missing chip, never a
 // placeholder (lib/doctors.ts, rules 1 and 4).
@@ -36,6 +36,7 @@ export async function DoctorHero({
   const tCommon = await getTranslations('common')
   const tNav = await getTranslations('nav')
   const tService = await getTranslations('serviceDetail')
+  const tA11y = await getTranslations('a11y')
   const portrait = doctor.portrait
 
   const chipClass = 'rounded-full bg-white/12 px-4 py-2 text-sm font-semibold text-white'
@@ -43,7 +44,7 @@ export async function DoctorHero({
   return (
     <header className="bg-gradient-to-r from-brand-teal-dark to-brand-teal text-white">
       <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:py-12">
-        <nav aria-label="Breadcrumb">
+        <nav aria-label={tA11y('breadcrumb')}>
           <ol className="flex flex-wrap items-center gap-2 text-xs text-white/75">
             <li>
               <Link href="/" className="hover:text-white">
@@ -133,15 +134,22 @@ export async function DoctorHero({
                 </li>
               ) : null}
             </ul>
+
+            {/*
+              The booking link sits here, not in the "Talk to us" card, so the card is the same
+              height on every page. The accessible name still says which consultant the form
+              opens with.
+            */}
+            <Link
+              href={`/appointments?doctor=${doctor.id}`}
+              aria-label={t('requestWith', { name: doctor.name })}
+              className="tap-target mt-6 rounded-full border border-white/40 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+            >
+              {tCommon('requestAnAppointment')}
+            </Link>
           </div>
 
-          <ContactCard
-            heading={tService('talkToUs')}
-            tag={doctor.name}
-            requestHref={`/appointments?doctor=${doctor.id}`}
-            requestLabel={tCommon('requestAnAppointment')}
-            requestAriaLabel={t('requestWith', { name: doctor.name })}
-          />
+          <ContactCard heading={tService('talkToUs')} tag={doctor.name} />
         </div>
       </div>
     </header>

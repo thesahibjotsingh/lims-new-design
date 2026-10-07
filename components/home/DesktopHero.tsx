@@ -17,36 +17,44 @@
 // identical on both slides so it's pinned rather than duplicated), and the search
 // card.
 
+import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
 import { HeroSearchCard } from '@/components/home/HeroSearchCard'
 import { HeroSlideshow } from '@/components/home/HeroSlideshow'
 import { ArrowRightIcon, PhoneIcon } from '@/components/icons'
 import { heroBanner, heroBannerSecondary } from '@/lib/media'
-import { contact, shortAddress, siteConfig } from '@/lib/site-config'
+import { contact } from '@/lib/site-config'
+import { getDoctor } from '@/lib/doctors'
+import { siteText } from '@/lib/site-i18n'
 import { SERVICES, servicesByCategory } from '@/lib/services'
 
-export function DesktopHero() {
+export async function DesktopHero() {
+  const locale = (await getLocale()) as Locale
+  const t = await getTranslations('home')
+  const tA11y = await getTranslations('a11y')
+  const text = siteText(locale)
+  // Her name in the reader's script, from the same table the roster uses.
+  const doctorName = getDoctor('shweta-godara', locale)?.name ?? 'Dr. Shweta Godara'
   return (
     <HeroSlideshow
       firstBanner={heroBanner}
-      secondSlideBg={heroBannerSecondary}
+      secondSlideBg={{ ...heroBannerSecondary, alt: tA11y('portraitOf', { name: doctorName }) }}
       persistent={<HeroSearchCard />}
       copy={
         <>
           <p className="inline-flex items-center gap-2 text-xs font-semibold text-white/90">
             <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-400" />
-            {shortAddress}
+            {text.shortAddress}
           </p>
 
           <h1 className="font-serif text-5xl font-bold leading-[1.1] tracking-tight xl:text-6xl">
-            World class care,
+            {t('heroTitleLine1')}
             <br />
-            close to home.
+            {t('heroTitleLine2')}
           </h1>
 
-          <p className="max-w-xl text-lg leading-relaxed text-white/80">
-            {siteConfig.description}
-          </p>
+          <p className="max-w-xl text-lg leading-relaxed text-white/80">{text.description}</p>
         </>
       }
       secondSlideText={
@@ -68,22 +76,15 @@ export function DesktopHero() {
             actually is.
           */}
           <p className="text-lg font-bold leading-snug xl:text-2xl xl:leading-tight">
-            &ldquo;Every woman deserves compassionate, evidence-based care
-            through every stage of life. Our department is committed to
-            providing personalised care in Obstetrics and Gynaecology,
-            advanced Laparoscopic Surgery, and safe, ethical Aesthetic
-            &amp; Cosmetic Gynaecology, with dignity, privacy, and patient
-            wellbeing at the heart of every decision.&rdquo;
+            {t('quote')}
           </p>
           <div>
             <p className="font-serif text-2xl font-bold">
               <Link href="/doctors/shweta-godara" className="transition-colors hover:text-brand-mist">
-                Dr. Shweta Godara
+                {doctorName}
               </Link>
             </p>
-            <p className="mt-1 text-white/90">
-              Senior Consultant, Obstetrics &amp; Gynaecology
-            </p>
+            <p className="mt-1 text-white/90">{t('doctorRole')}</p>
           </div>
         </>
       }
@@ -95,7 +96,7 @@ export function DesktopHero() {
               href="/appointments"
               className="tap-target gap-2 rounded-full bg-white px-8 text-sm font-semibold text-brand-teal shadow-lg transition-colors hover:bg-brand-mist"
             >
-              Book an appointment
+              {t('bookAnAppointment')}
               <ArrowRightIcon className="h-4 w-4" strokeWidth={2.25} />
             </Link>
             <a
@@ -103,7 +104,7 @@ export function DesktopHero() {
               className="tap-target gap-2 rounded-full border border-white/40 px-8 text-sm font-semibold text-white transition-colors hover:border-white hover:bg-white/10"
             >
               <PhoneIcon className="h-4 w-4" />
-              Emergency: {contact.primaryDisplay}
+              {t('emergencyCall', { number: contact.primaryDisplay })}
             </a>
           </div>
 
@@ -113,12 +114,12 @@ export function DesktopHero() {
             satisfaction or volumes that LIMS has not published.
           */}
           <dl className="flex flex-wrap gap-x-8 gap-y-4 border-t border-white/15 pt-6">
-            <HeroStat value={servicesByCategory('clinical').length} label="Clinical departments" />
+            <HeroStat value={servicesByCategory('clinical').length} label={t('statClinical')} />
             <HeroStat
               value={servicesByCategory('diagnostics').length}
-              label="Diagnostics & imaging"
+              label={t('statDiagnostics')}
             />
-            <HeroStat value={SERVICES.length} label="Services on one campus" />
+            <HeroStat value={SERVICES.length} label={t('statServices')} />
           </dl>
         </div>
       }

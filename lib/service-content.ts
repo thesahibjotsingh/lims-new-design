@@ -19,8 +19,14 @@
 // is labelled as draft in review mode. A LIMS doctor must read and sign off each page
 // before the site goes live.
 //
-// STYLE. No em-dashes anywhere in this file, and answers stay short. English only for
-// now: Hindi and Punjabi versions of medical copy need a reviewer, not a machine pass.
+// STYLE. No em-dashes anywhere in this file, and answers stay short.
+//
+// HINDI AND PUNJABI. This file is the English source. The Hindi and Punjabi versions live in
+// lib/content-i18n/, mirroring this data by slug and by position (the nth item in Hindi is the
+// nth item here), so when you add, remove or reorder an item here, change the same item in
+// extras.hi.ts and extras.pa.ts, then run `node scripts/check-content-i18n.mjs`. The
+// translations are an unreviewed draft: a Hindi- or Punjabi-speaking LIMS doctor has to read
+// each page before launch, and the pages carry the auto-translated notice until then.
 
 import { SERVICES, getService } from '@/lib/services'
 

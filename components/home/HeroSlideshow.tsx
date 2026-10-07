@@ -37,6 +37,7 @@
 
 import { useId } from 'react'
 import type { ReactNode } from 'react'
+import { useTranslations } from 'next-intl'
 import { ArrowRightIcon } from '@/components/icons'
 import { useCarouselRotation } from '@/components/primitives/useCarouselRotation'
 import { CAROUSEL_TRANSITION_MS, carouselTextTransition } from '@/lib/carousel'
@@ -60,12 +61,13 @@ export function HeroSlideshow({
   persistent: ReactNode
 }) {
   const { active, goTo, goToRelative, pause, resume } = useCarouselRotation(2)
+  const tA11y = useTranslations('a11y')
   const labelId = useId()
 
   return (
     <section
       aria-roledescription="carousel"
-      aria-label="Home page highlights"
+      aria-label={tA11y('highlights')}
       onMouseEnter={pause}
       onMouseLeave={resume}
       className="relative isolate hidden h-[600px] overflow-hidden bg-brand-teal text-white lg:block xl:h-[640px]"
@@ -176,13 +178,13 @@ export function HeroSlideshow({
       </div>
 
       <p id={labelId} className="sr-only">
-        Slide {active + 1} of 2
+        {tA11y('slideOf', { n: active + 1, total: 2 })}
       </p>
 
       <button
         type="button"
         onClick={() => goToRelative(-1)}
-        aria-label="Previous slide"
+        aria-label={tA11y('prevSlide')}
         aria-describedby={labelId}
         className="press focus-ring-inverse absolute left-4 top-1/2 z-40 -translate-y-1/2 rounded-full bg-black/25 p-2.5 text-white backdrop-blur-sm transition-colors hover:bg-black/40"
       >
@@ -191,7 +193,7 @@ export function HeroSlideshow({
       <button
         type="button"
         onClick={() => goToRelative(1)}
-        aria-label="Next slide"
+        aria-label={tA11y('nextSlide')}
         aria-describedby={labelId}
         className="press focus-ring-inverse absolute right-4 top-1/2 z-40 -translate-y-1/2 rounded-full bg-black/25 p-2.5 text-white backdrop-blur-sm transition-colors hover:bg-black/40"
       >
@@ -205,7 +207,7 @@ export function HeroSlideshow({
             key={index}
             type="button"
             onClick={() => goTo(index)}
-            aria-label={`Go to slide ${index + 1}`}
+            aria-label={tA11y('goToSlide', { n: index + 1 })}
             aria-current={active === index}
             className={`press h-2 rounded-full transition-all ${
               active === index ? 'w-6 bg-white' : 'w-2 bg-white/50 hover:bg-white/75'

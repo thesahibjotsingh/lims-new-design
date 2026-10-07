@@ -5,49 +5,42 @@
 // says which page you are on. Shared by the department pages and the consultant profiles, so
 // the two read as one site and the numbers can never drift.
 //
-// WHY A STICKY NOTE. The card sits on every department and every doctor page, and a hospital
-// website's pages are close to identical in layout. The note ("For: Cardiology", "For: Dr.
-// Vikash Raj") is the one thing on the card that is specific to the page, and it lets the
-// booking link say a plain "Request an appointment" instead of repeating the name. The full
-// wording is kept as the link's accessible name (`requestAriaLabel`), so a screen reader still
-// hears which department or consultant the form will open with.
+// ONE SHAPE, EVERYWHERE. Every card has exactly the same rows (heading and note, the two
+// numbers, the address), so it is the same height on every page, and the sticky note is the
+// same size and in the same place. It used to carry a "Request an appointment" row on pages
+// that can be booked, which made those cards about 75px taller than the emergency one and left
+// a blank band above the title in their heroes. That link now lives in the hero's left column
+// (ServiceHero, DoctorHero), where it matches the Contact page's hero.
 //
-// It is the one place on a page that carries a booking link. The site header already has
-// a global "Book an appointment", so the page does not add a second filled button: the
-// link here is a quiet text link whose only job is to open the form with THIS department
-// or THIS consultant already chosen.
+// WHY A STICKY NOTE. A hospital website's pages are close to identical in layout. The note
+// ("For: Cardiology", "For: Dr. Vikash Raj") is the one thing on the card that is specific to
+// the page.
 //
 // The paper is decoration and is hidden from assistive tech (rings, back sheet, tape). The
 // colours are tokens: the note is `brand-sticky` on `brand-sticky-ink` (about 7:1), red stays
 // reserved for the emergency number.
 
-import { getTranslations } from 'next-intl/server'
-import { Link } from '@/i18n/navigation'
-import { ArrowRightIcon, PhoneIcon, PinIcon } from '@/components/icons'
-import { contact, primaryLocation, shortAddress } from '@/lib/site-config'
+import { getLocale, getTranslations } from 'next-intl/server'
+import type { Locale } from '@/i18n/routing'
+import { PhoneIcon, PinIcon } from '@/components/icons'
+import { contact } from '@/lib/site-config'
+import { siteText } from '@/lib/site-i18n'
 
 const RINGS = 10
 
 export async function ContactCard({
   heading,
   tag,
-  requestHref,
-  requestLabel,
-  requestAriaLabel,
   emergencyFirst = false,
 }: {
   heading: string
   /** The page this card is on: the department name or the consultant's name. */
   tag?: string
-  /** Omit both for services that are not booked ahead (emergency, ambulance, pharmacy). */
-  requestHref?: string
-  requestLabel?: string
-  /** The full wording, naming the department or consultant, for assistive tech. */
-  requestAriaLabel?: string
   /** Lead with the emergency number instead of the appointments one. */
   emergencyFirst?: boolean
 }) {
   const tContact = await getTranslations('contactPage')
+  const text = siteText((await getLocale()) as Locale)
 
   const rowClass = 'border-t border-brand-teal/20 py-2.5'
   const labelClass =
@@ -104,21 +97,33 @@ export async function ContactCard({
           The heading row has a floor of 2.5rem and the note a floor of 4.25rem, so the first
           ruled line sits at the same height, and the note crosses it by the same amount, on
           every page: a one-line name ("Pharmacy", "Dr. Shweta Godara") no longer shrinks the
-          note and lifts the line, and a page with no booking link no longer sits 4px lower
-          than one with it. Only a name that wraps to three lines grows the row.
+          note and lifts the line.
         */}
-        <div className="flex min-h-10 items-start justify-between gap-3">
-          <h2 className="font-serif text-2xl font-bold leading-tight">{heading}</h2>
+        <div className="flex min-h-10 items-start justify-between gap-1">
+          {/*
+            22px, so the longest translation ("ਸਾਡੇ ਨਾਲ ਗੱਲ ਕਰੋ", 168px) fits on one line beside the
+            note (180px of room at the card's 22rem width). At 24px it wrapped, and every Punjabi
+            card came out 20px taller than the English and Hindi ones. Under 400px the card is
+            narrower, so it drops to 18px (138px for the Punjabi) for the same reason.
+          */}
+          <h2 className="font-serif text-[1.375rem] font-bold leading-tight max-[399px]:text-lg">
+            {heading}
+          </h2>
 
           {tag && (
             // The negative right margin cancels the sheet's 1.5rem side padding and then hangs the
-            // note 0.75rem (1rem from `sm`) past the paper's edge, like a note stuck on the corner.
+            // note 1rem past the paper's edge, like a note stuck on the corner. That is inside the
+            // page's 1.25rem gutter, so it never adds a sideways scroll, even rotated.
             // The note is taller than the one-line heading, so it is also lifted 0.5rem (toward the
             // rings) and its bottom margin lets its lower edge lie over the first ruled line.
-            // Without both, a page with no booking link (emergency, pharmacy) had a ~45px empty
-            // patch under the heading. The overlap is capped at what clears the first label below
-            // (the dl's top margin plus the row's padding), so it never sits on text.
-            <p className="relative -mb-5 -mr-9 -mt-2 min-h-[4.25rem] w-36 shrink-0 rotate-3 break-words rounded-[2px] bg-brand-sticky px-2.5 pb-2 pt-1.5 text-sm font-medium leading-snug text-brand-sticky-ink shadow-sm sm:-mr-10">
+            // Without both there was a ~45px empty patch under the heading. The overlap is capped
+            // at what clears the first label below (the dl's top margin plus the row's padding),
+            // so it never sits on text.
+            //
+            // 10rem wide, so the longest department name ("General & Laparoscopic Surgery")
+            // breaks as "General &" / "Laparoscopic Surgery" (136px of text in 140px) instead of
+            // onto a third line, which made that one note 19px taller than every other.
+            <p className="relative -mb-5 -mr-10 -mt-2 min-h-[4.25rem] w-40 shrink-0 rotate-3 break-words rounded-[2px] bg-brand-sticky px-2.5 pb-2 pt-1.5 text-sm font-medium leading-snug text-brand-sticky-ink shadow-sm">
               {/* A strip of masking tape holding the note to the page. */}
               <span
                 aria-hidden="true"
@@ -132,29 +137,11 @@ export async function ContactCard({
           )}
         </div>
 
-        {requestHref && requestLabel && (
-          <div className={`mt-2 ${rowClass}`}>
-            <Link
-              href={requestHref}
-              aria-label={requestAriaLabel}
-              className="flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-brand-teal underline-offset-4 hover:underline"
-            >
-              {requestLabel}
-              <ArrowRightIcon className="h-4 w-4 shrink-0" />
-            </Link>
-          </div>
-        )}
-
         {/*
-          With no booking link the ruled line starts at the same 0.5rem as it does under the link
-          row, and the first number row takes the extra 0.25rem as padding, so the note keeps the
-          same clearance above the first label without moving the line.
+          The first number row takes 0.25rem of extra top padding so the note keeps the same
+          clearance above the first label while the ruled line stays where it is.
         */}
-        <dl
-          className={
-            requestHref && requestLabel ? '' : 'mt-2 [&>div:first-child]:pt-3.5'
-          }
-        >
+        <dl className="mt-2 [&>div:first-child]:pt-3.5">
           {emergencyFirst ? (
             <>
               {emergencyRow}
@@ -171,7 +158,7 @@ export async function ContactCard({
         <p className="flex items-start gap-2 border-t border-brand-teal/20 pt-2.5 text-sm leading-relaxed text-brand-dark-base/75">
           <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-teal" />
           <span>
-            {primaryLocation.name}, {shortAddress}
+            {text.locationName}, {text.shortAddress}
           </span>
         </p>
       </div>

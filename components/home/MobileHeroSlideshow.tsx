@@ -79,6 +79,7 @@
 
 import { useEffect, useId, useRef, useSyncExternalStore } from 'react'
 import type { CSSProperties, PointerEvent, ReactNode } from 'react'
+import { useTranslations } from 'next-intl'
 import { useCarouselRotation } from '@/components/primitives/useCarouselRotation'
 import { CAROUSEL_TRANSITION_MS, carouselTextTransition } from '@/lib/carousel'
 import type { ImageAsset } from '@/types'
@@ -172,6 +173,7 @@ export function MobileHeroSlideshow({
   secondText: ReactNode
 }) {
   const { active, goTo, goToRelative, pause, resume } = useCarouselRotation(2)
+  const tA11y = useTranslations('a11y')
   const labelId = useId()
   const dragStartX = useRef<number | null>(null)
   const reducedMotion = useSyncExternalStore(
@@ -246,7 +248,7 @@ export function MobileHeroSlideshow({
     <div
       role="region"
       aria-roledescription="carousel"
-      aria-label="Home page highlights"
+      aria-label={tA11y('highlights')}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
@@ -349,7 +351,7 @@ export function MobileHeroSlideshow({
       </div>
 
       <p id={labelId} className="sr-only" aria-live="polite">
-        Slide {active + 1} of 2
+        {tA11y('slideOf', { n: active + 1, total: 2 })}
       </p>
 
       {/* Two slides only, so this is a toggle rather than a generic dot rail. Top-left rather
@@ -373,7 +375,7 @@ export function MobileHeroSlideshow({
             // setPointerCapture on the container mid-tap, which can swallow the button's own
             // click.
             onPointerDown={(event) => event.stopPropagation()}
-            aria-label={`Go to slide ${index + 1}`}
+            aria-label={tA11y('goToSlide', { n: index + 1 })}
             aria-current={active === index}
             className="press -mx-1 -my-2 flex items-center justify-center px-1 py-2"
           >

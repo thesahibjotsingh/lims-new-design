@@ -17,12 +17,13 @@ import {
   Stepper,
   type Tone,
 } from '@/components/service/blocks'
-import { DOCTORS, getDoctor, registrationDisplay } from '@/lib/doctors'
+import { DOCTORS, getDoctor, getDoctors, registrationDisplay } from '@/lib/doctors'
 import { REVIEW_MODE } from '@/lib/review'
 import { doctorReviewSlots } from '@/lib/review-slots-doctors'
-import { serviceHrefBySlug, serviceName } from '@/lib/services'
+import { serviceHrefBySlug } from '@/lib/services'
 import { translatedServiceName } from '@/lib/services-i18n'
-import { contact, primaryLocation } from '@/lib/site-config'
+import { contact } from '@/lib/site-config'
+import { localizedLocation } from '@/lib/site-i18n'
 import { plain } from '@/lib/text'
 import type { Locale } from '@/i18n/routing'
 import type { Weekday } from '@/types'
@@ -34,14 +35,18 @@ export function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ locale: string; id: string }>
 }): Promise<Metadata> {
-  const { id } = await params
-  const doctor = getDoctor(id)
+  const { locale, id } = await params
+  const doctor = getDoctor(id, locale as Locale)
   if (!doctor) return {}
   return {
     title: doctor.name,
-    description: [doctor.qualifications, doctor.designation, serviceName(doctor.departmentSlug)]
+    description: [
+      doctor.qualifications,
+      doctor.designation,
+      translatedServiceName(doctor.departmentSlug, locale as Locale),
+    ]
       .filter((part): part is string => Boolean(part))
       .map((part) => plain(part))
       .join(', '),
@@ -101,10 +106,10 @@ export default async function DoctorProfilePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const doctor = getDoctor(id)
+  const locale = (await getLocale()) as Locale
+  const doctor = getDoctor(id, locale)
   if (!doctor) notFound()
 
-  const locale = (await getLocale()) as Locale
   const t = await getTranslations('doctorProfile')
   const tService = await getTranslations('serviceDetail')
   const tCommon = await getTranslations('common')
@@ -114,7 +119,7 @@ export default async function DoctorProfilePage({
   const number = contact.secondaryDisplay
   const departmentName = translatedServiceName(doctor.departmentSlug, locale)
   const departmentHref = serviceHrefBySlug(doctor.departmentSlug)
-  const colleagues = DOCTORS.filter((other) => other.id !== doctor.id)
+  const colleagues = getDoctors(locale).filter((other) => other.id !== doctor.id)
   const slots = REVIEW_MODE ? doctorReviewSlots(doctor) : []
 
   const sections: Section[] = []
@@ -215,7 +220,10 @@ export default async function DoctorProfilePage({
     const rows = doctor.opdSchedule.map((session) => ({
       day: weekdayName(locale, session.day),
       time: `${formatTime(locale, session.startTime)} - ${formatTime(locale, session.endTime)}`,
-      where: session.locationId === primaryLocation.id ? primaryLocation.name : session.locationId,
+      where:
+        session.locationId === localizedLocation(locale).id
+          ? localizedLocation(locale).name
+          : session.locationId,
       note: session.note,
     }))
     add('opd', 'opd', (tone) => (

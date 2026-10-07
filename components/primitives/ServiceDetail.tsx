@@ -44,10 +44,10 @@ import {
   type RelatedCard,
   type Tone,
 } from '@/components/service/blocks'
+import { localizedExtras, localizedService } from '@/lib/content-i18n'
 import { getDoctorsByDepartment, registrationDisplay } from '@/lib/doctors'
 import { REVIEW_MODE } from '@/lib/review'
 import { reviewSlotsFor, type SlotGroup } from '@/lib/review-slots'
-import { getExtras } from '@/lib/service-content'
 import { getCategory, getService, serviceHref, servicesByCategory } from '@/lib/services'
 import type { ClinicalService } from '@/lib/services'
 import {
@@ -87,19 +87,22 @@ interface Section {
   render: (tone: Tone) => ReactNode
 }
 
-export async function ServiceDetail({ service }: { service: ClinicalService }) {
+export async function ServiceDetail({ service: englishService }: { service: ClinicalService }) {
   const locale = (await getLocale()) as Locale
   const t = await getTranslations('serviceDetail')
   const tCard = await getTranslations('doctorCard')
 
-  const extras = getExtras(service.slug)
+  // Overview, conditions, treatments and every list on the page in the reader's language
+  // (lib/content-i18n). Anything not translated falls back to the English record.
+  const service = localizedService(englishService, locale)
+  const extras = localizedExtras(service.slug, locale)
   if (!extras) throw new Error(`No extras for service "${service.slug}" (lib/service-content.ts)`)
 
   const kind = service.category
   const category = getCategory(kind)
   const name = translatedServiceName(service.slug, locale)
   const categoryName = translatedCategoryName(kind, locale)
-  const doctors = kind === 'clinical' ? getDoctorsByDepartment(service.slug) : []
+  const doctors = kind === 'clinical' ? getDoctorsByDepartment(service.slug, locale) : []
   const noAppointment = Boolean(extras.noAppointment)
   const slots = REVIEW_MODE ? reviewSlotsFor(service) : []
   const number = contact.secondaryDisplay

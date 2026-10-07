@@ -6,6 +6,7 @@
   },
   "languageSwitcher": {
     "label": "Language",
+    "close": "Close",
     "en": "English",
     "hi": "हिंदी",
     "pa": "ਪੰਜਾਬੀ"
@@ -25,7 +26,8 @@
     "locationsDirections": "Locations & directions",
     "bookAppointment": "Book an appointment",
     "visitorInformation": "Visitor information",
-    "patientPortal": "Patient portal"
+    "patientPortal": "Patient portal",
+    "allContactDetails": "All contact details"
   },
   "bottomNav": {
     "home": "Home",
@@ -46,7 +48,14 @@
     "aDepartment": "A department",
     "findCareHeading": "Find care at LIMS",
     "conditionLabel": "Condition, speciality or doctor name",
-    "searchLims": "Search LIMS"
+    "searchLims": "Search LIMS",
+    "whatLooking": "What are you looking for?",
+    "conditionShort": "Condition, speciality or doctor",
+    "goToDepartment": "Go straight to a department",
+    "orGoToService": "Or go straight to a service…",
+    "prefix": "Search for ",
+    "pagesPlaceholder": "Search doctors, departments and pages",
+    "recentSearchesShort": "Recent searches"
   },
   "menu": {
     "openLabel": "Open navigation menu",
@@ -76,11 +85,22 @@
     "meetConsultants": "Meet our consultants",
     "doctorsAtLims": "Doctors at LIMS",
     "viewFullRoster": "View the full roster",
-    "rosterNote": "Consultant profiles are published as LIMS supplies them. For a department not listed here, please contact the hospital.",
+    "rosterNote": "Consultant profiles are published as LIMS supplies them. For a department not listed here, please <contact>contact the hospital</contact>.",
     "contactTheHospital": "contact the hospital",
     "everythingElse": "Everything else",
     "restOfSite": "The rest of the site",
-    "restOfSiteIntro": "Departments, diagnostics, patient services and the consultant roster are above. These are the remaining sections in the main menu."
+    "restOfSiteIntro": "Departments, diagnostics, patient services and the consultant roster are above. These are the remaining sections in the main menu.",
+    "quote": "“Every woman deserves compassionate, evidence-based care through every stage of life. Our department is committed to providing personalised care in Obstetrics and Gynaecology, advanced Laparoscopic Surgery, and safe, ethical Aesthetic & Cosmetic Gynaecology, with dignity, privacy, and patient wellbeing at the heart of every decision.”",
+    "doctorRole": "Senior Consultant, Obstetrics & Gynaecology",
+    "statClinical": "Clinical departments",
+    "statDiagnostics": "Diagnostics & imaging",
+    "statServices": "Services on one campus",
+    "contactDesc": "{address}. Emergency {number}.",
+    "healthLibraryDesc": "Clinically reviewed articles on conditions, procedures and recovery.",
+    "awaitingReview": "Awaiting clinician review",
+    "viewMoreSections": "View more sections",
+    "heroAlt": "Clinical team conferring in a hospital corridor",
+    "marqueeLabel": "Services available at LIMS Hisar"
   },
   "common": {
     "call": "Call {number}",
@@ -461,5 +481,52 @@
       "tooFar": "Choose a date within the next {days} days.",
       "mustAccept": "Please accept the terms to continue."
     }
+  },
+  "a11y": {
+    "skipToContent": "Skip to main content",
+    "homeLink": "{name}, {city} — home",
+    "primaryNav": "Primary",
+    "menuFor": "{label} menu",
+    "breadcrumb": "Breadcrumb",
+    "quickNav": "Quick navigation",
+    "quickActions": "Quick actions",
+    "highlights": "Home page highlights",
+    "prevSlide": "Previous slide",
+    "nextSlide": "Next slide",
+    "goToSlide": "Go to slide {n}",
+    "searchSite": "Search doctors, departments and pages",
+    "closeSearch": "Close search",
+    "searchTitle": "Search",
+    "navigation": "Navigation",
+    "allSections": "All sections",
+    "portraitOf": "Portrait of {name}",
+    "slideOf": "Slide {n} of {total}"
+  },
+  "pageMeta": {
+    "contactTitle": "Contact",
+    "contactDescription": "Phone numbers, address and directions for {name}, {city}. {address}.",
+    "doctorsDescription": "The consultant roster at LIMS Hisar, searchable by name, speciality or department.",
+    "healthLibraryDescription": "Patient health information from LIMS Hisar.",
+    "visitorsDescription": "Visiting hours, ward access and what to bring, at LIMS Hisar."
+  },
+  "healthLibraryPage": {
+    "eyebrow": "Patient information",
+    "title": "Health library",
+    "intro": "Clinically reviewed articles on conditions, procedures and recovery.",
+    "awaitingWhat": "Articles",
+    "awaitingBody": "Health information is published only once a LIMS clinician has written or reviewed it. Nothing is published here yet. For advice about your own health, please speak to a doctor rather than relying on a web page."
+  },
+  "portalPage": {
+    "eyebrow": "Patient portal",
+    "title": "Reports and records",
+    "intro": "Access to diagnostic reports and visit records.",
+    "awaitingWhat": "The portal is not live yet",
+    "awaitingBody": "Online access to reports is planned but not available. Reports are collected from the hospital or sent by the department that carried out the test."
+  },
+  "notFound": {
+    "title": "We could not find that page",
+    "intro": "The page may have moved, or the link may be out of date.",
+    "rosterLine": "The consultant roster.",
+    "backHome": "Back to home"
   }
 }

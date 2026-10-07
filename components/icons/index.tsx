@@ -103,6 +103,24 @@ export function CloseIcon(props: IconProps) {
   )
 }
 
+export function GlobeIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18" />
+      <path d="M12 3a14 14 0 010 18 14 14 0 010-18z" />
+    </Base>
+  )
+}
+
+export function CheckIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M5 12.5l4.5 4.5L19 7.5" />
+    </Base>
+  )
+}
+
 export function HomeIcon(props: IconProps) {
   return (
     <Base {...props}>

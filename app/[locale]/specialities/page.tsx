@@ -1,10 +1,18 @@
 import type { Metadata } from 'next'
 import { CategoryIndex } from '@/components/primitives/CategoryIndex'
-import { getCategory } from '@/lib/services'
+import type { Locale } from '@/i18n/routing'
+import { translatedCategoryBlurb, translatedCategoryTitle } from '@/lib/services-i18n'
 
-export const metadata: Metadata = {
-  title: getCategory('clinical').pageTitle,
-  description: getCategory('clinical').blurb,
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  return {
+    title: translatedCategoryTitle('clinical', locale as Locale),
+    description: translatedCategoryBlurb('clinical', locale as Locale),
+  }
 }
 
 // Next 15: searchParams is a Promise in page components.

@@ -16,28 +16,45 @@
 // Server component. The client leaves are MobileHeroSlideshow (crossfade + rotation)
 // and TypewriterSearchBar — the tiles are plain links, so they cost no JavaScript.
 
+import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
 import { MobileHeroSlideshow } from '@/components/home/MobileHeroSlideshow'
 import { TypewriterSearchBar } from '@/components/home/TypewriterSearchBar'
 import { heroBannerSecondary, heroImageMobile } from '@/lib/media'
-import { mobileQuickActions, shortAddress, siteConfig } from '@/lib/site-config'
+import { getDoctor } from '@/lib/doctors'
+import { mobileQuickActions } from '@/lib/site-config'
+import { siteText } from '@/lib/site-i18n'
 
-export function MobileHero() {
+export async function MobileHero() {
+  const locale = (await getLocale()) as Locale
+  const t = await getTranslations('home')
+  const tNav = await getTranslations('nav')
+  const tA11y = await getTranslations('a11y')
+  const text = siteText(locale)
+  const doctorName = getDoctor('shweta-godara', locale)?.name ?? 'Dr. Shweta Godara'
+  // The tiles' labels are keyed by where they go, so they follow the language without the
+  // English list in lib/site-config.ts having to know about it.
+  const quickLabels: Record<string, string> = {
+    '/appointments': t('bookAppointment'),
+    '/doctors': t('findADoctor'),
+    '/contact#locations': tNav('locationsDirections'),
+  }
   return (
     <section className="lg:hidden">
       <div className="relative">
         <MobileHeroSlideshow
-          firstBanner={heroImageMobile}
-          secondBanner={heroBannerSecondary}
+          firstBanner={{ ...heroImageMobile, alt: t('heroAlt') }}
+          secondBanner={{ ...heroBannerSecondary, alt: tA11y('portraitOf', { name: doctorName }) }}
           firstText={
             <>
               <h1 className="font-serif text-3xl font-bold leading-tight tracking-tight text-white">
-                World class care,
+                {t('heroTitleLine1')}
                 <br />
-                close to home.
+                {t('heroTitleLine2')}
               </h1>
               <p className="mt-1.5 text-xs font-medium text-white/75">
-                {shortAddress}
+                {text.shortAddress}
               </p>
             </>
           }
@@ -64,21 +81,15 @@ export function MobileHero() {
                 answer to "who said this", not just more text in the same block.
               */}
               <p className="text-[10px] font-normal leading-snug text-white/90">
-                &ldquo;Every woman deserves compassionate, evidence-based
-                care through every stage of life. Our department is
-                committed to providing personalised care in Obstetrics and
-                Gynaecology, advanced Laparoscopic Surgery, and safe,
-                ethical Aesthetic &amp; Cosmetic Gynaecology, with dignity,
-                privacy, and patient wellbeing at the heart of every
-                decision.&rdquo;
+                {t('quote')}
               </p>
               <p className="mt-2 font-serif text-sm font-bold leading-tight text-white">
                 <Link href="/doctors/shweta-godara" className="transition-colors hover:text-white/80">
-                  Dr. Shweta Godara
+                  {doctorName}
                 </Link>
               </p>
               <p className="text-[10px] font-medium leading-snug text-white/70">
-                Senior Consultant, Obstetrics &amp; Gynaecology
+                {t('doctorRole')}
               </p>
             </>
           }
@@ -91,7 +102,7 @@ export function MobileHero() {
       </div>
 
       {/* Three across. The tile is the tap target, not the icon inside it. */}
-      <nav aria-label="Quick actions" className="px-4 pt-4">
+      <nav aria-label={tA11y('quickActions')} className="px-4 pt-4">
         <ul className="grid grid-cols-3 gap-2.5">
           {mobileQuickActions.map((action) => (
             <li key={action.href}>
@@ -109,7 +120,7 @@ export function MobileHero() {
                   className="h-10 w-10 object-contain"
                 />
                 <span className="text-[11px] font-semibold leading-tight text-brand-dark-base">
-                  {action.label}
+                  {quickLabels[action.href] ?? action.label}
                 </span>
               </Link>
             </li>
@@ -118,7 +129,7 @@ export function MobileHero() {
       </nav>
 
       <p className="px-4 pt-5 text-sm leading-relaxed text-brand-dark-base/70">
-        {siteConfig.description}
+        {text.description}
       </p>
     </section>
   )

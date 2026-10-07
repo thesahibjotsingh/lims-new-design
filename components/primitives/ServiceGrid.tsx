@@ -4,9 +4,11 @@
 // Every href resolves through serviceHref(), so a service that moves category moves its
 // tile and its URL together.
 
-import { getTranslations } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
 import { serviceHref } from '@/lib/services'
+import { translatedServiceName } from '@/lib/services-i18n'
 import { ArrowRightIcon } from '@/components/icons'
 import { ServiceIcon } from '@/components/primitives/ServiceIcon'
 import { RevealMore } from '@/components/primitives/RevealMore'
@@ -29,6 +31,7 @@ export async function ServiceGrid({
   mobileLimit?: number
 }) {
   const t = await getTranslations('serviceGrid')
+  const locale = (await getLocale()) as Locale
   const tiles = services.map((service) => (
     <li key={service.slug}>
       <Link
@@ -39,7 +42,7 @@ export async function ServiceGrid({
 
         <span className="min-w-0 flex-1">
           <span className="block font-serif text-base font-bold leading-snug text-brand-dark-base group-hover:text-brand-teal">
-            {service.name}
+            {translatedServiceName(service.slug, locale)}
           </span>
           {/*
             `alsoKnownAs` is the wording a patient was given on a referral slip.

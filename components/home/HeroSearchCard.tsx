@@ -14,15 +14,18 @@
 // clears 4.5:1 no matter which part of the photograph ends up behind it.
 
 import { useCallback, useRef, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
+import type { Locale } from '@/i18n/routing'
 import { SearchIcon } from '@/components/icons'
+import { translatedCategoryName, translatedServiceName } from '@/lib/services-i18n'
 import {
   SuggestionList,
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
-import { DEPARTMENT_SEARCH_PHRASES, DOCTOR_SEARCH_PHRASES } from '@/components/search/searchPhrases'
+import { searchPhrases } from '@/components/search/searchPhrases'
 import type { SuggestionKind } from '@/lib/search'
 
 /**
@@ -50,6 +53,8 @@ type Target = 'doctors' | 'departments'
 
 export function HeroSearchCard() {
   const router = useRouter()
+  const locale = useLocale() as Locale
+  const t = useTranslations('search')
   const [target, setTarget] = useState<Target>('doctors')
   const [query, setQuery] = useState('')
   // Holds the service's full href, not its slug. The three categories live under three
@@ -103,17 +108,17 @@ export function HeroSearchCard() {
       className="w-full max-w-sm space-y-3 rounded-2xl border border-white/25 bg-brand-dark-base/45 p-5 text-left shadow-glass backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-brand-dark-base/95 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
     >
       <h2 id="hero-search-heading" className="text-sm font-semibold text-white">
-        Find care at LIMS
+        {t('findCareHeading')}
       </h2>
 
       {/* Target toggle — a radiogroup, not two buttons, so arrow keys work. */}
       <fieldset>
-        <legend className="sr-only">What are you looking for?</legend>
+        <legend className="sr-only">{t('whatLooking')}</legend>
         <div className="flex gap-1 rounded-xl bg-white/10 p-1">
           {(
             [
-              ['doctors', 'A doctor'],
-              ['departments', 'A department'],
+              ['doctors', t('aDoctor')],
+              ['departments', t('aDepartment')],
             ] as const
           ).map(([value, label]) => (
             <label
@@ -141,7 +146,7 @@ export function HeroSearchCard() {
 
       <div ref={rootRef} className="relative">
         <label htmlFor="hero-query" className="sr-only">
-          Condition, speciality or doctor name
+          {t('conditionLabel')}
         </label>
         <div className="relative">
           <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-dark-base/45" />
@@ -179,7 +184,11 @@ export function HeroSearchCard() {
           */}
           {query.length === 0 && (
             <TypewriterPlaceholder
-              phrases={target === 'doctors' ? DOCTOR_SEARCH_PHRASES : DEPARTMENT_SEARCH_PHRASES}
+              phrases={
+                target === 'doctors'
+                  ? searchPhrases(locale).doctor
+                  : searchPhrases(locale).department
+              }
               // Stops the moment the field is focused or has content — the animation
               // is a placeholder, never a value, so it must never be mistaken for
               // text already typed.
@@ -197,9 +206,7 @@ export function HeroSearchCard() {
                 reduced motion.
               */
               fallback={
-                <span className="hidden motion-reduce:inline">
-                  Condition, speciality or doctor
-                </span>
+                <span className="hidden motion-reduce:inline">{t('conditionShort')}</span>
               }
               className="pointer-events-none absolute left-9 right-0 top-1/2 -translate-y-1/2 truncate pr-3 text-sm text-brand-dark-base/45"
             />
@@ -220,7 +227,7 @@ export function HeroSearchCard() {
 
       <div>
         <label htmlFor="hero-department" className="sr-only">
-          Go straight to a department
+          {t('goToDepartment')}
         </label>
         <select
           id="hero-department"
@@ -228,12 +235,12 @@ export function HeroSearchCard() {
           onChange={(event) => setDepartmentHref(event.target.value)}
           className="min-h-[44px] w-full rounded-xl bg-white/95 px-3 text-sm text-brand-dark-base shadow-inner focus:bg-white"
         >
-          <option value="">Or go straight to a service…</option>
+          <option value="">{t('orGoToService')}</option>
           {SERVICE_CATEGORIES.map((category) => (
-            <optgroup key={category.id} label={category.name}>
+            <optgroup key={category.id} label={translatedCategoryName(category.id, locale)}>
               {servicesByCategory(category.id).map((service) => (
                 <option key={service.slug} value={serviceHref(service)}>
-                  {service.name}
+                  {translatedServiceName(service.slug, locale)}
                 </option>
               ))}
             </optgroup>
@@ -246,7 +253,7 @@ export function HeroSearchCard() {
         className="tap-target focus-ring-inverse w-full gap-2 rounded-xl bg-brand-copper px-6 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-brand-copper-hover"
       >
         <SearchIcon className="h-4 w-4" strokeWidth={2.25} />
-        Search
+        {t('searchButton')}
       </button>
     </form>
   )
