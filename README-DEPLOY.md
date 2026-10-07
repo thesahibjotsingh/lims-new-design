@@ -87,6 +87,42 @@ repository:
 npx wrangler secret put APPOINTMENT_WEBHOOK_URL
 ```
 
+## If the live site shows "Error 1102: Worker exceeded resource limits"
+
+That is Cloudflare telling you a request used more CPU than the plan allows. The **Free**
+plan allows 10 ms of CPU per request. It tolerates overruns most of the time and throws 1102
+on the bad ones: typically the first requests after a deploy, when a fresh Worker has to load
+the whole Next.js server (measured at up to ~750 ms of CPU on a cold start).
+
+Measured on 2026-10-07 with `npx wrangler tail <worker> --format json` (every event carries
+`cpuTime` and `outcome`; `exceededCpu` is the bad one): the live Worker was spending a median
+of 88 ms of CPU per page.
+
+**Why it was that high, and what was done.** The adapter's default page cache is `dummy`, so
+Next had nowhere to read its pre-built pages from and re-rendered every "static" page on every
+request. Two things were needed:
+
+1. `open-next.config.ts` uses `staticAssetsIncrementalCache`, which serves pre-built pages out
+   of the Worker's static assets.
+2. That cache is only filled by `opennextjs-cloudflare populateCache`, which the adapter runs
+   only inside its own `deploy` command. This project deploys with `build` then plain
+   `wrangler deploy`, so `wrangler.jsonc` runs it as `build.command` just before upload.
+3. Every page that should be pre-built must call `setRequestLocale(locale)` itself (see the
+   note in `app/[locale]/layout.tsx`). Without it a page that reads the locale renders on
+   demand, whatever the layout does. Check with `.next/prerender-manifest.json`: `/en`,
+   `/en/contact` and `/en/about` should be listed under `routes`.
+
+Pages that read `?q=` or `?doctor=` (the doctor directory, appointments, the three index
+pages) are dynamic on purpose and still render per request.
+
+Measured locally in the Worker runtime, warm, before then after: home 79 to 46 ms, About 94 to
+39, department page 94 to 39, Hindi home 53 to 20, doctor profile 71 to 34.
+
+**It is not a guarantee on the Free plan.** Steady-state cost is now much lower, but a cold
+start is a fixed cost of loading the server and can still exceed 10 ms. The reliable fix is
+the Workers Paid plan (about $5 a month): CPU limit 30 s per request instead of 10 ms, and no
+100,000 requests a day cap. Worth doing before the real domain goes live.
+
 ## Review mode (walking the service pages through with LIMS staff)
 
 Every department, test and support-service page has dashed amber "Needs LIMS input" boxes

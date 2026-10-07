@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { setRequestLocale } from 'next-intl/server'
 import { AwaitingContent, PageHeader, Section } from '@/components/primitives/PageShell'
 
 export const metadata: Metadata = {
@@ -14,7 +15,11 @@ export const metadata: Metadata = {
  * signed off by a clinician. The route exists so the nav resolves; nothing goes on it
  * until LIMS supplies reviewed copy.
  */
-export default function HealthLibraryPage() {
+export default async function HealthLibraryPage({ params }: { params: Promise<{ locale: string }> }) {
+  // Static rendering needs the locale set here too, not only in the layout. See the note in
+  // app/[locale]/layout.tsx.
+  const { locale } = await params
+  setRequestLocale(locale)
   return (
     <>
       <PageHeader

@@ -96,6 +96,16 @@ export default async function LocaleLayout({
   // Static rendering for this request — without it every page under
   // app/[locale]/ falls back to dynamic rendering, since Next has no other
   // way to know the locale segment is safe to render at build time.
+  //
+  // THIS CALL ALONE IS NOT ENOUGH, and finding that out was expensive. A layout and the page
+  // inside it render in parallel, so a page that reads the locale (any getTranslations,
+  // getLocale or a component that does) can run BEFORE this line. next-intl then falls back
+  // to reading the request headers, which makes that page render on demand on every visit.
+  // So every page under app/[locale]/ that is meant to be prerendered must call
+  // setRequestLocale(locale) itself, first. On the Cloudflare Worker an on-demand page cost
+  // about 100 ms of CPU against the Free plan's 10 ms, and the site returned error 1102.
+  // The pages that read ?q= or ?doctor= (doctor directory, appointments, the three index
+  // pages) are dynamic on purpose and are exempt.
   setRequestLocale(locale)
 
   const messages = await getMessages()

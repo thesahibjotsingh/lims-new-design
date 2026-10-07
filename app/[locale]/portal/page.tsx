@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { setRequestLocale } from 'next-intl/server'
 import { AwaitingContent, PageHeader, Section } from '@/components/primitives/PageShell'
 import { DocumentIcon } from '@/components/icons'
 
@@ -9,7 +10,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-export default function PortalPage() {
+export default async function PortalPage({ params }: { params: Promise<{ locale: string }> }) {
+  // Static rendering needs the locale set here too, not only in the layout. See the note in
+  // app/[locale]/layout.tsx.
+  const { locale } = await params
+  setRequestLocale(locale)
   return (
     <>
       <PageHeader

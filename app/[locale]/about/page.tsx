@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getLocale, getTranslations } from 'next-intl/server'
+import { getLocale, getTranslations, setRequestLocale } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { ArrowRightIcon, PinIcon } from '@/components/icons'
 import { InfoHero } from '@/components/page/InfoHero'
@@ -34,7 +34,11 @@ export const metadata: Metadata = {
  * checkable (where it is, what departments exist, which doctors, how to reach them) rather
  * than with adjectives.
  */
-export default async function AboutPage() {
+export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
+  // Static rendering needs the locale set here too, not only in the layout. See the note in
+  // app/[locale]/layout.tsx.
+  const { locale: routeLocale } = await params
+  setRequestLocale(routeLocale)
   const t = await getTranslations('aboutPage')
   const tCommon = await getTranslations('common')
   const tNav = await getTranslations('nav')

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { AwaitingContent, PageHeader, Section } from '@/components/primitives/PageShell'
 import { PhoneIcon, PinIcon } from '@/components/icons'
@@ -10,7 +10,11 @@ export const metadata: Metadata = {
   description: 'Visiting hours, ward access and what to bring, at LIMS Hisar.',
 }
 
-export default async function VisitorsPage() {
+export default async function VisitorsPage({ params }: { params: Promise<{ locale: string }> }) {
+  // Static rendering needs the locale set here too, not only in the layout. See the note in
+  // app/[locale]/layout.tsx.
+  const { locale } = await params
+  setRequestLocale(locale)
   const t = await getTranslations('visitorsPage')
   return (
     <>

@@ -1,3 +1,4 @@
+import { setRequestLocale } from 'next-intl/server'
 import { DesktopHero } from '@/components/home/DesktopHero'
 import { MobileHero } from '@/components/home/MobileHero'
 import { MarqueeRibbon } from '@/components/home/MarqueeRibbon'
@@ -18,7 +19,11 @@ import { SiteIndex } from '@/components/home/SiteIndex'
  * each hero requests its own size and `sizes="(max-width: 1024px) 0px, 40vw"` on the
  * desktop image keeps the browser from fetching it on a phone.
  */
-export default function HomePage() {
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  // Static rendering needs the locale set here too, not only in the layout. See the note in
+  // app/[locale]/layout.tsx.
+  const { locale } = await params
+  setRequestLocale(locale)
   return (
     <>
       <DesktopHero />

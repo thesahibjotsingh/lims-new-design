@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { CopyButton } from '@/components/contact/CopyButton'
 import { GoogleReviews } from '@/components/contact/GoogleReviews'
@@ -42,7 +42,11 @@ export const metadata: Metadata = {
  * Nothing on it is a claim LIMS has not made. Hours, parking, an ambulance line and an email
  * address are absent until supplied; review mode lists each as a box to ask about.
  */
-export default async function ContactPage() {
+export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {
+  // Static rendering needs the locale set here too, not only in the layout. See the note in
+  // app/[locale]/layout.tsx.
+  const { locale } = await params
+  setRequestLocale(locale)
   const t = await getTranslations('contactPage')
   const tCommon = await getTranslations('common')
   const tNav = await getTranslations('nav')

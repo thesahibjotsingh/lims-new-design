@@ -24,6 +24,16 @@
 
   "observability": {
     "enabled": true
+  },
+
+  // Runs once, just before `wrangler deploy` uploads: copies the pre-built pages from
+  // .open-next/cache into the assets folder so open-next.config.ts's static-assets page
+  // cache has something to read. The adapter does this itself only inside its own `deploy`
+  // command, and Cloudflare's build here runs `build` then plain `wrangler deploy`.
+  // Idempotent. It fails loudly if .open-next has not been built, which is right: there
+  // would be nothing to deploy.
+  "build": {
+    "command": "npx opennextjs-cloudflare populateCache local"
   }
 
   // Appointment delivery is read from the environment by app/api/appointments/route.ts.
