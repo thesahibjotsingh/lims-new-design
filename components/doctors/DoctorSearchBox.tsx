@@ -23,6 +23,7 @@ import {
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
+import { VoiceButton } from '@/components/search/VoiceButton'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
 import { searchPhrases } from '@/components/search/searchPhrases'
 
@@ -35,18 +36,10 @@ export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }
   const [focused, setFocused] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
-  const {
-    suggestions,
-    visible,
-    showingRecent,
-    active,
-    setActive,
-    setOpen,
-    choose,
-    listId,
-    inputProps,
-  } =
-    useSearchSuggest({ query })
+  const { visible, setActive, setOpen, voice, inputProps, listProps } = useSearchSuggest({
+    query,
+    onQueryChange: setQuery,
+  })
 
   useCloseOnOutside(
     rootRef,
@@ -96,7 +89,11 @@ export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }
             // overlay below owns every visible state.
             placeholder={placeholder}
             // 16px on mobile, or iOS Safari zooms the page on focus and never zooms back.
-            className="min-h-[44px] w-full rounded-xl border border-brand-teal/20 bg-white py-2 pl-10 pr-4 text-sm text-brand-dark-base shadow-sm placeholder:text-transparent max-md:text-base"
+            className="min-h-[44px] w-full rounded-xl border border-brand-teal/20 bg-white py-2 pl-10 pr-12 text-sm text-brand-dark-base shadow-sm placeholder:text-transparent max-md:text-base"
+          />
+          <VoiceButton
+            voice={voice}
+            className="absolute right-1.5 top-1/2 h-9 w-9 -translate-y-1/2"
           />
           {query.length === 0 && (
             <TypewriterPlaceholder
@@ -119,12 +116,7 @@ export function DoctorSearchBox({ defaultQuery = '' }: { defaultQuery?: string }
 
       {visible && (
         <SuggestionList
-          suggestions={suggestions}
-          active={active}
-          setActive={setActive}
-          choose={choose}
-          listId={listId}
-          showingRecent={showingRecent}
+          {...listProps}
           // Stops short of the Search button once the row goes horizontal at sm.
           className="sm:right-[7.5rem]"
         />

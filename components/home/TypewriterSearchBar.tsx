@@ -47,6 +47,7 @@ import {
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
+import { VoiceButton } from '@/components/search/VoiceButton'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
 import { useScrollFade } from '@/components/primitives/useScrollFade'
 import { searchPhrases } from '@/components/search/searchPhrases'
@@ -80,17 +81,8 @@ export function TypewriterSearchBar() {
     return onRecentChange(() => setRecentChips(readRecent()))
   }, [])
 
-  const {
-    suggestions,
-    visible,
-    showingRecent,
-    active,
-    setActive,
-    setOpen,
-    choose,
-    listId,
-    inputProps,
-  } = useSearchSuggest({ query })
+  const { visible, setActive, setOpen, choose, submit, voice, inputProps, listProps } =
+    useSearchSuggest({ query, popular: false, onQueryChange: setQuery })
 
   useCloseOnOutside(
     rootRef,
@@ -143,6 +135,8 @@ export function TypewriterSearchBar() {
         role="search"
         onSubmit={(event) => {
           event.preventDefault()
+          // The best answer, or the list left open to choose from (see useSearchSuggest.submit).
+          if (submit()) return
           const trimmed = query.trim()
           router.push(trimmed ? `/doctors?q=${encodeURIComponent(trimmed)}` : '/doctors')
         }}
@@ -189,6 +183,8 @@ export function TypewriterSearchBar() {
           )}
         </div>
 
+        <VoiceButton voice={voice} className="h-10 w-10" />
+
         <button
           type="submit"
           className="tap-target focus-ring-inverse h-10 shrink-0 rounded-full bg-brand-teal px-4 text-sm font-bold text-white"
@@ -199,12 +195,8 @@ export function TypewriterSearchBar() {
 
       {visible && (
         <SuggestionList
-          suggestions={suggestions}
-          active={active}
-          setActive={setActive}
+          {...listProps}
           choose={handleChoose}
-          listId={listId}
-          showingRecent={showingRecent}
           variant="inline"
         />
       )}

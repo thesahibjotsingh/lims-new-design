@@ -41,6 +41,7 @@ import {
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
+import { VoiceButton } from '@/components/search/VoiceButton'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
 import { searchPhrases } from '@/components/search/searchPhrases'
 import { clamp01, createDriver, type Driver } from '@/lib/spring'
@@ -121,16 +122,16 @@ export function SearchSheet() {
   const reducedRef = useRef(false)
 
   const {
-    suggestions,
     visible,
-    showingRecent,
-    active,
     setActive,
     setOpen: setSuggestOpen,
     choose,
-    listId,
+    submit,
+    prefetch,
+    voice,
     inputProps,
-  } = useSearchSuggest({ query })
+    listProps,
+  } = useSearchSuggest({ query, popular: false, onQueryChange: setQuery })
 
   // A tap outside the FIELD closes the suggestion list, not the panel.
   useCloseOnOutside(
@@ -305,6 +306,8 @@ export function SearchSheet() {
   function openSearch() {
     if (openRef.current) return
     openRef.current = true
+    // The index starts loading with the tap, before the first letter.
+    prefetch()
     originRef.current = readOrigin(iconRef.current)
     // Committed to the DOM right here, so the field exists and can take focus inside this tap.
     flushSync(() => {
@@ -362,6 +365,8 @@ export function SearchSheet() {
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
+    // The best answer, or the list left open to choose from (see useSearchSuggest.submit).
+    if (submit()) return
     const trimmed = query.trim()
     router.push(trimmed ? `/doctors?q=${encodeURIComponent(trimmed)}` : '/doctors')
     closeNow()
@@ -445,7 +450,11 @@ export function SearchSheet() {
                             setActive(-1)
                           }}
                           // 16px, or iOS Safari zooms the page when the field is focused.
-                          className="h-[52px] w-full rounded-full bg-brand-mist pl-11 pr-4 text-base text-brand-dark-base shadow-[inset_0_0_0_1px_rgba(15,91,102,0.13)] outline-none placeholder:text-transparent focus:shadow-[inset_0_0_0_2px_rgba(15,91,102,0.45)]"
+                          className="h-[52px] w-full rounded-full bg-brand-mist pl-11 pr-14 text-base text-brand-dark-base shadow-[inset_0_0_0_1px_rgba(15,91,102,0.13)] outline-none placeholder:text-transparent focus:shadow-[inset_0_0_0_2px_rgba(15,91,102,0.45)]"
+                        />
+                        <VoiceButton
+                          voice={voice}
+                          className="absolute right-1.5 top-1/2 h-10 w-10 -translate-y-1/2"
                         />
                         {query.length === 0 && (
                           <TypewriterPlaceholder
@@ -472,15 +481,11 @@ export function SearchSheet() {
                   <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3">
                     {visible && (
                       <SuggestionList
-                        suggestions={suggestions}
-                        active={active}
-                        setActive={setActive}
+                        {...listProps}
                         choose={(index) => {
                           choose(index)
                           closeNow()
                         }}
-                        listId={listId}
-                        showingRecent={showingRecent}
                         variant="inline"
                       />
                     )}

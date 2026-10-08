@@ -24,6 +24,7 @@ import {
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
+import { VoiceButton } from '@/components/search/VoiceButton'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
 import { searchPhrases } from '@/components/search/searchPhrases'
 import type { SuggestionKind } from '@/lib/search'
@@ -46,7 +47,9 @@ import type { SuggestionKind } from '@/lib/search'
  * for every keystroke that did not change anything.
  */
 const DOCTOR_KINDS = ['doctor'] as const
-const DEPARTMENT_KINDS = ['department'] as const
+// "A department" covers everything that belongs to one: the department, its tests, and the conditions,
+// treatments and questions on its page.
+const DEPARTMENT_KINDS = ['department', 'test', 'condition', 'treatment', 'faq'] as const
 import { SERVICE_CATEGORIES, serviceHref, servicesByCategory } from '@/lib/services'
 
 type Target = 'doctors' | 'departments'
@@ -69,17 +72,11 @@ export function HeroSearchCard() {
   // the reader has just said they are not looking for.
   const kinds = target === 'doctors' ? DOCTOR_KINDS : DEPARTMENT_KINDS
 
-  const {
-    suggestions,
-    visible,
-    showingRecent,
-    active,
-    setActive,
-    setOpen,
-    choose,
-    listId,
-    inputProps,
-  } = useSearchSuggest({ query, kinds: kinds as unknown as SuggestionKind[] })
+  const { visible, setActive, setOpen, submit, voice, inputProps, listProps } = useSearchSuggest({
+    query,
+    kinds: kinds as unknown as SuggestionKind[],
+    onQueryChange: setQuery,
+  })
 
   useCloseOnOutside(
     rootRef,
@@ -95,6 +92,9 @@ export function HeroSearchCard() {
       router.push(departmentHref)
       return
     }
+
+    // The best answer, or the list left open to choose from (see useSearchSuggest.submit).
+    if (submit()) return
 
     const trimmed = query.trim()
     const base = target === 'doctors' ? '/doctors' : '/specialities'
@@ -174,7 +174,13 @@ export function HeroSearchCard() {
             // speciality or doctor" on load: the server renders with no animation yet,
             // so the real placeholder painted for the frames before the first typed
             // character arrived.
-            className="min-h-[44px] w-full rounded-xl bg-white/95 pl-9 pr-3 text-sm text-brand-dark-base shadow-inner placeholder:text-transparent focus:bg-white"
+            className="min-h-[44px] w-full rounded-xl bg-white/95 pl-9 pr-12 text-sm text-brand-dark-base shadow-inner placeholder:text-transparent focus:bg-white"
+          />
+
+          <VoiceButton
+            voice={voice}
+            tone="dark"
+            className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2"
           />
 
           {/*
@@ -215,12 +221,7 @@ export function HeroSearchCard() {
 
         {visible && (
           <SuggestionList
-            suggestions={suggestions}
-            active={active}
-            setActive={setActive}
-            choose={choose}
-            listId={listId}
-            showingRecent={showingRecent}
+            {...listProps}
           />
         )}
       </div>

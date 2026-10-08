@@ -41,6 +41,12 @@
     "command": "npx opennextjs-cloudflare populateCache local"
   }
 
+  // The site search can keep an anonymous count of phrases that found nothing (app/api/search-miss).
+  // It needs a KV namespace named SEARCH_LOG; without one the count goes to the Worker's log line only.
+  // To turn it on, see "Site search" in README-DEPLOY.md and add here:
+  //
+  //   "kv_namespaces": [{ "binding": "SEARCH_LOG", "id": "<id from `wrangler kv namespace create SEARCH_LOG`>" }]
+
   // Appointment delivery is read from the environment by app/api/appointments/route.ts.
   // Do NOT put the value here — this file is committed to a public repo. Set it as a
   // secret instead:

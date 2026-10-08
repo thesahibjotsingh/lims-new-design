@@ -17,7 +17,7 @@ import {
 } from '@/lib/doctors'
 import { REVIEW_MODE } from '@/lib/review'
 import { directoryReviewSlots } from '@/lib/review-slots-doctors'
-import { didYouMean } from '@/lib/search'
+import { didYouMean } from '@/lib/search/server'
 import { serviceHref, servicesByCategory } from '@/lib/services'
 import { translatedServiceName } from '@/lib/services-i18n'
 import { contact } from '@/lib/site-config'

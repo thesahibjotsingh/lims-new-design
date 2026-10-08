@@ -87,6 +87,60 @@ repository:
 npx wrangler secret put APPOINTMENT_WEBHOOK_URL
 ```
 
+## Site search
+
+Every search box on the site (header, home hero, phone sheet, phone menu, doctor directory) shares one
+engine in `lib/search/`. It runs in the visitor's browser: nothing about a search is sent anywhere,
+except the optional "what could not be found" log below.
+
+**How it is built.** `lib/search/build-docs.ts` turns the site's content (every department page,
+the conditions, treatments and questions on them, the doctors, the hospital's phone and address) into
+search documents, one list per language. `app/api/search-index/[locale]/route.ts` serves each list as a
+static JSON file, built when the site is published. The browser downloads it the first time a search
+box is focused (about 40 KB for English, 70 KB each for Hindi and Punjabi, compressed).
+
+**Nothing to configure for it to work.** After changing any page copy, doctor record or the
+vocabulary, publish as usual; the index is rebuilt with the site.
+
+**Checking it.** After editing anything in `lib/search/` (above all `groups.ts`, the everyday words and
+their Hindi and Punjabi spellings, and `topics.ts`), run:
+
+```bash
+npx tsx scripts/search-eval.ts          # every case, failures listed
+npx tsx scripts/search-eval.ts -v       # every case with what came back
+```
+
+It asks about 400 questions a patient might type (English, Hindi, Punjabi, Hindi in English letters,
+misspellings) and fails if a word stops reaching the page it should.
+
+### Optional: see what patients searched for and the site could not answer
+
+A phrase that finds nothing, or only a near miss, is counted anonymously (the phrase and the language,
+no IP address, no cookie, nothing about the person; not at all if the browser sends Do Not Track).
+Without the steps below the count goes only to the Worker's log line and nowhere else, which is fine.
+
+To keep the counts:
+
+```bash
+npx wrangler kv namespace create SEARCH_LOG        # prints an id
+```
+
+Add the printed id to `wrangler.jsonc`:
+
+```jsonc
+"kv_namespaces": [{ "binding": "SEARCH_LOG", "id": "<the id from the command>" }]
+```
+
+To read the list, set a secret and open the address (it is a 404 without the secret):
+
+```bash
+npx wrangler secret put SEARCH_LOG_TOKEN
+# then:  https://<your site>/api/search-miss?token=<the secret>
+```
+
+Entries expire after 90 days. A good week to look is the week after launch: whatever tops the list is
+a word to add to `lib/search/groups.ts`, or a page to write.
+
 ## If the live site shows "Error 1102: Worker exceeded resource limits"
 
 That is Cloudflare telling you a request used more CPU than the plan allows. The **Free**

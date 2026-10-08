@@ -28,6 +28,7 @@ import {
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
+import { VoiceButton } from '@/components/search/VoiceButton'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
 import { searchPhrases } from '@/components/search/searchPhrases'
 
@@ -53,17 +54,8 @@ export function HeaderSearch() {
   const inputRef = useRef<HTMLInputElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
 
-  const {
-    suggestions,
-    visible,
-    showingRecent,
-    active,
-    setActive,
-    setOpen,
-    choose,
-    listId,
-    inputProps,
-  } = useSearchSuggest({ query })
+  const { visible, setActive, setOpen, submit, prefetch, voice, inputProps, listProps } =
+    useSearchSuggest({ query, onQueryChange: setQuery })
 
   const collapse = useCallback(() => {
     setExpanded(false)
@@ -119,6 +111,11 @@ export function HeaderSearch() {
               return
             }
             inputProps.onKeyDown(event)
+            // Enter with nothing highlighted: the best answer, or the list left open to choose from.
+            if (event.key === 'Enter' && !event.defaultPrevented) {
+              event.preventDefault()
+              submit()
+            }
           }}
           // The real placeholder attribute stays a plain sentence, so a screen reader
           // and a reduced-motion reader get something stable and meaningful. The
@@ -154,6 +151,8 @@ export function HeaderSearch() {
           />
         )}
 
+        {expanded && <VoiceButton voice={voice} className="h-9 w-9" />}
+
         <button
           ref={triggerRef}
           type="button"
@@ -164,6 +163,7 @@ export function HeaderSearch() {
             }
             setExpanded(true)
             setOpen(true)
+            prefetch()
           }}
           aria-expanded={expanded}
           aria-label={expanded ? tA11y('closeSearch') : STATIC_PLACEHOLDER}
@@ -187,12 +187,7 @@ export function HeaderSearch() {
 
       {expanded && (
         <SuggestionList
-          suggestions={suggestions}
-          active={active}
-          setActive={setActive}
-          choose={choose}
-          listId={listId}
-          showingRecent={showingRecent}
+          {...listProps}
           // Stays mounted for as long as the field itself is expanded; `visible`
           // alone now drives the fade/scale transition (see suggestion-list-floating
           // in globals.css) instead of a hard unmount, so it can animate out rather

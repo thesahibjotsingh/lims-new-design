@@ -66,6 +66,7 @@ import {
   useCloseOnOutside,
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
+import { VoiceButton } from '@/components/search/VoiceButton'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
 import { searchPhrases } from '@/components/search/searchPhrases'
 import { contact, primaryNav, whatsappUrl } from '@/lib/site-config'
@@ -264,16 +265,14 @@ export function MobileMenu() {
   }, [rendered, measure, apply, driver])
 
   const {
-    suggestions,
     visible,
-    showingRecent,
-    active,
     setActive,
     setOpen: setSuggestOpen,
-    choose,
-    listId,
+    submit,
+    voice,
     inputProps,
-  } = useSearchSuggest({ query })
+    listProps,
+  } = useSearchSuggest({ query, onQueryChange: setQuery })
 
   useCloseOnOutside(
     searchRef,
@@ -458,6 +457,14 @@ export function MobileMenu() {
                           {...inputProps}
                           id="drawer-search"
                           type="search"
+                          onKeyDown={(event) => {
+                            inputProps.onKeyDown(event)
+                            // Enter with nothing highlighted: the best answer, or the list left open.
+                            if (event.key === 'Enter' && !event.defaultPrevented) {
+                              event.preventDefault()
+                              submit()
+                            }
+                          }}
                           value={query}
                           onChange={(event) => {
                             setQuery(event.target.value)
@@ -486,6 +493,7 @@ export function MobileMenu() {
                           />
                         )}
                       </div>
+                      <VoiceButton voice={voice} className="mr-1 h-10 w-10" />
                     </div>
 
                     {/*
@@ -494,12 +502,7 @@ export function MobileMenu() {
                       field rather than popping in.
                     */}
                     <SuggestionList
-                      suggestions={suggestions}
-                      active={active}
-                      setActive={setActive}
-                      choose={choose}
-                      listId={listId}
-                      showingRecent={showingRecent}
+                      {...listProps}
                       visible={visible}
                       className="left-3 right-3"
                     />
