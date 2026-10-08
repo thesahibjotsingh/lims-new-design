@@ -5,7 +5,6 @@ import {
   ContactSection,
   DoctorsSection,
   HealthLibrarySection,
-  PortalComingSoon,
   ServiceGroupSection,
 } from '@/components/home/HomeSections'
 import { MarqueeRibbon } from '@/components/home/MarqueeRibbon'
@@ -18,7 +17,7 @@ import { PhoneHome } from '@/components/home/PhoneHome'
  *   2. Specialities
  *   3. Find a doctor
  *   4. Services         (diagnostics and imaging)
- *   5. Patient care     with the patient portal as a "coming soon" card
+ *   5. Patient care
  *   6. Health library   a "coming soon" card
  *   7. About LIMS
  *   8. Contact us
@@ -50,9 +49,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <ServiceGroupSection categoryId="clinical" phoneTone="mist" desktopTone="mist" />
       <DoctorsSection />
       <ServiceGroupSection categoryId="diagnostics" phoneTone="mist" desktopTone="white" />
-      <ServiceGroupSection categoryId="support" phoneTone="white" desktopTone="mist">
-        <PortalComingSoon />
-      </ServiceGroupSection>
+      <ServiceGroupSection categoryId="support" phoneTone="white" desktopTone="mist" />
       <HealthLibrarySection />
       <AboutSection />
       <ContactSection />

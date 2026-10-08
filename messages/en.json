@@ -26,7 +26,6 @@
     "locationsDirections": "Locations & directions",
     "bookAppointment": "Book an appointment",
     "visitorInformation": "Visitor information",
-    "patientPortal": "Patient portal",
     "allContactDetails": "All contact details"
   },
   "bottomNav": {
@@ -388,7 +387,9 @@
     "suggestionsAria": "Suggestions",
     "kindDoctor": "Doctor",
     "kindDepartment": "Department",
-    "kindPage": "Page"
+    "kindPage": "Page",
+    "clearRecent": "Clear",
+    "clearRecentAria": "Clear recent searches"
   },
   "serviceGrid": {
     "also": "Also: {names}",
@@ -562,13 +563,6 @@
     "intro": "Clinically reviewed articles on conditions, procedures and recovery.",
     "awaitingWhat": "Articles",
     "awaitingBody": "Health information is published only once a LIMS clinician has written or reviewed it. Nothing is published here yet. For advice about your own health, please speak to a doctor rather than relying on a web page."
-  },
-  "portalPage": {
-    "eyebrow": "Patient portal",
-    "title": "Reports and records",
-    "intro": "Access to diagnostic reports and visit records.",
-    "awaitingWhat": "The portal is not live yet",
-    "awaitingBody": "Online access to reports is planned but not available. Reports are collected from the hospital or sent by the department that carried out the test."
   },
   "notFound": {
     "title": "We could not find that page",

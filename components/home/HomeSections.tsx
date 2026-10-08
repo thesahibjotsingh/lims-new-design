@@ -18,9 +18,8 @@
 // the mist. The phone and the wide layout have their own sequence, which is why every section takes
 // a tone for each.
 //
-// HEALTH LIBRARY AND THE PATIENT PORTAL HAVE NO PAGES YET (the library is waiting for clinician-
-// reviewed text; the portal is not built). They keep their place in the order as a plain "Coming
-// soon" card that does not link to an empty page.
+// THE HEALTH LIBRARY HAS NO PAGE YET (it is waiting for clinician-reviewed text). It keeps its place
+// in the order as a plain "Coming soon" card that does not link to an empty page.
 
 import type { ReactNode } from 'react'
 import { getLocale, getTranslations } from 'next-intl/server'
@@ -64,7 +63,7 @@ export async function ServiceGroupSection({
   categoryId: ServiceCategory
   phoneTone: Tone
   desktopTone: Tone
-  /** Extra content under the row / grid (the portal card, under Patient care). */
+  /** Extra content under the row / grid. */
   children?: ReactNode
 }) {
   const locale = (await getLocale()) as Locale
@@ -177,19 +176,6 @@ async function ComingSoonCard({
         <span className="mt-0.5 block text-sm leading-snug text-brand-dark-base/70">{body}</span>
       </span>
     </div>
-  )
-}
-
-/** The patient portal, under Patient care. */
-export async function PortalComingSoon() {
-  const tNav = await getTranslations('nav')
-  const tPortal = await getTranslations('portalPage')
-  return (
-    <ComingSoonCard
-      icon={<DocumentIcon className="h-5 w-5" />}
-      title={tNav('patientPortal')}
-      body={tPortal('intro')}
-    />
   )
 }
 

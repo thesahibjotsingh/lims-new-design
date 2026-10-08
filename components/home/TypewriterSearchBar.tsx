@@ -41,6 +41,8 @@ import { useRouter } from '@/i18n/navigation'
 import { SearchIcon } from '@/components/icons'
 import {
   SuggestionList,
+  clearRecent,
+  onRecentChange,
   readRecent,
   useCloseOnOutside,
   useSearchSuggest,
@@ -60,6 +62,7 @@ const POPULAR_CHIPS = SERVICES.slice(0, 6)
 export function TypewriterSearchBar() {
   const locale = useLocale() as Locale
   const t = useTranslations('search')
+  const tSuggest = useTranslations('searchSuggest')
   const STATIC_PLACEHOLDER = t('placeholder')
   const rootRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -70,7 +73,11 @@ export function TypewriterSearchBar() {
 
   // Read on mount, not during render: localStorage doesn't exist on the server, and
   // seeding state from it would make the first client render disagree with the HTML.
-  useEffect(() => setRecentChips(readRecent()), [])
+  useEffect(() => {
+    setRecentChips(readRecent())
+    // Cleared from any search bar: the chips go back to the popular departments.
+    return onRecentChange(() => setRecentChips(readRecent()))
+  }, [])
 
   const {
     suggestions,
@@ -212,6 +219,20 @@ export function TypewriterSearchBar() {
             {chip.label}
           </button>
         ))}
+        {/*
+          Only while the row is the reader's own history. The bar sits on the teal hero, so this is
+          an outline chip in white: it reads as an action, not as one more thing to search for.
+        */}
+        {showingHistory && (
+          <button
+            type="button"
+            onClick={clearRecent}
+            aria-label={tSuggest('clearRecentAria')}
+            className="relative h-9 shrink-0 whitespace-nowrap rounded-full border border-white/40 px-3.5 text-[13px] font-semibold text-white transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] active:bg-white/15"
+          >
+            {tSuggest('clearRecent')}
+          </button>
+        )}
       </div>
     </div>
   )

@@ -84,7 +84,7 @@ export function MobileBottomNav() {
   return (
     <div
       onFocusCapture={() => document.documentElement.removeAttribute('data-nav-hidden')}
-      className="bottom-nav pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="bottom-nav pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       {/*
         `data-bottom-pill` is how LanguageMenu finds this pill: its panel opens out of this
@@ -93,7 +93,7 @@ export function MobileBottomNav() {
       <nav
         data-bottom-pill=""
         aria-label={tA11y('quickNav')}
-        className="pointer-events-auto mb-4 flex w-full max-w-[21rem] items-center justify-around rounded-full border border-white/40 bg-white/75 px-2 py-1.5 shadow-glass backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-white/95 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
+        className="pointer-events-auto mb-4 flex w-full max-w-[28rem] items-center justify-around rounded-full border border-white/40 bg-white/75 px-3 py-2 shadow-glass backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-white/95 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
       >
         {TABS.map(({ labelKey, href, Icon, ...rest }) => {
           const accent = 'accent' in rest && rest.accent
@@ -107,7 +107,7 @@ export function MobileBottomNav() {
                 href={href}
                 aria-current={active ? 'page' : undefined}
                 className={[
-                  'tap-target flex-col gap-0.5 rounded-2xl px-2 text-[10px] font-semibold transition-colors',
+                  'tap-target flex-col gap-1 rounded-2xl px-2.5 text-[11px] font-semibold transition-colors',
                   // Teal is the resting state now, copper marks where you are — the
                   // same relationship Book's always-copper badge already set up, so
                   // landing on a plain tab reads as "this is now the emphasised one"
@@ -118,12 +118,12 @@ export function MobileBottomNav() {
                 {accent ? (
                   <span
                     aria-hidden="true"
-                    className="grid h-6 w-6 place-items-center rounded-full bg-brand-copper text-white shadow-sm"
+                    className="grid h-7 w-7 place-items-center rounded-full bg-brand-copper text-white shadow-sm"
                   >
-                    <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
+                    <Icon className="h-4 w-4" strokeWidth={2.25} />
                   </span>
                 ) : (
-                  <Icon className="h-5 w-5" strokeWidth={active ? 2.25 : 1.75} />
+                  <Icon className="h-6 w-6" strokeWidth={active ? 2.25 : 1.75} />
                 )}
                 <span>{t(labelKey)}</span>
                 {/*
@@ -136,7 +136,7 @@ export function MobileBottomNav() {
                   <span
                     aria-hidden="true"
                     className={[
-                      'h-0.5 w-5 rounded-full bg-brand-copper transition-opacity',
+                      'h-0.5 w-6 rounded-full bg-brand-copper transition-opacity',
                       active ? 'opacity-100' : 'opacity-0',
                     ].join(' ')}
                   />

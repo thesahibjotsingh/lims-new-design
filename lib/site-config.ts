@@ -228,7 +228,6 @@ export const patientServicesNav: NavItem[] = [
   { label: 'Book an appointment', href: '/appointments' },
   { label: 'Visitor information', href: '/patient-care/visitors' },
   { label: 'Locations & directions', href: '/contact#locations' },
-  { label: 'Patient portal', href: '/portal' },
 ]
 
 /**

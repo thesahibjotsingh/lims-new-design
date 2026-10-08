@@ -211,6 +211,35 @@ export function RouteIcon(props: IconProps) {
   )
 }
 
+/** A heartbeat line: the specialities. */
+export function PulseIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M3 12h4l2.5-6 4 12 2.5-6H21" />
+    </Base>
+  )
+}
+
+/** A lab flask: tests, scans and diagnostics. */
+export function FlaskIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M9 3h6" />
+      <path d="M10 3v6.2L4.8 18a2 2 0 0 0 1.7 3h11a2 2 0 0 0 1.7-3L14 9.2V3" />
+      <path d="M7.5 14h9" />
+    </Base>
+  )
+}
+
+/** A heart: patient care. */
+export function HeartIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M12 20.5s-7.5-4.6-9-9.6A5 5 0 0 1 12 7a5 5 0 0 1 9 3.9c-1.5 5-9 9.6-9 9.6z" />
+    </Base>
+  )
+}
+
 /**
  * The WhatsApp mark, as a solid glyph (the speech bubble with the handset in it). Unlike the
  * rest of the set it is filled, not stroked: it is a brand mark and is drawn the way the brand

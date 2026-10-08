@@ -30,7 +30,6 @@ export const NAV_KEY_BY_HREF: Record<string, string> = {
   '/appointments': 'bookAppointment',
   '/patient-care/visitors': 'visitorInformation',
   '/contact#locations': 'locationsDirections',
-  '/portal': 'patientPortal',
 }
 
 export const OVERVIEW_KEY_BY_HREF: Record<string, string> = {

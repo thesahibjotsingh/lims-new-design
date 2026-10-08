@@ -606,7 +606,7 @@
     }
 
     .phone-bar {
-      bottom: calc(env(safe-area-inset-bottom) + 5.5rem);
+      bottom: calc(env(safe-area-inset-bottom) + 6.25rem);
       transform: translateY(26px) scale(0.96);
       opacity: 0;
       pointer-events: none;

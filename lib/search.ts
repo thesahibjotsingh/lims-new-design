@@ -486,16 +486,6 @@ const PAGES: PageEntry[] = [
       pa: { label: 'LIMS ਬਾਰੇ', detail: 'ਹਸਪਤਾਲ' },
     },
   },
-  {
-    label: 'Patient portal',
-    detail: 'Reports and records',
-    href: '/portal',
-    keywords: 'portal login report record result',
-    local: {
-      hi: { label: 'रोगी पोर्टल', detail: 'रिपोर्ट और रिकॉर्ड' },
-      pa: { label: 'ਮਰੀਜ਼ ਪੋਰਟਲ', detail: 'ਰਿਪੋਰਟਾਂ ਅਤੇ ਰਿਕਾਰਡ' },
-    },
-  },
 ]
 
 /** "Also known as", the prefix on a department's alternative names. */
@@ -563,10 +553,10 @@ function buildIndex(locale: Locale): IndexEntry[] {
     // EXPANSION IS OFF HERE — query side only.
     //
     // Expanding both sides looks symmetric and is quietly wrong: it makes the index
-    // absorb every word its own keywords are synonyms FOR. "Patient portal" lists
-    // "report" as a keyword, "report" expands to pathology and radiology, and the
-    // portal then matched a search for "xray". Same for "Visitor information", whose
-    // "timing" pulled in "contact" and put it under a search for a phone number.
+    // absorb every word its own keywords are synonyms FOR. A page that lists "report"
+    // as a keyword, where "report" expands to pathology and radiology, then matched a
+    // search for "xray". Same for "Visitor information", whose "timing" pulled in
+    // "contact" and put it under a search for a phone number.
     //
     // The query side alone already covers the direction that matters: a patient types
     // "bone", that expands to "ortho", and the literal token in the index is hit.

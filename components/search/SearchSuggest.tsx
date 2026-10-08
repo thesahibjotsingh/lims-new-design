@@ -54,6 +54,33 @@ export function readRecent(): SearchSuggestion[] {
   }
 }
 
+/** Fired on `window` when the history is cleared, so every search bar on the page can drop it. */
+const RECENT_EVENT = 'lims:recent-searches-changed'
+
+/**
+ * Forgets the reader's recent picks, from this device only (nothing was ever sent anywhere), and
+ * tells every mounted search bar, so the dropdown in the header, the bar in the hero and the phone's
+ * search sheet all empty together rather than each holding its own stale copy.
+ */
+export function clearRecent(): void {
+  try {
+    window.localStorage.removeItem(RECENT_KEY)
+  } catch {
+    // Nothing stored, or storage unavailable: either way there is nothing left to show.
+  }
+  window.dispatchEvent(new Event(RECENT_EVENT))
+}
+
+/** Calls back whenever the history changes elsewhere (cleared from another bar, or another tab). */
+export function onRecentChange(callback: () => void): () => void {
+  window.addEventListener(RECENT_EVENT, callback)
+  window.addEventListener('storage', callback)
+  return () => {
+    window.removeEventListener(RECENT_EVENT, callback)
+    window.removeEventListener('storage', callback)
+  }
+}
+
 export function rememberSearch(suggestion: SearchSuggestion): void {
   try {
     const next = [
@@ -86,7 +113,14 @@ export function useSearchSuggest({
 
   // Read on mount, not during render: localStorage does not exist on the server, and
   // seeding state from it would make the first client render disagree with the HTML.
-  useEffect(() => setRecent(readRecent()), [])
+  useEffect(() => {
+    setRecent(readRecent())
+    // Cleared from any search bar: drop it here too, and un-highlight a row that is gone.
+    return onRecentChange(() => {
+      setRecent(readRecent())
+      setActive(-1)
+    })
+  }, [])
 
   // Filtering happens inside the matcher rather than after it, so a narrowed list is
   // still a full-length list rather than whatever survives from the top seven.
@@ -249,11 +283,25 @@ export function SuggestionList({
       ].join(' ')}
     >
       {showingRecent && (
-        <li
-          role="presentation"
-          className="px-4 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-wider text-brand-dark-base/45"
-        >
-          {t('recent')}
+        <li role="presentation" className="flex items-center justify-between gap-3 px-4 pb-1 pt-1.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-dark-base/45">
+            {t('recent')}
+          </span>
+          {/*
+            Clears the history on this device. Mouse-down is held back from the input, so the
+            field keeps its focus and the list stays up while it empties; the click does the
+            work (and is what a keyboard's Enter or Space fires). The padding is the target: the
+            word is 11px, the button around it is not.
+          */}
+          <button
+            type="button"
+            aria-label={t('clearRecentAria')}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={clearRecent}
+            className="-my-1.5 rounded-md px-2 py-2 text-[11px] font-semibold uppercase tracking-wider text-brand-teal transition-colors hover:bg-brand-mist active:bg-brand-mist"
+          >
+            {t('clearRecent')}
+          </button>
         </li>
       )}
       {suggestions.map((suggestion, index) => (

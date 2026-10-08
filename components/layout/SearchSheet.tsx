@@ -379,14 +379,14 @@ export function SearchSheet() {
         aria-label={tA11y('searchSite')}
         aria-haspopup="dialog"
         aria-expanded={open}
-        className="tap-target flex-col gap-0.5 rounded-2xl px-2 text-[10px] font-semibold text-brand-teal"
+        className="tap-target flex-col gap-1 rounded-2xl px-2.5 text-[11px] font-semibold text-brand-teal"
       >
-        <span ref={iconRef} className="grid h-5 w-5 place-items-center">
-          <SearchIcon className="h-5 w-5" strokeWidth={1.75} />
+        <span ref={iconRef} className="grid h-6 w-6 place-items-center">
+          <SearchIcon className="h-6 w-6" strokeWidth={1.75} />
         </span>
         <span>{tNav('search')}</span>
         {/* The same height as the active underline the other tabs reserve. */}
-        <span aria-hidden="true" className="h-0.5 w-5" />
+        <span aria-hidden="true" className="h-0.5 w-6" />
       </button>
 
       {rendered &&
