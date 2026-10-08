@@ -110,9 +110,7 @@
     "home": "ਹੋਮ",
     "whatsappLabel": "WhatsApp 'ਤੇ ਚੈਟ ਕਰੋ",
     "whatsapp": "WhatsApp",
-    "whatsappMessage": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ LIMS ਹਿਸਾਰ, ਮੈਨੂੰ ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰਨੀ ਹੈ।",
-    "whatsappMessageFor": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ LIMS ਹਿਸਾਰ, ਮੈਨੂੰ {name} ਲਈ ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰਨੀ ਹੈ।",
-    "whatsappMessageWith": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ LIMS ਹਿਸਾਰ, ਮੈਨੂੰ {name} ਨਾਲ ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰਨੀ ਹੈ।"
+    "whatsappMessage": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ LIMS ਹਿਸਾਰ, ਮੈਨੂੰ ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰਨੀ ਹੈ।"
   },
   "doctorCard": {
     "viewProfile": "ਪ੍ਰੋਫਾਈਲ ਵੇਖੋ",

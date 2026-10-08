@@ -110,9 +110,7 @@
     "home": "होम",
     "whatsappLabel": "WhatsApp पर चैट करें",
     "whatsapp": "WhatsApp",
-    "whatsappMessage": "नमस्ते LIMS हिसार, मुझे अपॉइंटमेंट बुक करना है।",
-    "whatsappMessageFor": "नमस्ते LIMS हिसार, मुझे {name} के लिए अपॉइंटमेंट बुक करना है।",
-    "whatsappMessageWith": "नमस्ते LIMS हिसार, मुझे {name} से अपॉइंटमेंट बुक करना है।"
+    "whatsappMessage": "नमस्ते LIMS हिसार, मुझे अपॉइंटमेंट बुक करना है।"
   },
   "doctorCard": {
     "viewProfile": "प्रोफ़ाइल देखें",

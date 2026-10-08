@@ -269,7 +269,6 @@ export async function ServiceHero({
                     key={action.kind}
                     action={action}
                     surface="onDark"
-                    dense={phoneActions.length > 2}
                   />
                 ))}
               </div>

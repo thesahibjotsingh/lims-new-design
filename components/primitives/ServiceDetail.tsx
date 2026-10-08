@@ -94,7 +94,6 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
   const locale = (await getLocale()) as Locale
   const t = await getTranslations('serviceDetail')
   const tCard = await getTranslations('doctorCard')
-  const tCommon = await getTranslations('common')
 
   // Overview, conditions, treatments and every list on the page in the reader's language
   // (lib/content-i18n). Anything not translated falls back to the English record.
@@ -662,8 +661,6 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
       directions: t('phoneDirections'),
       book: t('phoneBook'),
       bookAria: t('requestFor', { name }),
-      whatsapp: tCommon('whatsappLabel'),
-      whatsappMessage: tCommon('whatsappMessageFor', { name }),
     },
   })
 

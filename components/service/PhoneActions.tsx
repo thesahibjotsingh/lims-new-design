@@ -7,21 +7,22 @@
 //
 //   Emergency Services, Ambulance   Call emergency  +  Directions   (no appointments are taken)
 //   Pharmacy                        Call            +  Directions   (a visit, not a booking)
-//   everything else                 Book appointment  +  WhatsApp  +  Call
+//   everything else                 Book appointment  +  Call
 //
-// WhatsApp is a round, icon-only button between the two, so it reads as "another way to book" and
-// costs 48px. It is left off the pages that take no appointments: an emergency is not something to
-// type into a chat, and the pharmacy's enquiries are the reception's to answer on the phone.
+// Always two buttons, matching pills. There was a round green WhatsApp button between them; it was
+// a third shape and a third colour in a row of two, and it looked out of place, so it is gone from
+// the inner pages. WhatsApp is still one tap away from the menu, the phone home page, the Contact
+// page and the desktop header.
 //
 // This module has no 'use client' on purpose: the hero is a server component and the bar is a
 // client one, and both import the button from here.
 
 import { Link } from '@/i18n/navigation'
-import { CalendarIcon, PhoneIcon, RouteIcon, WhatsAppIcon } from '@/components/icons'
-import { contact, directionsUrl, whatsappUrl } from '@/lib/site-config'
+import { CalendarIcon, PhoneIcon, RouteIcon } from '@/components/icons'
+import { contact, directionsUrl } from '@/lib/site-config'
 
 export interface PhoneAction {
-  kind: 'emergency' | 'book' | 'call' | 'directions' | 'whatsapp'
+  kind: 'emergency' | 'book' | 'call' | 'directions'
   href: string
   label: string
   /** The first button is wider and filled; the second is an outline. */
@@ -30,8 +31,6 @@ export interface PhoneAction {
   external?: boolean
   /** The accessible name where it must say more than the label (which department a booking is for). */
   ariaLabel?: string
-  /** A round button with no visible label (WhatsApp); `label` is then its accessible name. */
-  iconOnly?: boolean
 }
 
 export interface PhoneActionLabels {
@@ -41,10 +40,6 @@ export interface PhoneActionLabels {
   book: string
   /** "Request an appointment: {name}" for this department. */
   bookAria: string
-  /** "Chat on WhatsApp". */
-  whatsapp: string
-  /** What the chat opens with, already written for this department. */
-  whatsappMessage: string
 }
 
 export function buildPhoneActions({
@@ -87,14 +82,6 @@ export function buildPhoneActions({
       primary: true,
       ariaLabel: labels.bookAria,
     },
-    {
-      kind: 'whatsapp',
-      href: whatsappUrl(labels.whatsappMessage),
-      label: labels.whatsapp,
-      primary: false,
-      external: true,
-      iconOnly: true,
-    },
     { kind: 'call', href: `tel:${contact.secondary}`, label: labels.call, primary: false },
   ]
 }
@@ -104,7 +91,6 @@ const ICON = {
   call: PhoneIcon,
   book: CalendarIcon,
   directions: RouteIcon,
-  whatsapp: WhatsAppIcon,
 } as const
 
 /**
@@ -114,26 +100,11 @@ const ICON = {
 export function ActionButton({
   action,
   surface,
-  dense = false,
 }: {
   action: PhoneAction
   surface: 'onDark' | 'onLight'
-  /** Three buttons in the row: the text ones lose their icon and a size so every label fits. */
-  dense?: boolean
 }) {
   const Icon = ICON[action.kind]
-  if (action.iconOnly) {
-    return (
-      <a
-        href={action.href}
-        aria-label={action.label}
-        {...(action.external ? { target: '_blank', rel: 'noreferrer noopener' } : {})}
-        className="press focus-ring-inverse grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-whatsapp text-white shadow-[0_10px_20px_-12px_rgba(23,143,71,0.9)]"
-      >
-        <Icon className="h-[22px] w-[22px]" />
-      </a>
-    )
-  }
   const tone =
     action.kind === 'emergency'
       ? 'bg-brand-emergency text-white shadow-[0_10px_20px_-10px_rgba(198,40,40,0.8)]'
@@ -147,17 +118,14 @@ export function ActionButton({
             ? 'border-[1.5px] border-white/55 text-white'
             : 'border-[1.5px] border-brand-teal/30 bg-white text-brand-teal'
   const className = [
-    'press focus-ring-inverse inline-flex h-12 min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-full font-bold max-[359px]:gap-1.5 max-[359px]:px-2.5 max-[359px]:text-sm',
-    dense ? 'px-3 text-sm' : 'px-4 text-[15px]',
+    'press focus-ring-inverse inline-flex h-12 min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 text-[15px] font-bold max-[359px]:gap-1.5 max-[359px]:px-2.5 max-[359px]:text-sm',
     action.primary ? 'flex-[1.6]' : 'flex-1',
     tone,
   ].join(' ')
   const content = (
     <>
-      {/* On the narrowest phones, and in a row of three, the label needs the room more than the icon does. */}
-      <Icon
-        className={`h-[18px] w-[18px] shrink-0 max-[339px]:hidden ${dense ? 'hidden' : ''}`}
-      />
+      {/* On the narrowest phones the label needs the room more than the icon does. */}
+      <Icon className="h-[18px] w-[18px] shrink-0 max-[339px]:hidden" />
       <span className="truncate">{action.label}</span>
     </>
   )

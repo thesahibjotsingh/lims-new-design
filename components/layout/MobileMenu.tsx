@@ -10,8 +10,9 @@
 // unfolds the list: two controls, because a <details> summary can only toggle.
 //
 // THE LOOK. The same teal as the page heroes (`.teal-hero`, globals.css: the gradient and the
-// faint texture), darkest at the bottom, under the contact buttons. Each row has its section's
-// icon. The drawer is a floating panel with a margin and curved corners all round, the way the
+// faint texture), darkest at the bottom, under the contact buttons. The texture is kept to the top of
+// the panel and the rows are solid, so nothing shows through them (they read as matte, not glass).
+// Each row has its section's icon. The drawer is a floating panel with a margin and curved corners all round, the way the
 // booking sheet is, rather than a slab to the screen's edge.
 //
 // THE CONTACT BLOCK. Emergency is red and nothing else is (red is reserved for it site-wide).
@@ -117,8 +118,9 @@ function readOrigin(el: HTMLElement | null, fallback?: Origin | null): Origin {
   return { top: 10, left: w - 54, right: w - 10, bottom: 54, radius: 22 }
 }
 
-const ROW_CLASS =
-  'rounded-xl border border-white/15 bg-white/[0.07] transition-colors'
+// Solid rows (`teal-raised`), not a see-through white wash: a wash let the texture and its line
+// show through the rows, which read as glass.
+const ROW_CLASS = 'rounded-xl border border-white/10 bg-brand-teal-raised transition-colors'
 const LABEL_CLASS =
   'tap-target focus-ring-inverse min-h-[52px] flex-1 justify-start gap-3 px-3 text-[15px] font-semibold text-white hover:bg-white/10'
 
@@ -385,7 +387,15 @@ export function MobileMenu() {
                   ref={bgRef}
                   aria-hidden="true"
                   className="teal-hero absolute inset-0 rounded-[28px] [--teal-dir:to_top]"
-                  style={{ opacity: 0 }}
+                  // The texture only at the top, behind the logo, the close button and the search;
+                  // it fades out before the rows, which are solid and would cover it anyway.
+                  style={
+                    {
+                      opacity: 0,
+                      '--teal-fade':
+                        'radial-gradient(ellipse 80% 17% at 100% 0%, #000 0%, #000 45%, transparent 100%)',
+                    } as React.CSSProperties
+                  }
                 />
 
                 <div

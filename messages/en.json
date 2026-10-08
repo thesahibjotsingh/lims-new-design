@@ -110,9 +110,7 @@
     "home": "Home",
     "whatsappLabel": "Chat on WhatsApp",
     "whatsapp": "WhatsApp",
-    "whatsappMessage": "Hello LIMS Hisar, I would like to book an appointment.",
-    "whatsappMessageFor": "Hello LIMS Hisar, I would like to book an appointment for {name}.",
-    "whatsappMessageWith": "Hello LIMS Hisar, I would like to book an appointment with {name}."
+    "whatsappMessage": "Hello LIMS Hisar, I would like to book an appointment."
   },
   "doctorCard": {
     "viewProfile": "View profile",

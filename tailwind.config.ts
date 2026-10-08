@@ -20,6 +20,12 @@ const config: Config = {
           teal: '#0F5B66',
           'teal-dark': '#0B3F47',
           'teal-light': '#168B99',
+          /**
+           * A surface raised off the teal: the rows of the phone menu. Solid, not a white wash, so
+           * nothing behind it (the hero texture) shows through and the panel reads as matte, not
+           * as glass. White text on it measures about 7.5:1.
+           */
+          'teal-raised': '#17616C',
           copper: '#D68060',
           'copper-hover': '#C26E4E',
           /**

@@ -195,7 +195,6 @@ export async function DoctorHero({
                     key={action.kind}
                     action={action}
                     surface="onDark"
-                    dense={phoneActions.length > 2}
                   />
                 ))}
               </div>

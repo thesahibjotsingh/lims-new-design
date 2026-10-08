@@ -137,8 +137,6 @@ export default async function DoctorProfilePage({
       directions: tService('phoneDirections'),
       book: tService('phoneBook'),
       bookAria: t('requestWith', { name }),
-      whatsapp: tCommon('whatsappLabel'),
-      whatsappMessage: tCommon('whatsappMessageWith', { name }),
     },
   })
 
