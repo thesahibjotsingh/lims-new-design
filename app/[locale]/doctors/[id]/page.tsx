@@ -364,7 +364,10 @@ export default async function DoctorProfilePage({
         // The honest note, small and plain, instead of a boxed "awaiting content" panel
         // ahead of the booking steps: a biography, expertise and timings appear here once
         // LIMS supplies them.
-        <p className="-mt-3 mb-8 max-w-2xl text-sm leading-relaxed text-brand-dark-base/60">
+        // The pull-up is for lg and wider only, where the heading above it is showing. Below lg the
+        // heading is hidden (the row carries the title), and a negative margin there pushed the
+        // first line above the card's top edge, where the card's overflow clipped it.
+        <p className="mb-8 mt-1 max-w-2xl text-sm leading-relaxed text-brand-dark-base/60 lg:-mt-3">
           {t('aboutFallback')}
         </p>
       )}
