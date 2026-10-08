@@ -60,7 +60,7 @@ export async function DoctorHero({
     'rounded-full bg-white/12 px-3 py-1.5 text-xs font-semibold text-white sm:px-4 sm:py-2 sm:text-sm'
 
   return (
-    <header className="bg-gradient-to-r from-brand-teal-dark to-brand-teal text-white">
+    <header className="teal-hero teal-curve text-white">
       <div className="mx-auto max-w-7xl px-5 pb-5 pt-1 sm:px-6 sm:py-8 lg:py-12">
         <Link
           href="/doctors"

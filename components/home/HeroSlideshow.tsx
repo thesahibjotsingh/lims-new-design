@@ -71,7 +71,7 @@ export function HeroSlideshow({
       aria-label={tA11y('highlights')}
       onMouseEnter={pause}
       onMouseLeave={resume}
-      className="relative isolate hidden h-[600px] overflow-hidden bg-brand-teal text-white lg:block xl:h-[640px]"
+      className="teal-curve relative isolate hidden h-[600px] overflow-hidden bg-brand-teal text-white lg:block xl:h-[640px]"
     >
       {/*
         Stacking here is plain DOM order, not z-index: firstBanner+scrim (slide 0's

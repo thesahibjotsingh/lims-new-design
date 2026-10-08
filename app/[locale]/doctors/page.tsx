@@ -97,7 +97,7 @@ export default async function DoctorsPage({
         </div>
       )}
 
-      <header className="bg-gradient-to-r from-brand-teal-dark to-brand-teal text-white">
+      <header className="teal-hero teal-curve text-white">
         <div className="mx-auto max-w-7xl px-5 pb-5 pt-1 sm:px-6 sm:py-8 lg:py-12">
           <Link
             href="/"

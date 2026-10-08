@@ -10,6 +10,7 @@ import { Footer } from '@/components/layout/Footer'
 import { TranslationNotice } from '@/components/layout/TranslationNotice'
 import { serifEn, serifHi, serifPa } from '@/lib/fonts'
 import { googleListing } from '@/lib/google-listing'
+import { REVIEW_MODE } from '@/lib/review'
 import { openAllHours, primaryLocation, siteConfig } from '@/lib/site-config'
 import { siteText } from '@/lib/site-i18n'
 import { routing, type Locale } from '@/i18n/routing'
@@ -58,6 +59,9 @@ export async function generateMetadata({
     },
     description: text.description,
     alternates: { languages },
+    // A review build (lib/review.ts) carries example text LIMS has not confirmed, and goes to
+    // staff by link, so it must not be indexed. The real site has this switched off.
+    ...(REVIEW_MODE ? { robots: { index: false, follow: false } } : {}),
     icons: {
       icon: [
         { url: '/icons/favicon-16.png', sizes: '16x16', type: 'image/png' },

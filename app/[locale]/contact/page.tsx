@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import { ContactNumbers } from '@/components/contact/ContactNumbers'
 import { CopyButton } from '@/components/contact/CopyButton'
 import { GoogleReviews } from '@/components/contact/GoogleReviews'
 import { MapEmbed } from '@/components/contact/MapEmbed'
-import { PhoneIcon, PinIcon, WhatsAppIcon } from '@/components/icons'
+import { ArrowRightIcon, CalendarIcon, PinIcon } from '@/components/icons'
 import { InfoHero } from '@/components/page/InfoHero'
 import { ReviewBand } from '@/components/service/ReviewBand'
 import { Band, SectionHeading } from '@/components/service/blocks'
@@ -12,7 +13,7 @@ import { embedUrls, googleListing } from '@/lib/google-listing'
 import { REVIEW_MODE } from '@/lib/review'
 import { contactReviewSlots } from '@/lib/review-slots-pages'
 import { REVIEW_PREVIEW, SELECTED_REVIEWS } from '@/lib/reviews'
-import { contact, directionsUrl, fullAddress, whatsappUrl } from '@/lib/site-config'
+import { directionsUrl, fullAddress } from '@/lib/site-config'
 import { localizedLocation, siteText } from '@/lib/site-i18n'
 import type { Locale } from '@/i18n/routing'
 
@@ -35,27 +36,20 @@ export async function generateMetadata({
 }
 
 /*
- * THE CONTACT PAGE, kept to about one screen.
+ * THE CONTACT PAGE, in the order the hospital asked for:
  *
- * It used to be five full sections (who to call, where we are, hours, reviews, book again) and
- * ran long: the phone numbers sat below the fold on a laptop, the cards were twice as tall as
- * their content, the hours section held one sentence, and "request an appointment" appeared
- * four times. It is now:
+ *   1. Contact us              the hero, with the three numbers as one quiet card (ContactNumbers)
+ *   2. Locations & directions  the address, directions, and the map / Street View (#locations)
+ *   3. Book an appointment     a short card whose one button opens the booking form (#book)
+ *   4. Visitor information     hours, and the way to the visitors page (#visit)
+ *   then reviews, only once some are approved (lib/reviews.ts).
  *
- *   hero    the two phone numbers as solid colour cards on its right, so the numbers are the
- *           first thing seen and the empty half of the hero is used;
- *   find    the address, directions and the map and Street View on request;
- *   a strip for hours and visitor information, which are one sentence and a link;
- *   reviews only once some are approved (lib/reviews.ts).
+ * The numbers used to be three full-width coloured pills (red, copper, green). They were the
+ * loudest thing on the page and made it look like a row of ads, so they are one white card now.
+ * Red is still the emergency number and nothing else (reserved site-wide, see tailwind.config).
  *
- * THE COLOURS ARE NOT DECORATION. Red is the emergency number and nothing else (it is
- * reserved for that across the site, see tailwind.config). Copper is the site's colour for
- * "act now" (the header's appointment button), used here for the reception line, which is
- * where appointments are made. White text on the red passes AA; white on copper would not
- * (2.95:1), so the copper card carries dark text.
- *
- * Nothing on it is a claim LIMS has not made. Hours, parking, an ambulance line and an email
- * address are absent until supplied; review mode lists each as a box to ask about.
+ * Nothing on it is a claim LIMS has not made. Parking, an ambulance line and an email address
+ * are absent until supplied; review mode lists each as a box to ask about.
  */
 export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {
   // Static rendering needs the locale set here too, not only in the layout. See the note in
@@ -66,7 +60,6 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   const tCommon = await getTranslations('common')
   const tNav = await getTranslations('nav')
   const location = localizedLocation(locale as Locale)
-  const text = siteText(locale as Locale)
 
   const slots = REVIEW_MODE ? contactReviewSlots() : []
 
@@ -124,89 +117,8 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
             </Link>
           </>
         }
-        aside={
-          <div className="flex flex-col gap-3 sm:gap-4">
-            {/*
-              Two pills, built like the header's "Book an appointment" button: fully rounded,
-              the same `bg-brand-copper` and white text, the same hover. The label and the
-              number are both inside the pill, so a pill reads as one thing: what it is, then
-              the number.
-
-              White on the copper is 2.95:1, which is below the 4.5:1 small text needs, so the
-              small label is set bold and tracked out to carry as well as it can, and the
-              number is large. The header button has the same pairing. Red carries white at
-              5.6:1. If the label ever needs to pass strictly, the fix is the darker
-              `bg-brand-copper-hover` (3.7:1) or dark text on the copper (6.2:1), not a bigger
-              label.
-            */}
-            <a
-              href={`tel:${contact.primary}`}
-              className="press flex min-h-[68px] w-full items-center gap-3 rounded-full bg-brand-emergency py-2 pl-3 pr-5 text-white shadow-md transition-[filter,box-shadow] hover:brightness-95 hover:shadow-lg sm:min-h-[78px] sm:gap-4 sm:py-2.5 sm:pr-8"
-            >
-              <span
-                aria-hidden="true"
-                className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-full bg-white/20 sm:h-[52px] sm:w-[52px]"
-              >
-                <PhoneIcon className="h-6 w-6" />
-              </span>
-              <span className="block">
-                <span className="block text-xs font-bold uppercase tracking-[0.14em]">
-                  {t('emergencyLabel')}
-                </span>
-                <span className="block text-[1.375rem] font-bold leading-tight tabular-nums max-[359px]:text-lg min-[360px]:whitespace-nowrap min-[400px]:text-2xl sm:text-[1.75rem]">
-                  {contact.primaryDisplay}
-                </span>
-              </span>
-            </a>
-
-            <a
-              href={`tel:${contact.secondary}`}
-              className="press flex min-h-[68px] w-full items-center gap-3 rounded-full bg-brand-copper py-2 pl-3 pr-5 text-white shadow-md transition-colors hover:bg-brand-copper-hover hover:shadow-lg sm:min-h-[78px] sm:gap-4 sm:py-2.5 sm:pr-8"
-            >
-              <span
-                aria-hidden="true"
-                className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-full bg-white/20 sm:h-[52px] sm:w-[52px]"
-              >
-                <PhoneIcon className="h-6 w-6" />
-              </span>
-              <span className="block">
-                <span className="block text-xs font-bold uppercase tracking-[0.14em]">
-                  {t('appointmentsLabel')}
-                </span>
-                <span className="block text-[1.375rem] font-bold leading-tight tabular-nums max-[359px]:text-lg min-[360px]:whitespace-nowrap min-[400px]:text-2xl sm:text-[1.75rem]">
-                  {contact.secondaryDisplay}
-                </span>
-              </span>
-            </a>
-
-            {/*
-              The same reception number on WhatsApp: the hospital's WhatsApp Business account is on
-              it. The chat opens with a line already typed. WhatsApp's own green, with white on it
-              at 3.1:1 (bold and large, like the copper pill above).
-            */}
-            <a
-              href={whatsappUrl(tCommon('whatsappMessage'))}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="press flex min-h-[68px] w-full items-center gap-3 rounded-full bg-brand-whatsapp py-2 pl-3 pr-5 text-white shadow-md transition-colors hover:bg-brand-whatsapp-hover hover:shadow-lg sm:min-h-[78px] sm:gap-4 sm:py-2.5 sm:pr-8"
-            >
-              <span
-                aria-hidden="true"
-                className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-full bg-white/20 sm:h-[52px] sm:w-[52px]"
-              >
-                <WhatsAppIcon className="h-6 w-6" />
-              </span>
-              <span className="block">
-                <span className="block text-xs font-bold uppercase tracking-[0.14em]">
-                  {tCommon('whatsappLabel')}
-                </span>
-                <span className="block text-[1.375rem] font-bold leading-tight tabular-nums max-[359px]:text-lg min-[360px]:whitespace-nowrap min-[400px]:text-2xl sm:text-[1.75rem]">
-                  {contact.secondaryDisplay}
-                </span>
-              </span>
-            </a>
-          </div>
-        }
+        // One quiet card of three rows rather than three coloured pills. See ContactNumbers.
+        aside={<ContactNumbers />}
       />
 
       {/*
@@ -297,50 +209,66 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
         </div>
       </section>
 
-      {/* Hours and visiting: one sentence and a link, not a section. */}
-      <div className="mx-auto max-w-7xl px-5 pb-5 pt-7 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-brand-mist px-5 py-4">
-          <p className="text-sm leading-relaxed text-brand-dark-base/80">{t('hoursNote')}</p>
-          <Link href="/patient-care/visitors" className={`${outlineLink} bg-white`}>
-            {tNav('visitorInformation')}
-          </Link>
-        </div>
-      </div>
-
       {/*
-        The grievance officer, as the hospital's own Business profile names them (name and the two
-        published lines; no email address was supplied, so none is shown).
+        BOOK AN APPOINTMENT. A short card with one button, not the form: the form opens from the
+        button (the same booking sheet every other "Request an appointment" opens), so it exists
+        in one place. Copper because copper is the site's "act now" colour.
       */}
-      <section
-        aria-labelledby="grievance-heading"
-        className="mx-auto max-w-7xl px-5 pb-12 sm:px-6"
-      >
-        <div className="flex flex-col gap-4 rounded-2xl border border-brand-teal/15 bg-white p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-          <div className="max-w-xl">
-            <h2 id="grievance-heading" className="font-serif text-lg font-bold text-brand-dark-base">
-              {t('grievanceHeading')}
-            </h2>
-            <p className="mt-1 text-sm leading-relaxed text-brand-dark-base/70">
-              {t('grievanceBody')}
-            </p>
-            <p className="mt-3 text-base font-semibold text-brand-dark-base">{text.officerName}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <a
-              href={`tel:${contact.secondary}`}
-              className={`${outlineLink} gap-2 tabular-nums`}
+      <section id="book" aria-labelledby="book-heading" className="scroll-mt-36">
+        <div className="mx-auto max-w-7xl px-5 pt-7 sm:px-6">
+          <div className="flex flex-col gap-5 rounded-2xl bg-brand-mist p-5 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+            <div className="flex items-start gap-4">
+              <span
+                aria-hidden="true"
+                className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-brand-copper text-white"
+              >
+                <CalendarIcon className="h-6 w-6" />
+              </span>
+              <div>
+                <h2
+                  id="book-heading"
+                  className="font-serif text-xl font-bold text-brand-dark-base sm:text-2xl"
+                >
+                  {tNav('bookAppointment')}
+                </h2>
+                <p className="mt-1 max-w-xl text-sm leading-relaxed text-brand-dark-base/75 sm:text-base">
+                  {t('bookBody')}
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/appointments"
+              className="tap-target focus-ring-inverse min-h-[52px] shrink-0 justify-center rounded-full bg-brand-copper px-7 text-base font-semibold text-white transition-colors hover:bg-brand-copper-hover"
             >
-              <PhoneIcon className="h-4 w-4" />
-              {t('grievanceMobile')} {contact.secondaryDisplay}
-            </a>
-            <a
-              href={`tel:${contact.primary}`}
-              className={`${outlineLink} gap-2 tabular-nums`}
-            >
-              <PhoneIcon className="h-4 w-4" />
-              {t('grievanceLandline')} {contact.primaryDisplay}
-            </a>
+              {tCommon('requestAnAppointment')}
+            </Link>
           </div>
+        </div>
+      </section>
+
+      {/* VISITOR INFORMATION: the whole card is the link to the visitors page. */}
+      <section id="visit" aria-labelledby="visit-heading" className="scroll-mt-36">
+        <div className="mx-auto max-w-7xl px-5 pb-12 pt-7 sm:px-6">
+          <Link
+            href="/patient-care/visitors"
+            className="press group flex items-center justify-between gap-4 rounded-2xl border border-brand-teal/15 bg-white p-5 transition-colors hover:border-brand-teal/30 hover:bg-brand-mist sm:p-8"
+          >
+            <span className="block">
+              <h2
+                id="visit-heading"
+                className="font-serif text-xl font-bold text-brand-dark-base group-hover:text-brand-teal sm:text-2xl"
+              >
+                {tNav('visitorInformation')}
+              </h2>
+              <span className="mt-1 block max-w-2xl text-sm leading-relaxed text-brand-dark-base/75 sm:text-base">
+                {t('hoursNote')}
+              </span>
+            </span>
+            <ArrowRightIcon
+              aria-hidden="true"
+              className="h-5 w-5 shrink-0 text-brand-copper transition-transform group-hover:translate-x-0.5"
+            />
+          </Link>
         </div>
       </section>
 

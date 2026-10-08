@@ -16,8 +16,9 @@ export async function ConsultantRoster() {
   const tHome = await getTranslations('home')
   const locale = (await getLocale()) as Locale
   return (
-    // The dark band between the two mist ones — see ServiceArchitecture. Dark so the
-    // white panels on the portrait cards read as floating rather than as more page.
+    // The one dark band on the wide home page, between the mist Specialities and the white
+    // Services (see HomeSections). Dark so the white panels on the portrait cards read as
+    // floating rather than as more page.
     <div className="bg-brand-teal-dark">
       <Section>
         <div className="scroll-reveal mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">

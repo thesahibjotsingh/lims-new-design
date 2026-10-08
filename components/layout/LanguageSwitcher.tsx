@@ -4,8 +4,8 @@
 //
 // The language control: one menu, two placements.
 //
-//   variant="sheet"     phone header. A globe button showing the current language's code (EN,
-//                       HI, PA) that opens a panel with the three languages as big rows. The
+//   variant="sheet"     phone header. A globe button showing the current language's short name
+//                       (EN, हिं, ਪੰ) that opens a panel with the three languages as big rows. The
 //                       panel grows out of the bottom navigation pill and shrinks back into it,
 //                       over a dimmed page.
 //   variant="dropdown"  desktop header. The same button and the same rows. The panel grows
@@ -59,8 +59,11 @@ const GLYPH: Record<Locale, string> = { en: 'A', hi: 'अ', pa: 'ਅ' }
 /** The English name, shown as a gloss beside the native one. Same on every page. */
 const ENGLISH_NAME: Record<Locale, string> = { en: 'English', hi: 'Hindi', pa: 'Punjabi' }
 
-/** The phone button's label. ISO 639-1, upper-cased. */
-const CODE: Record<Locale, string> = { en: 'EN', hi: 'HI', pa: 'PA' }
+/**
+ * The button's label: the current language's short name in its own script, so a Hindi or Punjabi
+ * reader sees हिं or ਪੰ and not "HI" or "PA". English stays EN.
+ */
+const CODE: Record<Locale, string> = { en: 'EN', hi: 'हिं', pa: 'ਪੰ' }
 
 /*
  * THE PANEL GROWS OUT OF ITS TRIGGER (phone: the bottom pill; desktop: the button).
@@ -374,7 +377,8 @@ export function LanguageMenu({ variant = 'sheet' }: { variant?: 'sheet' | 'dropd
           .join(' ')}
       >
         <GlobeIcon className="h-[18px] w-[18px]" />
-        {CODE[active]}
+        {/* `lang` so the Devanagari and Gurmukhi get their own font, not the Latin fallback. */}
+        <span lang={active}>{CODE[active]}</span>
       </button>
 
       {rendered &&

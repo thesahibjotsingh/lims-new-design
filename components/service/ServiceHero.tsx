@@ -9,7 +9,8 @@
 // "Book an appointment", so this one only opens the form with THIS department chosen.
 //
 // It states only what the data supports. The chips are COUNTS of what the page explains
-// (conditions, treatments, consultants listed), never claims about capability.
+// (conditions, treatments, consultants listed), never claims about capability. Each count links to
+// the section it counts.
 //
 // ON A PHONE (below sm) the hero is a different, much shorter layout: a back link instead of the
 // breadcrumb, the overview cut to three lines with Read more, the counts on one line, and two
@@ -17,6 +18,7 @@
 // title and the first section, and PhoneTalkToUs carries its numbers at the end of the page.
 // Everything the wide layout shows is still in the page's HTML.
 
+import { Fragment } from 'react'
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { ChevronLeftIcon } from '@/components/icons'
@@ -27,6 +29,16 @@ import { ActionButton, type PhoneAction } from '@/components/service/PhoneAction
 import { ServiceIcon } from '@/components/primitives/ServiceIcon'
 import { firstSentence, plain } from '@/lib/text'
 import type { ClinicalService } from '@/lib/services'
+
+/**
+ * A count in the hero ("5 conditions"). With an `href` it is a link to the section it counts, so a
+ * reader can go straight to it; the ids are the ones ServiceDetail gives those sections, and each
+ * fact is only added where its section exists.
+ */
+interface HeroFact {
+  text: string
+  href?: string
+}
 
 export async function ServiceHero({
   service,
@@ -85,32 +97,44 @@ export async function ServiceHero({
     support: 'factTreatmentsSupport',
   }[category]
 
-  const chips: string[] = []
+  const chips: HeroFact[] = []
   // The same counts, shorter, for the one-line version on a phone.
-  const facts: string[] = []
+  const facts: HeroFact[] = []
   // The emergency department is open at all hours (the hospital's own Business profile says so),
   // and it is the first thing someone on this page needs to know.
   if (service.slug === 'emergency-services') {
-    chips.push(t('open247'))
-    facts.push(t('open247'))
+    chips.push({ text: t('open247') })
+    facts.push({ text: t('open247') })
   }
   if (service.commonConditions?.length) {
-    chips.push(t(conditionsKey, { count: service.commonConditions.length }))
-    facts.push(t(factConditionsKey, { count: service.commonConditions.length }))
+    chips.push({
+      text: t(conditionsKey, { count: service.commonConditions.length }),
+      href: '#conditions',
+    })
+    facts.push({
+      text: t(factConditionsKey, { count: service.commonConditions.length }),
+      href: '#conditions',
+    })
   }
   if (service.commonTreatments?.length) {
-    chips.push(t(treatmentsKey, { count: service.commonTreatments.length }))
-    facts.push(t(factTreatmentsKey, { count: service.commonTreatments.length }))
+    chips.push({
+      text: t(treatmentsKey, { count: service.commonTreatments.length }),
+      href: '#treatments',
+    })
+    facts.push({
+      text: t(factTreatmentsKey, { count: service.commonTreatments.length }),
+      href: '#treatments',
+    })
   }
   if (category === 'clinical' && doctorCount > 0) {
-    chips.push(t('statConsultants', { count: doctorCount }))
-    facts.push(t('factConsultants', { count: doctorCount }))
+    chips.push({ text: t('statConsultants', { count: doctorCount }), href: '#doctors' })
+    facts.push({ text: t('factConsultants', { count: doctorCount }), href: '#doctors' })
   }
 
   return (
     <header
       id="service-hero"
-      className="bg-gradient-to-r from-brand-teal-dark to-brand-teal text-white"
+      className="teal-hero teal-curve text-white"
     >
       <div className="mx-auto max-w-7xl px-5 pb-5 pt-1 sm:px-6 sm:py-8 lg:py-12">
         {/* A phone gets one line back to the list; the breadcrumb is for wider screens. */}
@@ -175,17 +199,48 @@ export async function ServiceHero({
             )}
             {alsoKnownAs && <p className="mt-2 text-sm text-white/75">{alsoKnownAs}</p>}
 
+            {/*
+              The counts are links to their sections but look like the plain text they were: no
+              underline, no colour change. On a phone those sections are rows that open; Collapse
+              opens the one a #link points at, and the section's scroll margin keeps it clear of
+              the header and the chip row. The hit area is padded out past the 12.5px text, as the
+              section chips' is.
+            */}
             {facts.length > 0 && (
-              <p className="mt-1 text-[12.5px] text-white/75 sm:hidden">{facts.join(' · ')}</p>
+              <p className="mt-1 text-[12.5px] text-white/75 sm:hidden">
+                {facts.map((fact, index) => (
+                  <Fragment key={fact.text}>
+                    {index > 0 && ' · '}
+                    {fact.href ? (
+                      <a
+                        href={fact.href}
+                        className="focus-ring-inverse relative rounded-sm before:absolute before:-inset-x-1 before:-inset-y-3 before:content-['']"
+                      >
+                        {fact.text}
+                      </a>
+                    ) : (
+                      fact.text
+                    )}
+                  </Fragment>
+                ))}
+              </p>
             )}
             {chips.length > 0 && (
               <ul className="mt-6 hidden flex-wrap gap-2 sm:flex">
                 {chips.map((chip) => (
-                  <li
-                    key={chip}
-                    className="rounded-full bg-white/12 px-4 py-2 text-sm font-semibold text-white"
-                  >
-                    {chip}
+                  <li key={chip.text}>
+                    {chip.href ? (
+                      <a
+                        href={chip.href}
+                        className="focus-ring-inverse block rounded-full bg-white/12 px-4 py-2 text-sm font-semibold text-white"
+                      >
+                        {chip.text}
+                      </a>
+                    ) : (
+                      <span className="block rounded-full bg-white/12 px-4 py-2 text-sm font-semibold text-white">
+                        {chip.text}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

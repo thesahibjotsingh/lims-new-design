@@ -6,9 +6,9 @@
 // uses constantly; this carries the other twenty-two, because a bottom bar with eight
 // items is a bottom bar with eight targets too small to hit.
 //
-// Sections are collapsible <details> rather than hand-rolled accordions: they open
-// without JavaScript, they are keyboard operable for free, and the browser already
-// exposes the expanded state to assistive technology.
+// A section with a short list under it is a link (the label, to the section's own page) and an
+// arrow button (aria-expanded) that unfolds the list. They are two controls because a <details>
+// summary can only toggle: tapping "Specialities" has to open the page of all the specialities.
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -30,6 +30,9 @@ import { siteText } from '@/lib/site-i18n'
 import { translatedChildLabel, translatedNavLabel, translatedOverviewLabel } from '@/lib/nav-i18n'
 import type { Locale } from '@/i18n/routing'
 
+/** A valid element id for a section's unfolded list (nav labels have spaces). */
+const sectionId = (href: string) => `mobile-menu-${href.replace(/[^a-z]/gi, '') || 'home'}`
+
 export function MobileMenu() {
   const pathname = usePathname()
   const locale = useLocale() as Locale
@@ -42,6 +45,8 @@ export function MobileMenu() {
   const searchPlaceholder = tSearch('drawerPlaceholder')
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  // Which sections have their short list unfolded, by nav label. Cleared when the drawer closes.
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [searchFocused, setSearchFocused] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
 
@@ -116,6 +121,7 @@ export function MobileMenu() {
   useEffect(() => {
     if (open) return
     setQuery('')
+    setExpanded({})
     setSuggestOpen(false)
   }, [open, setSuggestOpen])
 
@@ -337,50 +343,75 @@ export function MobileMenu() {
                 {primaryNav.map((item) =>
                   item.children?.length ? (
                     <li key={item.label}>
-                      <details className="group rounded-xl border border-white/15 bg-white/[0.07]">
-                        {/*
-                          `flex w-full` overrides .tap-target's own `inline-flex`
-                          — a utility class placed here wins the cascade over a
-                          components-layer one, same as the press-feedback fix in
-                          globals.css. Without it the summary shrinks to fit
-                          "Specialities ▾", leaving the right ~60% of this visibly
-                          full-width card dead to touch: tappable card, untappable
-                          card front.
-                        */}
-                        <summary className="tap-target focus-ring-inverse flex w-full cursor-pointer list-none px-4 text-sm font-semibold text-white [&::-webkit-details-marker]:hidden">
-                          <span className="flex w-full items-center justify-between">
+                      {/*
+                        TWO TARGETS IN ONE CARD, like the desktop bar: the label goes to the
+                        section's own page (all the specialities, all the services, ...) and the
+                        arrow at the right opens the short list under it. It used to be one
+                        <details> summary, so tapping "Specialities" only ever unfolded a list
+                        and there was no way to the page that holds them all except a link at
+                        the bottom of that list.
+                      */}
+                      <div className="rounded-xl border border-white/15 bg-white/[0.07]">
+                        <div className="flex items-stretch">
+                          {/* `justify-start` overrides .tap-target's centring, so the label sits at the left. */}
+                          <Link
+                            href={item.href}
+                            onClick={() => setOpen(false)}
+                            className="tap-target focus-ring-inverse flex-1 justify-start rounded-l-xl px-4 text-sm font-semibold text-white hover:bg-white/10"
+                          >
                             {translatedNavLabel(item, t)}
+                          </Link>
+                          <button
+                            type="button"
+                            aria-expanded={Boolean(expanded[item.label])}
+                            aria-controls={sectionId(item.href)}
+                            aria-label={tA11y('menuFor', { label: translatedNavLabel(item, t) })}
+                            onClick={() =>
+                              setExpanded((current) => ({
+                                ...current,
+                                [item.label]: !current[item.label],
+                              }))
+                            }
+                            className="tap-target focus-ring-inverse w-14 shrink-0 rounded-r-xl border-l border-white/15 text-white/70 hover:bg-white/10"
+                          >
                             <span
                               aria-hidden="true"
-                              className="text-white/70 transition-transform group-open:rotate-180"
+                              className={`transition-transform ${expanded[item.label] ? 'rotate-180' : ''}`}
                             >
                               ▾
                             </span>
-                          </span>
-                        </summary>
-                        <ul className="border-t border-white/15 px-2 py-1">
-                          {item.children.map((child) => (
-                            <li key={child.href}>
-                              <Link
-                                href={child.href}
-                                className="flex min-h-[44px] items-center rounded-lg px-3 text-sm text-white/80 hover:bg-white/10"
-                              >
-                                {translatedChildLabel(child, t, locale)}
-                              </Link>
-                            </li>
-                          ))}
-                          {item.overviewLabel && (
-                            <li>
-                              <Link
-                                href={item.href}
-                                className="flex min-h-[44px] items-center rounded-lg px-3 text-sm font-semibold text-brand-copper hover:bg-white/10"
-                              >
-                                {translatedOverviewLabel(item, t)} &rarr;
-                              </Link>
-                            </li>
-                          )}
-                        </ul>
-                      </details>
+                          </button>
+                        </div>
+                        {expanded[item.label] && (
+                          <ul
+                            id={sectionId(item.href)}
+                            className="border-t border-white/15 px-2 py-1"
+                          >
+                            {item.children.map((child) => (
+                              <li key={child.href}>
+                                <Link
+                                  href={child.href}
+                                  onClick={() => setOpen(false)}
+                                  className="flex min-h-[44px] items-center rounded-lg px-3 text-sm text-white/80 hover:bg-white/10"
+                                >
+                                  {translatedChildLabel(child, t, locale)}
+                                </Link>
+                              </li>
+                            ))}
+                            {item.overviewLabel && (
+                              <li>
+                                <Link
+                                  href={item.href}
+                                  onClick={() => setOpen(false)}
+                                  className="flex min-h-[44px] items-center rounded-lg px-3 text-sm font-semibold text-brand-copper hover:bg-white/10"
+                                >
+                                  {translatedOverviewLabel(item, t)} &rarr;
+                                </Link>
+                              </li>
+                            )}
+                          </ul>
+                        )}
+                      </div>
                     </li>
                   ) : (
                     <li key={item.label}>

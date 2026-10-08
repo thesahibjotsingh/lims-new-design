@@ -66,7 +66,9 @@ export function PageHeader({
         banner
           ? // No bottom border: the band is teal and the section under it is white, so
             // the colour change is the edge. A rule there only reads as a seam.
-            'bg-brand-teal text-white'
+            // The curve (globals.css, .teal-curve) on every banner; the texture only on a phone,
+            // where the photograph is not shown. From sm up the art covers the band.
+            'teal-curve bg-brand-teal text-white max-sm:teal-art'
           : 'border-b border-brand-teal/10 bg-brand-mist',
       ].join(' ')}
     >
@@ -81,7 +83,10 @@ export function PageHeader({
         as the decorative blur field in DesktopHero.
       */}
       {banner && (
-        <div aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden max-sm:hidden">
+        <div
+          aria-hidden="true"
+          className="teal-curve absolute inset-0 -z-10 overflow-hidden max-sm:hidden"
+        >
           {/*
             HEIGHT-FIRST, NOT COVER. The art is 3:1 and this band renders at roughly 5:1
             on a wide screen, so stretching the image across the full width and cropping

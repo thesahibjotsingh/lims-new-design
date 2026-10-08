@@ -37,9 +37,15 @@ export function MapEmbed({
   mapSrc,
   streetViewSrc,
   labels,
+  initialMode = 'street',
 }: {
   mapSrc: string
   streetViewSrc: string
+  /**
+   * What is showing on first paint. The Contact page opens Street View (the decision above); the
+   * home page passes 'none', so nothing is requested from Google until the visitor chooses.
+   */
+  initialMode?: Mode
   labels: {
     heading: string
     showMap: string
@@ -52,7 +58,7 @@ export function MapEmbed({
     streetViewNote: string
   }
 }) {
-  const [mode, setMode] = useState<Mode>('street')
+  const [mode, setMode] = useState<Mode>(initialMode)
 
   const pill = (value: Exclude<Mode, 'none'>, label: string) => (
     <button

@@ -699,3 +699,52 @@
     display: none !important;
   }
 }
+
+/*
+ * THE TEAL HEROES: one texture and one curve, defined once.
+ *
+ * Every teal band at the top of a page (the phone home, Contact, About, department pages, doctor
+ * pages, the doctor directory, the banner pages on a phone) takes the same two things from here, so
+ * they cannot drift apart:
+ *
+ *   .teal-curve    rounds the band's lower corners (28px, 40px from lg). The page behind is white, so
+ *                  the corners simply show the page; nothing needs to clip, which matters because the
+ *                  doctor directory's search suggestions drop out of the bottom of its band.
+ *   .teal-hero     the brand teal gradient with the texture drawn over it. Direction is `--teal-dir`.
+ *   .teal-art      the texture alone, for a band that already has its own background (the banner
+ *                  pages use it on a phone, where their photograph is not shown).
+ *
+ * The texture echoes the artwork on the wide home hero and the page banners: faint outlined crosses,
+ * two thin flowing lines in a pale copper, two copper dots. It is an inline SVG (no request, about
+ * 2 kB) that fades in from the left (an SVG mask), so the headline's side stays clean and the busier
+ * part sits at the right. The lines are 0.22 to 0.5 opaque at most, so white text keeps its contrast.
+ * The gradient stops are brand-teal-dark (#0B3F47) and brand-teal (#0F5B66) from tailwind.config.
+ * To edit the artwork, decode the data URI (it is plain SVG, % escapes aside).
+ */
+:root {
+  --teal-curve: 28px;
+  --teal-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 400'%3E%3Cdefs%3E%3ClinearGradient id='f' x1='0' x2='1' y1='0' y2='0'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='.1'/%3E%3Cstop offset='.55' stop-color='%23fff' stop-opacity='.65'/%3E%3Cstop offset='1' stop-color='%23fff'/%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect width='1200' height='400' fill='url(%23f)'/%3E%3C/mask%3E%3C/defs%3E%3Cg mask='url(%23m)' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke='%23fff' stroke-opacity='.26' stroke-width='1.6'%3E%3Cpath d='M1074,30 L1108,30 L1108,64 L1142,64 L1142,98 L1108,98 L1108,132 L1074,132 L1074,98 L1040,98 L1040,64 L1074,64 Z'/%3E%3Cpath d='M820,62 L840,62 L840,82 L860,82 L860,102 L840,102 L840,122 L820,122 L820,102 L800,102 L800,82 L820,82 Z'/%3E%3Cpath d='M917,160 L929,160 L929,172 L941,172 L941,184 L929,184 L929,196 L917,196 L917,184 L905,184 L905,172 L917,172 Z'/%3E%3Cpath d='M625,36 L640,36 L640,51 L655,51 L655,66 L640,66 L640,81 L625,81 L625,66 L610,66 L610,51 L625,51 Z'/%3E%3Cpath d='M1158,176 L1168,176 L1168,186 L1178,186 L1178,196 L1168,196 L1168,206 L1158,206 L1158,196 L1148,196 L1148,186 L1158,186 Z'/%3E%3Cpath d='M394,120 L408,120 L408,134 L422,134 L422,148 L408,148 L408,162 L394,162 L394,148 L380,148 L380,134 L394,134 Z'/%3E%3Cpath d='M210,48 L230,48 L230,68 L250,68 L250,88 L230,88 L230,108 L210,108 L210,88 L190,88 L190,68 L210,68 Z'/%3E%3Cpath d='M72,190 L84,190 L84,202 L96,202 L96,214 L84,214 L84,226 L72,226 L72,214 L60,214 L60,202 L72,202 Z'/%3E%3C/g%3E%3Cg stroke='%23F4C3AB' stroke-width='1.4'%3E%3Cpath stroke-opacity='.55' d='M-20,262 C200,202 360,262 560,192 C700,142 820,168 960,118 C1040,90 1080,92 1120,84 S1190,56 1220,44'/%3E%3Cpath stroke-opacity='.3' d='M-20,302 C220,252 400,322 640,252 C820,202 980,232 1220,152'/%3E%3C/g%3E%3Cg fill='%23E8946F' stroke='none'%3E%3Ccircle cx='960' cy='118' r='5'/%3E%3Ccircle cx='1120' cy='84' r='4.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+@media (min-width: 1024px) {
+  :root {
+    --teal-curve: 40px;
+  }
+}
+@layer components {
+  .teal-curve {
+    border-bottom-left-radius: var(--teal-curve);
+    border-bottom-right-radius: var(--teal-curve);
+  }
+  .teal-art {
+    background-image: var(--teal-art);
+    background-repeat: no-repeat;
+    background-position: right top;
+    background-size: cover;
+  }
+  .teal-hero {
+    background-image: var(--teal-art), linear-gradient(var(--teal-dir, to right), #0b3f47, #0f5b66);
+    background-repeat: no-repeat;
+    background-position: right top, 0 0;
+    background-size: cover, 100% 100%;
+  }
+}
