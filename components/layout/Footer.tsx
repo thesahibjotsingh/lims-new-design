@@ -7,6 +7,7 @@
 import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import {
+  abhaUrl,
   centresNav,
   contact,
   diagnosticsNav,
@@ -18,7 +19,7 @@ import { localizedLocation, siteText } from '@/lib/site-i18n'
 import { getCategory, servicesByCategory } from '@/lib/services'
 import { translatedCategoryName, translatedServiceName } from '@/lib/services-i18n'
 import { translatedNavLabel, slugFromHref } from '@/lib/nav-i18n'
-import { PhoneIcon, PinIcon, WhatsAppIcon } from '@/components/icons'
+import { ArrowUpRightIcon, PhoneIcon, PinIcon, WhatsAppIcon } from '@/components/icons'
 import { FooterCollapse } from '@/components/layout/FooterCollapse'
 import type { Locale } from '@/i18n/routing'
 import type { NavItem } from '@/types'
@@ -104,6 +105,7 @@ export async function Footer() {
             items={patientServicesNav}
             locale={locale}
             navT={t}
+            externalItems={[{ href: abhaUrl, label: tFooter('abhaLink') }]}
           />
         </div>
 
@@ -159,6 +161,7 @@ function FooterColumn({
   moreLabel,
   locale,
   navT,
+  externalItems,
 }: {
   id: string
   heading: string
@@ -167,6 +170,8 @@ function FooterColumn({
   moreLabel?: string
   locale: Locale
   navT?: (key: string) => string
+  /** Links that leave the site (a new tab), after the site's own. */
+  externalItems?: { href: string; label: string }[]
 }) {
   return (
     <FooterCollapse id={id} heading={heading}>
@@ -179,6 +184,19 @@ function FooterColumn({
             >
               {navT ? translatedNavLabel(item, navT) : translatedServiceName(slugFromHref(item.href), locale)}
             </Link>
+          </li>
+        ))}
+        {externalItems?.map((item) => (
+          <li key={item.href}>
+            <a
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-[44px] items-center gap-1.5 text-white/55 transition-colors hover:text-brand-copper"
+            >
+              {item.label}
+              <ArrowUpRightIcon className="h-3 w-3" strokeWidth={2} />
+            </a>
           </li>
         ))}
         {moreHref && moreLabel && (

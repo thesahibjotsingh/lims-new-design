@@ -61,6 +61,18 @@ export const onlineBookingUrl =
   'https://ap26.acsonnet.com/LIFELINEOPM/request%20app/frmonlineapp.aspx'
 
 /**
+ * Where a patient creates an ABHA ID (Ayushman Bharat Health Account), on the National Health
+ * Authority's own portal. The hospital's contact asked for the site to point patients at it
+ * (2026-10-08). The bare address redirects to /abha/v3 and is the one to link, so a change of
+ * path on their side does not break this. Checked in Chrome that day: the page is "Create
+ * Ayushman Bharat Health Account - ABHA Number" and describes it as a 14 digit number.
+ *
+ * The site describes it only in the portal's own terms. It does not say ABHA is free or that
+ * LIMS does anything with it, because neither is stated on that page and LIMS has not said so.
+ */
+export const abhaUrl = 'https://abha.abdm.gov.in/'
+
+/**
  * The hospital is open at all hours on all seven days (its Business profile says so for every
  * day). That is the HOSPITAL: a consultant's OPD timings, the pharmacy's and the lab's are not
  * supplied and are not claimed. Used for the structured data and the Contact page.

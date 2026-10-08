@@ -344,6 +344,51 @@
   }
 
   /*
+   * THE FIRST-VISIT ABHA POP-UP (components/layout/AbhaPrompt.tsx).
+   *
+   * Gate: shown once per visitor, so it can have a little polish, but it is a card in the corner
+   * that must never slow anyone down reaching a phone number. Enter: fades in and rises 14px with
+   * a slight scale (never from nothing), ease-out, 280ms, from its own bottom edge. Leave: faster
+   * (180ms) and shorter, because by then the visitor has decided. Transitions rather than
+   * keyframes, so a quick dismiss during the entrance retargets instead of restarting. Reduced
+   * motion keeps the fade and drops the movement.
+   */
+  .abha-popup {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition:
+      opacity 280ms var(--ease-out),
+      transform 280ms var(--ease-out);
+  }
+
+  @starting-style {
+    .abha-popup {
+      opacity: 0;
+      transform: translateY(14px) scale(0.97);
+    }
+  }
+
+  .abha-popup[data-leaving] {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+    transition-duration: 180ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .abha-popup,
+    .abha-popup[data-leaving] {
+      transform: none;
+      transition-duration: 160ms;
+    }
+
+    @starting-style {
+      .abha-popup {
+        transform: none;
+      }
+    }
+  }
+
+  /*
    * THE NOTEPAD (components/service/ContactCard.tsx).
    *
    * Gate: a card seen once per page and hovered a few times, so a little delight is fine;

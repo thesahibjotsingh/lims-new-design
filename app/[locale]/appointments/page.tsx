@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { BookingHandover, findChoice } from '@/components/appointments/BookingHandover'
+import { AbhaCard } from '@/components/primitives/AbhaCard'
 import { PageHeader, Section } from '@/components/primitives/PageShell'
 import { getBookingOptions } from '@/lib/booking-options'
 import { getDoctor } from '@/lib/doctors'
 import { getService } from '@/lib/services'
-import { contact, fullAddress, onlineBookingUrl, whatsappUrl } from '@/lib/site-config'
+import { abhaUrl, contact, fullAddress, onlineBookingUrl, whatsappUrl } from '@/lib/site-config'
 import { localizedLocation } from '@/lib/site-i18n'
 import { PhoneIcon, PinIcon, WhatsAppIcon } from '@/components/icons'
 import type { Locale } from '@/i18n/routing'
@@ -66,6 +67,8 @@ export default async function AppointmentsPage({
           phoneDisplay={contact.secondaryDisplay}
           whatsappHref={whatsappUrl(tCommon('whatsappMessage'))}
         />
+
+        <AbhaCard href={abhaUrl} headingAs="h2" className="mt-5 max-w-3xl" />
 
         <div className="mt-10 grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
           <div className="scroll-reveal rounded-2xl border border-brand-emergency/20 bg-brand-emergency/5 p-6">

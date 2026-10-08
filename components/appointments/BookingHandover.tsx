@@ -18,6 +18,7 @@
 
 import { useTranslations } from 'next-intl'
 import { ArrowUpRightIcon, CloseIcon, WhatsAppIcon } from '@/components/icons'
+import { AbhaCard } from '@/components/primitives/AbhaCard'
 
 interface Option {
   value: string
@@ -46,6 +47,7 @@ export function findChoice(
 
 export function BookingHandover({
   bookingUrl,
+  abhaUrl,
   choice = '',
   phone,
   phoneDisplay,
@@ -56,6 +58,8 @@ export function BookingHandover({
   onClose,
 }: {
   bookingUrl: string
+  /** Overlay only: the ABHA ID sign-up, as one compact line. The page shows the full card itself. */
+  abhaUrl?: string
   /** See findChoice. */
   choice?: string
   phone: string
@@ -118,6 +122,8 @@ export function BookingHandover({
           </a>
         </div>
       </div>
+
+      {overlay && abhaUrl && <AbhaCard variant="row" href={abhaUrl} />}
 
       {overlay && emergencyPhone && (
         <a

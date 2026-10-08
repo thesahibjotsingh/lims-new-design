@@ -70,7 +70,8 @@
     "allDepartments": "ਸਾਰੇ {count} ਵਿਭਾਗ",
     "patientServices": "ਮਰੀਜ਼ ਸੇਵਾਵਾਂ",
     "openAllDay": "ਹਰ ਦਿਨ 24 ਘੰਟੇ ਖੁੱਲ੍ਹਾ",
-    "grievanceLine": "ਸ਼ਿਕਾਇਤ ਅਧਿਕਾਰੀ: {name}"
+    "grievanceLine": "ਸ਼ਿਕਾਇਤ ਅਧਿਕਾਰੀ: {name}",
+    "abhaLink": "ਆਪਣੀ ABHA ID ਬਣਾਓ"
   },
   "home": {
     "heroTitleLine1": "ਵਿਸ਼ਵ ਪੱਧਰੀ ਦੇਖਭਾਲ,",
@@ -410,6 +411,15 @@
     "handoverCantFind": "ਉੱਥੇ ਆਪਣਾ ਡਾਕਟਰ ਜਾਂ ਵਿਭਾਗ ਨਹੀਂ ਮਿਲ ਰਿਹਾ? ਇਸ ਦੀ ਬਜਾਏ ਮੁਲਾਕਾਤਾਂ ਵਾਲੀ ਲਾਈਨ ਉੱਤੇ ਕਾਲ ਕਰੋ।",
     "handoverEmergency": "ਐਮਰਜੈਂਸੀ ਹੈ? ਆਨਲਾਈਨ ਬੁਕਿੰਗ ਨਾ ਕਰੋ। {number} ’ਤੇ ਫ਼ੋਨ ਕਰੋ।",
     "handoverClose": "ਬੰਦ ਕਰੋ"
+  },
+  "abha": {
+    "heading": "ਆਪਣੀ ABHA ID ਬਣਾਓ",
+    "body": "ABHA (ਆਯੁਸ਼ਮਾਨ ਭਾਰਤ ਹੈਲਥ ਅਕਾਊਂਟ) ਭਾਰਤ ਸਰਕਾਰ ਦੀ 14 ਅੰਕਾਂ ਦੀ ਸਿਹਤ ਆਈਡੀ ਹੈ। ਇਸਨੂੰ ਤੁਸੀਂ ਸਰਕਾਰ ਦੀ ਆਪਣੀ ਵੈੱਬਸਾਈਟ ਉੱਤੇ ਬਣਾਉਂਦੇ ਹੋ, ਇੱਥੇ ਨਹੀਂ।",
+    "button": "ABHA ID ਬਣਾਓ",
+    "rowLabel": "ਆਪਣੀ ABHA ID ਬਣਾਓ (ਸਰਕਾਰੀ ਸਿਹਤ ਆਈਡੀ)",
+    "opensNewTab": "(ਨਵੀਂ ਟੈਬ ਵਿੱਚ ਖੁੱਲ੍ਹਦਾ ਹੈ)",
+    "notNow": "ਹੁਣੇ ਨਹੀਂ",
+    "close": "ਬੰਦ ਕਰੋ"
   },
   "appointmentForm": {
     "patientTypeLegend": "ਕੀ ਤੁਸੀਂ ਨਵੇਂ ਮਰੀਜ਼ ਹੋ ਜਾਂ ਮੌਜੂਦਾ ਮਰੀਜ਼?",

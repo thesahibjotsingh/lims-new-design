@@ -4,6 +4,7 @@ import { hasLocale, NextIntlClientProvider } from 'next-intl'
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import { DesktopHeader } from '@/components/layout/DesktopHeader'
 import { BookingHost } from '@/components/appointments/BookingHost'
+import { AbhaPrompt } from '@/components/layout/AbhaPrompt'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
 import { Footer } from '@/components/layout/Footer'
@@ -11,7 +12,7 @@ import { TranslationNotice } from '@/components/layout/TranslationNotice'
 import { serifEn, serifHi, serifPa } from '@/lib/fonts'
 import { googleListing } from '@/lib/google-listing'
 import { REVIEW_MODE } from '@/lib/review'
-import { openAllHours, primaryLocation, siteConfig } from '@/lib/site-config'
+import { abhaUrl, openAllHours, primaryLocation, siteConfig } from '@/lib/site-config'
 import { siteText } from '@/lib/site-i18n'
 import { routing, type Locale } from '@/i18n/routing'
 import '../globals.css'
@@ -154,6 +155,9 @@ export default async function LocaleLayout({
 
           {/* The full-screen booking sheet every "Book an appointment" link opens. */}
           <BookingHost />
+
+          {/* A once-per-visitor card pointing at the government's ABHA ID sign-up. */}
+          <AbhaPrompt href={abhaUrl} />
         </NextIntlClientProvider>
 
         {/*

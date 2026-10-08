@@ -9,6 +9,8 @@ import {
 } from '@/components/home/HomeSections'
 import { MarqueeRibbon } from '@/components/home/MarqueeRibbon'
 import { PhoneHome } from '@/components/home/PhoneHome'
+import { AbhaCard } from '@/components/primitives/AbhaCard'
+import { abhaUrl } from '@/lib/site-config'
 
 /*
  * THE HOME PAGE, in the order of the menu:
@@ -49,7 +51,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <ServiceGroupSection categoryId="clinical" phoneTone="mist" desktopTone="mist" />
       <DoctorsSection />
       <ServiceGroupSection categoryId="diagnostics" phoneTone="mist" desktopTone="white" />
-      <ServiceGroupSection categoryId="support" phoneTone="white" desktopTone="mist" />
+      <ServiceGroupSection categoryId="support" phoneTone="white" desktopTone="mist">
+        <AbhaCard href={abhaUrl} />
+      </ServiceGroupSection>
       <HealthLibrarySection />
       <AboutSection />
       <ContactSection />

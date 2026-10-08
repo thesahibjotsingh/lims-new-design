@@ -107,6 +107,7 @@ export function BookingProvider({
   doctorOptions,
   serviceGroups,
   bookingUrl,
+  abhaUrl,
   fallbackPhone,
   fallbackPhoneDisplay,
   whatsappHref,
@@ -116,6 +117,7 @@ export function BookingProvider({
   doctorOptions: BookingDoctorOption[]
   serviceGroups: { label: string; options: BookingOption[] }[]
   bookingUrl: string
+  abhaUrl: string
   fallbackPhone: string
   fallbackPhoneDisplay: string
   whatsappHref: string
@@ -448,6 +450,7 @@ export function BookingProvider({
             <BookingHandover
               variant="overlay"
               bookingUrl={bookingUrl}
+              abhaUrl={abhaUrl}
               choice={findChoice(
                 doctorOptions,
                 serviceGroups,

@@ -8,7 +8,7 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import type { Locale } from '@/i18n/routing'
 import { BookingProvider } from '@/components/appointments/BookingProvider'
 import { getBookingOptions } from '@/lib/booking-options'
-import { contact, onlineBookingUrl, whatsappUrl } from '@/lib/site-config'
+import { abhaUrl, contact, onlineBookingUrl, whatsappUrl } from '@/lib/site-config'
 
 export async function BookingHost() {
   const locale = (await getLocale()) as Locale
@@ -20,6 +20,7 @@ export async function BookingHost() {
       doctorOptions={doctorOptions}
       serviceGroups={serviceGroups}
       bookingUrl={onlineBookingUrl}
+      abhaUrl={abhaUrl}
       fallbackPhone={contact.secondary}
       fallbackPhoneDisplay={contact.secondaryDisplay}
       whatsappHref={whatsappUrl(tCommon('whatsappMessage'))}

@@ -70,7 +70,8 @@
     "allDepartments": "All {count} departments",
     "patientServices": "Patient services",
     "openAllDay": "Open 24 hours, every day",
-    "grievanceLine": "Grievance officer: {name}"
+    "grievanceLine": "Grievance officer: {name}",
+    "abhaLink": "Create your ABHA ID"
   },
   "home": {
     "heroTitleLine1": "World class care,",
@@ -410,6 +411,15 @@
     "handoverCantFind": "Can't find your doctor or department there? Call the appointments line instead.",
     "handoverEmergency": "Emergency? Don't book online. Call {number}.",
     "handoverClose": "Close"
+  },
+  "abha": {
+    "heading": "Create your ABHA ID",
+    "body": "ABHA (Ayushman Bharat Health Account) is a 14-digit health ID from the Government of India. You create it on the government's own website, not here.",
+    "button": "Create ABHA ID",
+    "rowLabel": "Create your ABHA ID (government health ID)",
+    "opensNewTab": "(opens in a new tab)",
+    "notNow": "Not now",
+    "close": "Close"
   },
   "appointmentForm": {
     "patientTypeLegend": "Are you a new or an existing patient?",

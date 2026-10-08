@@ -70,7 +70,8 @@
     "allDepartments": "सभी {count} विभाग",
     "patientServices": "रोगी सेवाएं",
     "openAllDay": "हर दिन 24 घंटे खुला",
-    "grievanceLine": "शिकायत अधिकारी: {name}"
+    "grievanceLine": "शिकायत अधिकारी: {name}",
+    "abhaLink": "अपना ABHA ID बनवाएँ"
   },
   "home": {
     "heroTitleLine1": "विश्व स्तरीय देखभाल,",
@@ -410,6 +411,15 @@
     "handoverCantFind": "वहाँ अपना डॉक्टर या विभाग नहीं मिल रहा? इसके बजाय अपॉइंटमेंट लाइन पर कॉल करें।",
     "handoverEmergency": "आपातकाल है? ऑनलाइन बुकिंग न करें। {number} पर फ़ोन करें।",
     "handoverClose": "बंद करें"
+  },
+  "abha": {
+    "heading": "अपना ABHA ID बनवाएँ",
+    "body": "ABHA (आयुष्मान भारत हेल्थ अकाउंट) भारत सरकार की 14 अंकों की स्वास्थ्य आईडी है। इसे आप सरकार की अपनी वेबसाइट पर बनाते हैं, यहाँ नहीं।",
+    "button": "ABHA ID बनाएँ",
+    "rowLabel": "अपना ABHA ID बनवाएँ (सरकारी स्वास्थ्य आईडी)",
+    "opensNewTab": "(नए टैब में खुलता है)",
+    "notNow": "अभी नहीं",
+    "close": "बंद करें"
   },
   "appointmentForm": {
     "patientTypeLegend": "क्या आप नए रोगी हैं या मौजूदा रोगी?",
