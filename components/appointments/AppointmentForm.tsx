@@ -4,6 +4,12 @@
 //
 // The one genuinely stateful form on the site.
 //
+// NOT MOUNTED AT THE MOMENT. "Book an appointment" is a handover to the hospital software's own
+// page (components/appointments/BookingHandover.tsx) because nothing yet carries this form's data
+// into that software: /api/appointments has no delivery channel connected, so submitting only ever
+// showed "please call". Kept, with lib/appointment.ts, fields.tsx and the API route, for the day
+// the vendor offers an API or a pre-fill link.
+//
 // ITS FIELDS ARE THE HOSPITAL SOFTWARE'S OWN. They follow the online-appointment page of
 // the system LIMS runs (new or existing patient, title, name, guardian, sex, age or date
 // of birth, ISD code and mobile, landline, email, address, city, state, PIN, nationality,

@@ -49,6 +49,18 @@ export const siteConfig = {
 } as const
 
 /**
+ * The hospital software's own online appointment page (ACSonNet, an ASP.NET WebForms app).
+ *
+ * "Book an appointment" hands the patient over to it (components/appointments/BookingHandover).
+ * Checked 2026-10-08: it does not accept details in the link, it sends no frame-blocking headers
+ * but sets a SameSite=Lax cookie (so it is not embedded), and its speciality list then showed only
+ * "All" and "Emergency Medicine". Until the vendor offers an API or a pre-fill link, this is a
+ * plain link and nothing the patient types on this site reaches it.
+ */
+export const onlineBookingUrl =
+  'https://ap26.acsonnet.com/LIFELINEOPM/request%20app/frmonlineapp.aspx'
+
+/**
  * The hospital is open at all hours on all seven days (its Business profile says so for every
  * day). That is the HOSPITAL: a consultant's OPD timings, the pharmacy's and the lab's are not
  * supplied and are not claimed. Used for the structured data and the Contact page.

@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 import { getLocale, getTranslations } from 'next-intl/server'
-import { AppointmentForm } from '@/components/appointments/AppointmentForm'
+import { BookingHandover, findChoice } from '@/components/appointments/BookingHandover'
 import { PageHeader, Section } from '@/components/primitives/PageShell'
 import { getBookingOptions } from '@/lib/booking-options'
 import { getDoctor } from '@/lib/doctors'
 import { getService } from '@/lib/services'
-import { contact, fullAddress, whatsappUrl } from '@/lib/site-config'
+import { contact, fullAddress, onlineBookingUrl, whatsappUrl } from '@/lib/site-config'
 import { localizedLocation } from '@/lib/site-i18n'
 import { PhoneIcon, PinIcon, WhatsAppIcon } from '@/components/icons'
 import type { Locale } from '@/i18n/routing'
@@ -21,15 +21,12 @@ export async function generateMetadata({
 }
 
 /*
- * Server page, client form.
+ * Server page. "Book an appointment" is a handover to the hospital software's own booking page
+ * (see BookingHandover and lib/site-config.ts), not a form of ours.
  *
- * The catalogue and the roster are read here and passed down as plain option lists, so
- * lib/services and lib/doctors never enter the client bundle. The form is the only
- * client code on the route.
- *
- * ?doctor= and ?department= are validated against the real data before being used as
- * defaults — an unknown id in the URL falls back to "no preference" rather than
- * pre-selecting something that does not exist.
+ * ?doctor= and ?department= are validated against the real data before being used — an unknown
+ * id in the URL names nothing rather than naming something that does not exist. They only feed
+ * the reminder of what to choose on the hospital's page, which cannot be pre-filled.
  */
 export default async function AppointmentsPage({
   searchParams,
@@ -54,24 +51,19 @@ export default async function AppointmentsPage({
 
   return (
     <>
-      <PageHeader
-        eyebrow={t('eyebrow')}
-        title={t('title')}
-        intro={
-          preselectedDoctor
-            ? t('introDoctor', { name: preselectedDoctor.name })
-            : t('intro')
-        }
-      />
+      <PageHeader eyebrow={t('eyebrow')} title={t('title')} intro={t('intro')} />
 
       <Section>
-        <AppointmentForm
-          doctorOptions={doctorOptions}
-          serviceGroups={serviceGroups}
-          initialDoctorId={preselectedDoctor?.id ?? ''}
-          initialDepartmentSlug={preselectedService?.slug ?? preselectedDoctor?.departmentSlug ?? ''}
-          fallbackPhone={contact.secondary}
-          fallbackPhoneDisplay={contact.secondaryDisplay}
+        <BookingHandover
+          bookingUrl={onlineBookingUrl}
+          choice={findChoice(
+            doctorOptions,
+            serviceGroups,
+            preselectedDoctor?.id ?? '',
+            preselectedService?.slug ?? preselectedDoctor?.departmentSlug ?? '',
+          )}
+          phone={contact.secondary}
+          phoneDisplay={contact.secondaryDisplay}
           whatsappHref={whatsappUrl(tCommon('whatsappMessage'))}
         />
 

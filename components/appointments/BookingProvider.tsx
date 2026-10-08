@@ -5,17 +5,25 @@
 // The booking panel. Mounted once in the layout (via BookingHost), it opens from ANY "Book an
 // appointment" link on the site: a rounded panel grows out of the button that was pressed,
 // the page behind it blurs and dims, and the panel shrinks back into the same button when it
-// closes. It is a floating panel with a margin around it, not a full-page cover, and the form
-// inside is laid out to fit it without scrolling (see AppointmentForm).
+// closes. It is a floating panel with a margin around it, not a full-page cover.
+//
+// WHAT IS IN IT. A handover (BookingHandover): a button that opens the hospital software's own
+// online booking page in a new tab, plus the phone and WhatsApp for anyone who cannot find their
+// doctor there. The site's own request form (AppointmentForm, and the /api/appointments route it
+// posts to) is not mounted while this is in use: the hospital's page cannot be pre-filled and no
+// delivery channel is connected, so the form could only ever say "please call". If an API or a
+// pre-fill link arrives, the form goes back in this panel, and git history has its wiring here
+// (lazy-loaded, with a "Discard this request?" confirmation once the patient had typed).
 //
 // HOW A LINK BECOMES A SHEET. Nothing is wired per button. One capturing click listener on the
 // document watches for a plain left click on an <a> that points at /appointments (any
 // language, with or without ?doctor= / ?department=). It cancels the navigation and opens the
-// sheet instead, pre-filled from that URL. So the header button, the phone nav's "Book" tab,
-// hero buttons, doctor cards, footer links and anything added later all behave the same, and
-// every one of them is still a real link: middle-click, "open in new tab", copy-address and a
-// browser with no script at all land on the /appointments page, which shows the same form.
-// On the /appointments page itself the links are left alone (the form is already there).
+// sheet instead, carrying the doctor or department from that URL as a reminder of what to
+// choose on the hospital's page. So the header button, the phone nav's "Book" tab, hero buttons,
+// doctor cards, footer links and anything added later all behave the same, and every one of
+// them is still a real link: middle-click, "open in new tab", copy-address and a browser with
+// no script at all land on the /appointments page, which shows the same handover. On the
+// /appointments page itself the links are left alone (the handover is already there).
 //
 // THE MOTION (Apple's fluid-interface rules, WWDC 2018 "Designing Fluid Interfaces"):
 //   - A SPRING, not a timed curve: critically damped (no bounce: nothing here carries a
@@ -34,26 +42,13 @@
 //     first few frames, so the first frame is the button, untouched; the sheet's colour and
 //     then its content arrive as it grows.
 //   Reduced motion swaps all of it for a 160ms cross-fade.
-//
-// WHEN CLOSING COSTS SOMETHING. Once the patient has typed anything, Cancel, the X, Escape
-// and a tap on the dimmed edge all ask "Discard this request?" first. An empty form, or one
-// that has just been sent, closes straight away.
-//
-// The form is loaded on demand (React.lazy) and fetched in idle time after the page is up,
-// or sooner on the first hover/touch of a booking link, so the sheet is not waiting on it.
 
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useTranslations } from 'next-intl'
 import { usePathname } from '@/i18n/navigation'
-import { CloseIcon } from '@/components/icons'
+import { BookingHandover, findChoice } from '@/components/appointments/BookingHandover'
 import { clamp01, createDriver, type Driver } from '@/lib/spring'
 import type { BookingDoctorOption, BookingOption } from '@/lib/booking-options'
-
-const loadForm = () => import('@/components/appointments/AppointmentForm')
-const AppointmentForm = lazy(() =>
-  loadForm().then((module) => ({ default: module.AppointmentForm })),
-)
 
 const OPEN_RESPONSE = 0.42 // seconds, spring response
 const CLOSE_RESPONSE = 0.34
@@ -111,6 +106,7 @@ function visibleFocusable(root: HTMLElement | null): HTMLElement[] {
 export function BookingProvider({
   doctorOptions,
   serviceGroups,
+  bookingUrl,
   fallbackPhone,
   fallbackPhoneDisplay,
   whatsappHref,
@@ -119,21 +115,19 @@ export function BookingProvider({
 }: {
   doctorOptions: BookingDoctorOption[]
   serviceGroups: { label: string; options: BookingOption[] }[]
+  bookingUrl: string
   fallbackPhone: string
   fallbackPhoneDisplay: string
   whatsappHref: string
   emergencyPhone: string
   emergencyPhoneDisplay: string
 }) {
-  const t = useTranslations('appointmentForm')
-  const tPage = useTranslations('appointmentsPage')
   const pathname = usePathname()
 
   // `open` is intent; `rendered` keeps the sheet mounted while it shrinks back into its button.
   const [open, setOpen] = useState(false)
   const [rendered, setRendered] = useState(false)
-  const [confirming, setConfirming] = useState(false)
-  const [launch, setLaunch] = useState({ key: 0, doctorId: '', departmentSlug: '' })
+  const [launch, setLaunch] = useState({ doctorId: '', departmentSlug: '' })
 
   const overlayRef = useRef<HTMLDivElement>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -141,10 +135,8 @@ export function BookingProvider({
   const scrimRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const shadowRef = useRef<HTMLDivElement>(null)
-  const alertRef = useRef<HTMLDivElement>(null)
 
   const openRef = useRef(false)
-  const dirtyRef = useRef(false)
   const originRef = useRef<Origin | null>(null)
   // The window and the panel it is growing to, measured when the sheet opens (and on resize).
   const geoRef = useRef({
@@ -260,7 +252,6 @@ export function BookingProvider({
   const finishClose = useCallback(() => {
     releaseRef.current?.()
     setRendered(false)
-    setConfirming(false)
     const el = originRef.current?.el
     // After `inert` is gone, so the button can take focus again.
     requestAnimationFrame(() => {
@@ -328,7 +319,7 @@ export function BookingProvider({
     const { doctorOptions: doctors, serviceGroups: groups } = dataRef.current
 
     // The same rules as the page: an unknown id in the link falls back to "no preference"
-    // rather than pre-selecting something that does not exist.
+    // rather than naming something that does not exist.
     const doctorParam = url?.searchParams.get('doctor') ?? ''
     const departmentParam = url?.searchParams.get('department') ?? ''
     const doctor = doctors.find((option) => option.value === doctorParam)
@@ -337,14 +328,11 @@ export function BookingProvider({
     )
 
     originRef.current = readOrigin(trigger)
-    dirtyRef.current = false
     openRef.current = true
-    setConfirming(false)
-    setLaunch((current) => ({
-      key: current.key + 1,
+    setLaunch({
       doctorId: doctor?.value ?? '',
       departmentSlug: departmentKnown ? departmentParam : (doctor?.departmentSlug ?? ''),
-    }))
+    })
     setRendered(true)
     setOpen(true)
   }, [])
@@ -352,18 +340,7 @@ export function BookingProvider({
   const closeNow = useCallback(() => {
     if (!openRef.current) return
     openRef.current = false
-    setConfirming(false)
     setOpen(false)
-  }, [])
-
-  const requestClose = useCallback(() => {
-    if (!openRef.current) return
-    if (dirtyRef.current) setConfirming(true)
-    else closeNow()
-  }, [closeNow])
-
-  const onDirtyChange = useCallback((dirty: boolean) => {
-    dirtyRef.current = dirty
   }, [])
 
   /* ---- every link to /appointments opens the sheet ---- */
@@ -399,42 +376,21 @@ export function BookingProvider({
       openBooking(link.anchor, link.url)
     }
 
-    // Fetch the form the moment someone reaches for a booking link.
-    function warm(event: Event) {
-      if (bookingLink(event as MouseEvent)) void loadForm()
-    }
-
     document.addEventListener('click', onClick, true)
-    document.addEventListener('pointerover', warm, { passive: true })
-    document.addEventListener('touchstart', warm, { passive: true })
-    document.addEventListener('focusin', warm)
-
-    // ...and otherwise as soon as the page is idle.
-    const idle = (window as unknown as { requestIdleCallback?: (cb: () => void) => number })
-      .requestIdleCallback
-    const handle = idle ? idle(() => void loadForm()) : window.setTimeout(() => void loadForm(), 2500)
-
-    return () => {
-      document.removeEventListener('click', onClick, true)
-      document.removeEventListener('pointerover', warm)
-      document.removeEventListener('touchstart', warm)
-      document.removeEventListener('focusin', warm)
-      if (!idle) window.clearTimeout(handle)
-    }
+    return () => document.removeEventListener('click', onClick, true)
   }, [openBooking])
 
-  /* ---- keyboard: Escape, and Tab kept inside whichever layer is on top ---- */
+  /* ---- keyboard: Escape, and Tab kept inside the panel ---- */
   useEffect(() => {
     if (!open) return
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         event.preventDefault()
-        if (confirming) setConfirming(false)
-        else requestClose()
+        closeNow()
         return
       }
       if (event.key !== 'Tab') return
-      const root = confirming ? alertRef.current : sheetRef.current
+      const root = sheetRef.current
       const items = visibleFocusable(root)
       if (items.length === 0) return
       const first = items[0]
@@ -450,7 +406,7 @@ export function BookingProvider({
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [open, confirming, requestClose])
+  }, [open, closeNow])
 
   if (!rendered) return null
 
@@ -461,7 +417,7 @@ export function BookingProvider({
         ref={scrimRef}
         aria-hidden="true"
         data-booking-scrim=""
-        onClick={requestClose}
+        onClick={closeNow}
         className="absolute inset-0 bg-brand-dark-base/35 [@media(prefers-reduced-transparency:reduce)]:bg-brand-dark-base/70"
         style={{ opacity: 0 }}
       />
@@ -486,134 +442,29 @@ export function BookingProvider({
         <div
           ref={panelRef}
           data-booking-panel=""
-          className="h-full max-h-[760px] w-full max-w-[1180px]"
+          className="flex max-h-full w-full max-w-[480px] flex-col"
         >
-          <div ref={contentRef} className="h-full" style={{ opacity: 0 }}>
-            <Suspense
-              fallback={
-                <SheetSkeleton
-                  title={tPage('title')}
-                  closeLabel={t('close')}
-                  loadingLabel={t('loadingForm')}
-                  onClose={requestClose}
-                />
-              }
-            >
-              <AppointmentForm
-                key={launch.key}
-                variant="overlay"
-                doctorOptions={doctorOptions}
-                serviceGroups={serviceGroups}
-                initialDoctorId={launch.doctorId}
-                initialDepartmentSlug={launch.departmentSlug}
-                fallbackPhone={fallbackPhone}
-                fallbackPhoneDisplay={fallbackPhoneDisplay}
-                whatsappHref={whatsappHref}
-                emergencyPhone={emergencyPhone}
-                emergencyPhoneDisplay={emergencyPhoneDisplay}
-                onClose={requestClose}
-                onDirtyChange={onDirtyChange}
-              />
-            </Suspense>
+          <div ref={contentRef} className="flex min-h-0 flex-col" style={{ opacity: 0 }}>
+            <BookingHandover
+              variant="overlay"
+              bookingUrl={bookingUrl}
+              choice={findChoice(
+                doctorOptions,
+                serviceGroups,
+                launch.doctorId,
+                launch.departmentSlug,
+              )}
+              phone={fallbackPhone}
+              phoneDisplay={fallbackPhoneDisplay}
+              whatsappHref={whatsappHref}
+              emergencyPhone={emergencyPhone}
+              emergencyPhoneDisplay={emergencyPhoneDisplay}
+              onClose={closeNow}
+            />
           </div>
         </div>
       </div>
-
-      {confirming && (
-        <div
-          className="absolute inset-0 z-10 grid place-items-center bg-brand-dark-base/35 p-6"
-          onClick={() => setConfirming(false)}
-        >
-          <div
-            ref={alertRef}
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="booking-discard-title"
-            aria-describedby="booking-discard-body"
-            onClick={(event) => event.stopPropagation()}
-            className="booking-alert w-full max-w-sm rounded-3xl bg-white/90 p-6 text-center shadow-[0_30px_70px_-20px_rgba(11,20,22,0.55)] backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-white [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
-          >
-            <h3
-              id="booking-discard-title"
-              className="font-serif text-xl font-bold leading-tight tracking-tight"
-            >
-              {t('discardHeading')}
-            </h3>
-            <p
-              id="booking-discard-body"
-              className="mt-2 text-sm leading-relaxed text-brand-dark-base/70"
-            >
-              {t('discardBody')}
-            </p>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                autoFocus
-                onClick={() => setConfirming(false)}
-                className="tap-target press rounded-full bg-brand-teal px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-teal-dark"
-              >
-                {t('keepEditing')}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  dirtyRef.current = false
-                  closeNow()
-                }}
-                className="tap-target press rounded-full bg-brand-emergency/10 px-4 text-sm font-semibold text-brand-emergency transition-colors hover:bg-brand-emergency/15"
-              >
-                {t('discard')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>,
     document.body,
-  )
-}
-
-/** What the sheet shows for the instant the form's code is still arriving. */
-function SheetSkeleton({
-  title,
-  closeLabel,
-  loadingLabel,
-  onClose,
-}: {
-  title: string
-  closeLabel: string
-  loadingLabel: string
-  onClose: () => void
-}) {
-  return (
-    <div className="flex h-full min-h-0 flex-col" aria-busy="true">
-      <header className="shrink-0 border-b border-brand-teal/10 bg-white/80">
-        <div className="mx-auto flex w-full max-w-[1180px] items-center gap-5 px-4 py-3 sm:px-8">
-          <h2 id="booking-title" className="font-serif text-xl font-bold tracking-tight lg:text-2xl">
-            {title}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={closeLabel}
-            className="tap-target press ml-auto h-11 w-11 rounded-full bg-brand-mist text-brand-dark-base/65"
-          >
-            <CloseIcon className="h-5 w-5" strokeWidth={2} />
-          </button>
-        </div>
-      </header>
-      <div className="mx-auto grid w-full max-w-[1180px] flex-1 gap-5 px-4 py-6 sm:px-8 lg:grid-cols-2">
-        <p className="sr-only" role="status">
-          {loadingLabel}
-        </p>
-        {[0, 1].map((column) => (
-          <div key={column} className="space-y-5" aria-hidden="true">
-            {[0, 1, 2].slice(0, column === 0 ? 3 : 2).map((card) => (
-              <div key={card} className="h-40 animate-pulse rounded-2xl bg-white/80" />
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
   )
 }
