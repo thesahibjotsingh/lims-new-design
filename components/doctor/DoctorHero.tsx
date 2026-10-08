@@ -22,7 +22,7 @@
 
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
-import { ArrowRightIcon, ChevronLeftIcon, ShieldIcon } from '@/components/icons'
+import { ArrowRightIcon, ChevronLeftIcon, QuoteIcon, ShieldIcon } from '@/components/icons'
 import { initials } from '@/components/doctor/DoctorAvatar'
 import { ClampedText } from '@/components/service/ClampedText'
 import { ContactCard } from '@/components/service/ContactCard'
@@ -145,6 +145,25 @@ export async function DoctorHero({
                   {plain(doctor.qualifications)}
                 </ClampedText>
               </>
+            )}
+
+            {/*
+              The doctor's own words, only when LIMS has supplied a quote (Doctor.quote). A soft panel
+              on the teal, the quote mark in copper (the brand copper is for icons and fills on a dark
+              ground), the words in the site's serif. It sits above the chips so it is in the first
+              screen on a phone, beside the portrait.
+            */}
+            {doctor.quote && (
+              <figure className="col-span-2 mt-4 flex items-start gap-2.5 rounded-2xl bg-white/10 px-3.5 py-3 sm:col-span-1 sm:mt-5 sm:max-w-xl sm:gap-3 sm:px-4 sm:py-3.5">
+                <QuoteIcon
+                  aria-hidden="true"
+                  className="mt-0.5 h-5 w-5 shrink-0 text-brand-copper sm:h-6 sm:w-6"
+                  strokeWidth={2}
+                />
+                <blockquote className="font-serif text-[15px] italic leading-snug text-white sm:text-lg sm:leading-snug">
+                  {plain(doctor.quote)}
+                </blockquote>
+              </figure>
             )}
 
             <ul className="col-span-2 mt-3 flex flex-wrap gap-1.5 sm:col-span-1 sm:mt-6 sm:gap-2">

@@ -103,6 +103,11 @@ export interface Doctor {
    */
   cardCredentials?: { degrees: string; fellowships?: string }
   designation?: string
+  /**
+   * A sentence in the doctor's own words, shown near the top of their profile. Only ever one the
+   * doctor (through LIMS) has approved: it is a statement in a named, registered doctor's name.
+   */
+  quote?: string
   /** Years in practice. Rendered as "18 years experience". */
   experienceYears?: number
   /** Medical council registration, verbatim as issued. Public information, and a trust signal. */

@@ -99,6 +99,11 @@ export const DOCTORS: Doctor[] = [
     },
     departmentSlug: 'obstetrics-gynaecology',
     registrationNumber: 'HN-31657',
+    // Her own words, the first sentence of the quote card that has been on the home banner since
+    // 2026-09-17 (messages `home.quote` has the whole of it). Shown near the top of her profile.
+    // CONFIRM WITH LIMS THAT DR. SHWETA APPROVED THIS WORDING: on her profile it is a statement in
+    // her name (rule 1 above), and nothing on file records who wrote it.
+    quote: 'Every woman deserves compassionate, evidence-based care through every stage of life.',
     // Real photograph, supplied 2026-09-16.
     portrait: {
       src: '/doctors/shweta-godara.webp',

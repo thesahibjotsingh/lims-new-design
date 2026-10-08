@@ -29,6 +29,8 @@ interface DoctorText {
   qualifications?: string
   /** The fellowships line of the short card form. The degrees line is kept as-is. */
   cardFellowships?: string
+  /** The doctor's quote (Doctor.quote) in this script. */
+  quote?: string
 }
 
 type TranslatedLocale = Exclude<Locale, 'en'>
@@ -51,6 +53,8 @@ const TEXT: Record<string, Record<TranslatedLocale, DoctorText>> = {
         'MBBS, MS (एसएमएस मेडिकल कॉलेज, जयपुर), DNB प्रसूति एवं स्त्री रोग, ' +
         'एडवांस्ड लेप्रोस्कोपिक पेल्विक सर्जरी में फ़ेलोशिप, कॉस्मेटिक गाइनेकोलॉजी में फ़ेलोशिप',
       cardFellowships: 'लेप्रोस्कोपिक पेल्विक सर्जरी, कॉस्मेटिक गाइनेकोलॉजी',
+      // The first sentence of messages `home.quote`.
+      quote: 'हर महिला जीवन के हर चरण में करुणामय, प्रमाण-आधारित देखभाल की हकदार है।',
     },
     pa: {
       name: 'ਡਾ. ਸ਼ਵੇਤਾ ਗੋਦਾਰਾ',
@@ -58,6 +62,8 @@ const TEXT: Record<string, Record<TranslatedLocale, DoctorText>> = {
         'MBBS, MS (ਐਸਐਮਐਸ ਮੈਡੀਕਲ ਕਾਲਜ, ਜੈਪੁਰ), DNB ਪ੍ਰਸੂਤੀ ਅਤੇ ਇਸਤਰੀ ਰੋਗ, ' +
         'ਐਡਵਾਂਸਡ ਲੈਪਰੋਸਕੋਪਿਕ ਪੇਲਵਿਕ ਸਰਜਰੀ ਵਿੱਚ ਫ਼ੈਲੋਸ਼ਿਪ, ਕਾਸਮੈਟਿਕ ਗਾਇਨੀਕੋਲੋਜੀ ਵਿੱਚ ਫ਼ੈਲੋਸ਼ਿਪ',
       cardFellowships: 'ਲੈਪਰੋਸਕੋਪਿਕ ਪੇਲਵਿਕ ਸਰਜਰੀ, ਕਾਸਮੈਟਿਕ ਗਾਇਨੀਕੋਲੋਜੀ',
+      // The first sentence of messages `home.quote`.
+      quote: 'ਹਰ ਔਰਤ ਜ਼ਿੰਦਗੀ ਦੇ ਹਰ ਪੜਾਅ ’ਤੇ ਹਮਦਰਦੀ ਭਰੀ, ਸਬੂਤ-ਆਧਾਰਿਤ ਦੇਖਭਾਲ ਦੀ ਹੱਕਦਾਰ ਹੈ।',
     },
   },
   'vikash-raj': {
@@ -96,6 +102,7 @@ export function localizeDoctor(doctor: Doctor, locale: Locale): Doctor {
     name: text.name,
     designation: text.designation ?? doctor.designation,
     qualifications: text.qualifications ?? doctor.qualifications,
+    quote: text.quote ?? doctor.quote,
     cardCredentials:
       doctor.cardCredentials && text.cardFellowships
         ? { ...doctor.cardCredentials, fellowships: text.cardFellowships }
