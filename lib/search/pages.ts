@@ -160,11 +160,10 @@ function entries(whatsappMessage: string): Entry[] {
       kind: 'info',
       href: '/contact',
       keys:
-        'price prices cost charges fee fees rate rates how much billing bill payment pay package packages ' +
-        'health package health checkup full body checkup master health check discount free',
-      en: { title: 'Prices, packages and billing', detail: 'Not published online: please call the hospital' },
-      hi: { title: 'शुल्क, पैकेज और बिलिंग', detail: 'ऑनलाइन उपलब्ध नहीं: कृपया अस्पताल को कॉल करें' },
-      pa: { title: 'ਫੀਸ, ਪੈਕੇਜ ਅਤੇ ਬਿਲਿੰਗ', detail: 'ਆਨਲਾਈਨ ਉਪਲਬਧ ਨਹੀਂ: ਕਿਰਪਾ ਕਰਕੇ ਹਸਪਤਾਲ ਨੂੰ ਕਾਲ ਕਰੋ' },
+        'price prices cost charges fee fees rate rates how much billing bill payment pay discount free',
+      en: { title: 'Prices and billing', detail: 'Not published online: please call the hospital' },
+      hi: { title: 'शुल्क और बिलिंग', detail: 'ऑनलाइन उपलब्ध नहीं: कृपया अस्पताल को कॉल करें' },
+      pa: { title: 'ਫੀਸ ਅਤੇ ਬਿਲਿੰਗ', detail: 'ਆਨਲਾਈਨ ਉਪਲਬਧ ਨਹੀਂ: ਕਿਰਪਾ ਕਰਕੇ ਹਸਪਤਾਲ ਨੂੰ ਕਾਲ ਕਰੋ' },
     },
     {
       id: 'info:insurance',

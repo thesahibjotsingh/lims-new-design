@@ -194,7 +194,7 @@ export const GROUPS: readonly string[] = [
   'doppler|colour doppler|color doppler|duplex|vascular scan|blood flow ; doppler|डॉपलर|ਡੌਪਲਰ',
   'echo|echocardiogram|echocardiography|2d echo|tmt|treadmill|treadmill test|stress test|ecg|ekg ; eco|इको|ईको|इकोकार्डियोग्राम|टीएमटी|इसीजी|ਈਕੋ|ਈਸੀਜੀ|ਟੀਐਮਟੀ',
   'endoscopy|gastroscopy|colonoscopy|upper gi endoscopy|scope|scopy ; endoscopy|एंडोस्कोपी|ਐਂਡੋਸਕੋਪੀ',
-  'checkup|check up|check-up|health check|health checkup|full body checkup|master health check|health package|health packages|package|packages|medical checkup|body checkup ; swasthya jaanch|स्वास्थ्य जांच|हेल्थ चेकअप|चेकअप|ਸਿਹਤ ਜਾਂਚ|ਚੈਕਅੱਪ',
+  'checkup|check up|check-up|health check|health checkup|full body checkup|master health check|medical checkup|body checkup ; swasthya jaanch|स्वास्थ्य जांच|हेल्थ चेकअप|चेकअप|ਸਿਹਤ ਜਾਂਚ|ਚੈਕਅੱਪ',
 
   /* --------------------------------------------------------------------- hospital and pages */
   'emergency|casualty|urgent|critical|icu|iccu|24x7|24 7|24 hours|critical care|intensive care|ventilator|trauma center|trauma centre ; aapatkal|emergency|apatkal|hangami|आपातकाल|आपातकालीन|इमरजेंसी|ਐਮਰਜੈਂਸੀ|ਹੰਗਾਮੀ|ਆਪਾਤਕਾਲ',

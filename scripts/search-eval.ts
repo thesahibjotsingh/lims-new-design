@@ -118,8 +118,8 @@ const CASES: Case[] = [
   { q: 'thyroid', expect: [GEN, LAB, SURG] },
   { q: 'weakness', expect: [GEN] },
   { q: 'asthma', expect: [GEN, PED] },
-  { q: 'body checkup', expect: [GEN, 'info:prices'] },
-  { q: 'full body checkup', expect: [GEN, 'info:prices', LAB] },
+  { q: 'body checkup', expect: [GEN, LAB] },
+  { q: 'full body checkup', expect: [GEN, LAB] },
   { q: 'physician', expect: [GEN] },
 
   /* ------------------------------------------------------------- bones and spine */
@@ -324,7 +324,6 @@ const CASES: Case[] = [
   { q: 'price', expect: ['info:prices'] },
   { q: 'cost', expect: ['info:prices'] },
   { q: 'fees', expect: ['info:prices'] },
-  { q: 'health package', expect: ['info:prices'] },
   { q: 'emergency number', expect: ['action:emergency'] },
   { q: 'ambulance number', expect: [AMB, 'action:emergency'] },
   { q: 'helpline', expect: ['action:call', 'action:emergency'] },

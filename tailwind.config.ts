@@ -62,7 +62,10 @@ const config: Config = {
       },
       fontFamily: {
         // next/font sets --font-serif; Georgia carries the headings until it lands.
-        serif: ['var(--font-serif)', 'Source Serif 4', 'Georgia', 'serif'],
+        // "Source Serif 4" must be quoted: unquoted, the "4" is not a valid part of a CSS
+        // identifier, the whole font-family declaration is thrown away, and every heading
+        // silently falls back to the sans-serif body font (as it did until this was fixed).
+        serif: ['var(--font-serif)', '"Source Serif 4"', 'Georgia', 'serif'],
         sans: [
           'system-ui',
           '-apple-system',

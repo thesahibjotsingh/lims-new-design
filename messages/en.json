@@ -602,6 +602,10 @@
     "title": "We could not find that page",
     "intro": "The page may have moved, or the link may be out of date.",
     "rosterLine": "The consultant roster.",
-    "backHome": "Back to home"
+    "backHome": "Back to home",
+    "searchHeading": "Looking for something?",
+    "searchHelp": "Search for a doctor, a department, a test or a page.",
+    "searchLabel": "Search the site",
+    "emergency": "In an emergency, call {number}"
   }
 }
