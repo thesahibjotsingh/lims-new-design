@@ -28,6 +28,15 @@
 //   - Only one search box on the page listens at a time (the header, the hero and the phone sheet each
 //     have their own button).
 //
+// WHAT AN iPHONE SHOWED (screen recording, 9 Oct 2026). Session 1 worked. Session 2 and 3 reported
+// "start" and "audiostart" and then nothing at all for 18 seconds: no sound, no result, no error, no end.
+// The phone's microphone itself had gone quiet once the first session ended. That is a WebKit audio-session
+// problem (Chrome on iPhone uses WebKit too), not something the page can see. So:
+//   - a session that is "listening" but hears no sound at all for 8 seconds is stopped, and the reader is
+//     told what to do instead (the microphone on the phone's own keyboard, which always works);
+//   - on iPhone and iPad one recogniser is kept and reused, and the audio session is asked to be a
+//     recording one before each start, which is what the known workarounds suggest.
+//
 // Add ?voicedebug=1 to any address to see, on screen, what the browser reports at each step. That is
 // how a device that still misbehaves can be diagnosed without a computer attached.
 
@@ -56,6 +65,10 @@ interface Recognition {
   onaudiostart: (() => void) | null
   onsoundstart: (() => void) | null
   onspeechstart: (() => void) | null
+  onaudioend: (() => void) | null
+  onsoundend: (() => void) | null
+  onspeechend: (() => void) | null
+  onnomatch: (() => void) | null
   onresult: ((event: RecognitionEvent) => void) | null
   onerror: ((event: RecognitionErrorEvent) => void) | null
   onend: (() => void) | null
@@ -73,6 +86,8 @@ const GAP_MS = 250
 const READY_MS = 4000
 /** After stop(), how long to wait for the browser to finish before giving up on it. */
 const STOP_MS = 2000
+/** "Listening" but no sound at all for this long: the microphone is not delivering anything. */
+const DEAF_MS = 8000
 
 export type VoiceError = 'denied' | 'silent' | 'failed' | null
 
@@ -83,6 +98,8 @@ export interface Voice {
   listening: boolean
   /** Audio is actually flowing: the reader can speak now. */
   ready: boolean
+  /** A phone's own keyboard microphone is the better route: this device's attempt came back empty. */
+  hint: boolean
   error: VoiceError
   toggle: () => void
   stop: () => void
@@ -96,6 +113,19 @@ function constructorFor(): RecognitionConstructor | undefined {
   }
   return scope.SpeechRecognition ?? scope.webkitSpeechRecognition
 }
+
+function isIOS(): boolean {
+  if (typeof navigator === 'undefined') return false
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  )
+}
+
+/** On iPhone and iPad one recogniser is made and reused; a new one per press goes deaf after the first. */
+let shared: Recognition | null = null
+/** When the shared recogniser was last aborted: its late events must not reach a new session. */
+let sharedAbortedAt = 0
 
 /** Every search box has its own hook; this lets one silence the others before it listens. */
 const halts = new Set<() => void>()
@@ -129,6 +159,9 @@ export function useVoiceSearch(
   const [supported, setSupported] = useState(false)
   const [phase, setPhase] = useState<'idle' | 'starting' | 'listening'>('idle')
   const [error, setError] = useState<VoiceError>(null)
+  /** Sessions in a row that produced nothing. Reset by one that did. */
+  const [empty, setEmpty] = useState(0)
+  const [touch, setTouch] = useState(false)
 
   const recognition = useRef<Recognition | null>(null)
   const callback = useRef(onTranscript)
@@ -140,7 +173,7 @@ export function useVoiceSearch(
   const lastEnd = useRef(0)
   const cancelled = useRef(false)
   const alive = useRef(true)
-  const timers = useRef<{ ready?: number; start?: number; force?: number }>({})
+  const timers = useRef<{ ready?: number; start?: number; force?: number; deaf?: number }>({})
 
   useEffect(() => {
     callback.current = onTranscript
@@ -154,6 +187,7 @@ export function useVoiceSearch(
     window.clearTimeout(t.ready)
     window.clearTimeout(t.start)
     window.clearTimeout(t.force)
+    window.clearTimeout(t.deaf)
     timers.current = {}
   }, [])
 
@@ -163,10 +197,15 @@ export function useVoiceSearch(
     recognition.current = null
     session.current += 1
     if (!old) return
+    if (old === shared) sharedAbortedAt = Date.now()
     old.onstart = null
     old.onaudiostart = null
     old.onsoundstart = null
     old.onspeechstart = null
+    old.onaudioend = null
+    old.onsoundend = null
+    old.onspeechend = null
+    old.onnomatch = null
     old.onresult = null
     old.onerror = null
     old.onend = null
@@ -189,15 +228,41 @@ export function useVoiceSearch(
 
       const id = session.current
       const live = () => session.current === id && alive.current
-      const next = new Ctor()
+      const ios = isIOS()
+      if (ios) {
+        try {
+          const audioSession = (navigator as unknown as { audioSession?: { type: string } }).audioSession
+          if (audioSession) audioSession.type = 'play-and-record'
+        } catch {
+          // Not supported on this version.
+        }
+      }
+      if (ios) {
+        // The shared recogniser was aborted a moment ago: wait for its late "end" before reusing it.
+        const wait = 500 - (Date.now() - sharedAbortedAt)
+        if (wait > 0) {
+          setPhase('starting')
+          timers.current.start = window.setTimeout(() => launchRef.current(retried), wait)
+          return
+        }
+      }
+      const next = ios && shared ? shared : new Ctor()
+      if (ios) shared = next
+      if (id <= 1 || retried) {
+        trace(`env ios=${ios} reuse=${ios && next === shared} ${navigator.userAgent.slice(0, 70)}`)
+      }
       next.lang = LANGUAGE[localeRef.current]
       next.interimResults = true
       next.continuous = false
       next.maxAlternatives = 1
 
       let audio = false
+      let sound = false
       let heard = false
       let errored = false
+
+      /** This session ended with nothing for the reader. */
+      const wasEmpty = () => setEmpty((count) => count + 1)
 
       const flowing = (why: string) => {
         if (!live() || audio) return
@@ -205,17 +270,38 @@ export function useVoiceSearch(
         window.clearTimeout(timers.current.ready)
         setPhase('listening')
         trace(`#${id} ready (${why})`)
+        // Listening, but is anything arriving? On an iPhone's second session the answer was no.
+        window.clearTimeout(timers.current.deaf)
+        timers.current.deaf = window.setTimeout(() => {
+          if (!live() || sound) return
+          trace(`#${id} no sound at all for ${DEAF_MS / 1000} s, stopping`)
+          discard()
+          setPhase('idle')
+          setError('silent')
+          wasEmpty()
+        }, DEAF_MS)
+      }
+      const heardSound = (what: string) => {
+        if (!live()) return
+        if (!sound) trace(`#${id} ${what}`)
+        sound = true
+        window.clearTimeout(timers.current.deaf)
+        flowing(what)
       }
 
       next.onstart = () => {
         if (live()) trace(`#${id} start`)
       }
       next.onaudiostart = () => flowing('audiostart')
-      next.onsoundstart = () => flowing('sound')
-      next.onspeechstart = () => flowing('speech')
+      next.onsoundstart = () => heardSound('soundstart')
+      next.onspeechstart = () => heardSound('speechstart')
+      next.onaudioend = () => live() && trace(`#${id} audioend`)
+      next.onsoundend = () => live() && trace(`#${id} soundend`)
+      next.onspeechend = () => live() && trace(`#${id} speechend`)
+      next.onnomatch = () => live() && trace(`#${id} nomatch`)
       next.onresult = (event) => {
         if (!live()) return
-        flowing('result')
+        heardSound('result')
         let spoken = ''
         let final = false
         for (let i = 0; i < event.results.length; i += 1) {
@@ -243,6 +329,7 @@ export function useVoiceSearch(
         lastEnd.current = Date.now()
         window.clearTimeout(timers.current.ready)
         window.clearTimeout(timers.current.force)
+        window.clearTimeout(timers.current.deaf)
         recognition.current = null
         // The ghost session: it started, never heard a thing, and ended without saying why. Try once more
         // with a brand-new recogniser before telling the reader it did not work.
@@ -252,6 +339,8 @@ export function useVoiceSearch(
           return
         }
         setPhase('idle')
+        if (heard) setEmpty(0)
+        else if (!cancelled.current) wasEmpty()
         // A reader who pressed stop themselves is not told that nothing was heard.
         if (!heard && !errored && !cancelled.current) setError(audio ? 'silent' : 'failed')
       }
@@ -269,6 +358,7 @@ export function useVoiceSearch(
         } else {
           setPhase('idle')
           setError('failed')
+          wasEmpty()
         }
       }, READY_MS)
 
@@ -334,6 +424,7 @@ export function useVoiceSearch(
   useEffect(() => {
     alive.current = true
     setSupported(constructorFor() !== undefined)
+    setTouch(window.matchMedia('(pointer: coarse)').matches)
     const halt = () => {
       cancelled.current = true
       clearTimers()
@@ -361,5 +452,13 @@ export function useVoiceSearch(
     else start()
   }, [phase, start, stop])
 
-  return { supported, listening: phase !== 'idle', ready: phase === 'listening', error, toggle, stop }
+  return {
+    supported,
+    listening: phase !== 'idle',
+    ready: phase === 'listening',
+    hint: touch && empty >= 1 && error !== null,
+    error,
+    toggle,
+    stop,
+  }
 }

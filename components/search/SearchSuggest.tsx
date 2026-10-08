@@ -562,6 +562,9 @@ export function SuggestionList({
             : voice.error === 'silent'
               ? t('voiceNoSpeech')
               : t('voiceFailed')}
+          {voice.hint && voice.error !== 'denied' && (
+            <span className="mt-1 block text-xs text-brand-dark-base/60">{t('voiceKeyboardHint')}</span>
+          )}
         </li>
       )}
 
