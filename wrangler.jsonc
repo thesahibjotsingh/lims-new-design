@@ -6,7 +6,12 @@
   // OpenNext adapter targets. The dashboard flow differs from the Pages projects on
   // this account — see the deploy notes in README-DEPLOY.md.
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "lims-hisar",
+
+  // MUST match the Worker's name in the Cloudflare dashboard, which is "lims-new-design" (the
+  // Worker Cloudflare's GitHub build deploys to). While this said "lims-hisar", a local
+  // `npm run cf:deploy` quietly created a SECOND Worker with its own public address. Cloudflare's
+  // build settings page flags the mismatch too. There is one Worker; keep one name.
+  "name": "lims-new-design",
   "main": ".open-next/worker.js",
 
   // Must be on or after 2024-09-23 for nodejs_compat to provide the Node built-ins the

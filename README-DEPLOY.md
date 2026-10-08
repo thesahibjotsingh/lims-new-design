@@ -136,6 +136,17 @@ stories, accreditations). They exist for review sessions with LIMS staff and are
 - **Never** set `NEXT_PUBLIC_REVIEW_MODE` in the Cloudflare build settings for the real
   domain. The boxes contain example text that is not confirmed to be true of LIMS.
 
+**Where it stands (2026-10-08):** there is ONE Worker, `lims-new-design`, built by Cloudflare from
+GitHub `main`, and it is the review link shared with the hospital. Its build variable
+`NEXT_PUBLIC_REVIEW_MODE=1` is set (dashboard: Workers & Pages > lims-new-design > Settings >
+Builds > Variables and secrets), so the review boxes show. **Delete that variable before the site
+goes on the real domain.**
+
+A local `npm run cf:deploy` does not see the dashboard variable. It would replace the review build
+with a public one, so on this Worker run it as
+`$env:NEXT_PUBLIC_REVIEW_MODE='1'; npm run cf:deploy` (PowerShell) or
+`NEXT_PUBLIC_REVIEW_MODE=1 npm run cf:deploy` (bash). Pushing to `main` is the normal way to deploy.
+
 The general reference content on those pages (`lib/service-content.ts`) is draft copy and
 needs a LIMS doctor's sign-off before launch. In review mode each such section carries a
 "Draft copy, clinician review pending" tag.
