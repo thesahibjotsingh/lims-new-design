@@ -408,6 +408,7 @@
     "voiceStop": "Stop listening",
     "voiceListening": "Listening… say what you need",
     "voiceStarting": "Getting the microphone ready…",
+    "voiceKeyboardTip": "Tip: tap the microphone on your keyboard to speak your search.",
     "voiceKeyboardHint": "Still not working? Tap the microphone on your keyboard and speak into the box.",
     "voiceNoSpeech": "I did not hear anything. Tap the microphone and try again.",
     "voiceDenied": "The microphone is blocked. Allow it in your browser settings to search by voice.",

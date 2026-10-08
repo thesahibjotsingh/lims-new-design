@@ -222,7 +222,9 @@ export function useSearchSuggest({
   const emergency = result?.emergency ?? false
   const terms = result?.terms ?? []
   const showingRecent = !searching && idleItems.some((item) => item.section === 'recent')
-  const voiceNote = voice.listening || voice.error !== null
+  // On iPhone and iPad there is no microphone button; an empty box says where the keyboard's is.
+  const keyboardTip = voice.keyboardOnly && !searching
+  const voiceNote = voice.listening || voice.error !== null || keyboardTip
 
   const visible = open && (suggestions.length > 0 || loading || unavailable || voiceNote)
 
@@ -309,7 +311,7 @@ export function useSearchSuggest({
   }
 
   const available = voice.supported && onQueryChange !== undefined
-  const voiceState: Voice & { available: boolean } = { ...voice, available }
+  const voiceState: Voice & { available: boolean; tip: boolean } = { ...voice, available, tip: keyboardTip }
 
   /** Everything SuggestionList needs, so a host passes one object. */
   const listProps = {
@@ -450,7 +452,7 @@ export function SuggestionList({
   /** The index is still on its way. */
   loading?: boolean
   unavailable?: boolean
-  voice?: Voice & { available: boolean }
+  voice?: Voice & { available: boolean; tip?: boolean }
   className?: string
   /**
    * 'floating' (default): absolutely positioned below the field, overlaying
@@ -543,6 +545,11 @@ export function SuggestionList({
         className,
       ].join(' ')}
     >
+      {voice?.tip && (
+        <li role="presentation" className="px-4 pb-1 pt-2 text-xs text-brand-dark-base/60">
+          {t('voiceKeyboardTip')}
+        </li>
+      )}
       {voice?.listening && (
         <li
           role="status"

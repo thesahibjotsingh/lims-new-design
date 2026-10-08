@@ -28,14 +28,16 @@
 //   - Only one search box on the page listens at a time (the header, the hero and the phone sheet each
 //     have their own button).
 //
-// WHAT AN iPHONE SHOWED (screen recording, 9 Oct 2026). Session 1 worked. Session 2 and 3 reported
-// "start" and "audiostart" and then nothing at all for 18 seconds: no sound, no result, no error, no end.
-// The phone's microphone itself had gone quiet once the first session ended. That is a WebKit audio-session
-// problem (Chrome on iPhone uses WebKit too), not something the page can see. So:
-//   - a session that is "listening" but hears no sound at all for 8 seconds is stopped, and the reader is
-//     told what to do instead (the microphone on the phone's own keyboard, which always works);
-//   - on iPhone and iPad one recogniser is kept and reused, and the audio session is asked to be a
-//     recording one before each start, which is what the known workarounds suggest.
+// iPHONE AND iPAD: NOT OFFERED. Two screen recordings (9 Oct 2026) showed the same thing every time. The
+// first session works. Every later one reports "start" and "audiostart" and then delivers nothing for as
+// long as it is left open: no sound, no result, no error, no end. The phone's own microphone was fine (the
+// screen recording kept hearing the reader); it is WebKit's speech capture that stays deaf after its first
+// session. Keeping one recogniser and resetting the audio session did not change it, and Chrome on iPhone
+// uses the same engine. So on iPhone and iPad this button is not shown, and the search box says to use the
+// microphone on the phone's own keyboard instead, which is a system feature and always works.
+//
+// Anywhere else, a session that is "listening" but hears no sound at all for 8 seconds is stopped and the
+// reader is told, with the same keyboard-microphone hint on phones.
 //
 // Add ?voicedebug=1 to any address to see, on screen, what the browser reports at each step. That is
 // how a device that still misbehaves can be diagnosed without a computer attached.
@@ -100,6 +102,8 @@ export interface Voice {
   ready: boolean
   /** A phone's own keyboard microphone is the better route: this device's attempt came back empty. */
   hint: boolean
+  /** iPhone and iPad: speech capture goes deaf after one use, so the keyboard microphone is the way. */
+  keyboardOnly: boolean
   error: VoiceError
   toggle: () => void
   stop: () => void
@@ -121,11 +125,6 @@ function isIOS(): boolean {
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
   )
 }
-
-/** On iPhone and iPad one recogniser is made and reused; a new one per press goes deaf after the first. */
-let shared: Recognition | null = null
-/** When the shared recogniser was last aborted: its late events must not reach a new session. */
-let sharedAbortedAt = 0
 
 /** Every search box has its own hook; this lets one silence the others before it listens. */
 const halts = new Set<() => void>()
@@ -162,6 +161,7 @@ export function useVoiceSearch(
   /** Sessions in a row that produced nothing. Reset by one that did. */
   const [empty, setEmpty] = useState(0)
   const [touch, setTouch] = useState(false)
+  const [keyboardOnly, setKeyboardOnly] = useState(false)
 
   const recognition = useRef<Recognition | null>(null)
   const callback = useRef(onTranscript)
@@ -197,7 +197,6 @@ export function useVoiceSearch(
     recognition.current = null
     session.current += 1
     if (!old) return
-    if (old === shared) sharedAbortedAt = Date.now()
     old.onstart = null
     old.onaudiostart = null
     old.onsoundstart = null
@@ -228,29 +227,8 @@ export function useVoiceSearch(
 
       const id = session.current
       const live = () => session.current === id && alive.current
-      const ios = isIOS()
-      if (ios) {
-        try {
-          const audioSession = (navigator as unknown as { audioSession?: { type: string } }).audioSession
-          if (audioSession) audioSession.type = 'play-and-record'
-        } catch {
-          // Not supported on this version.
-        }
-      }
-      if (ios) {
-        // The shared recogniser was aborted a moment ago: wait for its late "end" before reusing it.
-        const wait = 500 - (Date.now() - sharedAbortedAt)
-        if (wait > 0) {
-          setPhase('starting')
-          timers.current.start = window.setTimeout(() => launchRef.current(retried), wait)
-          return
-        }
-      }
-      const next = ios && shared ? shared : new Ctor()
-      if (ios) shared = next
-      if (id <= 1 || retried) {
-        trace(`env ios=${ios} reuse=${ios && next === shared} ${navigator.userAgent.slice(0, 70)}`)
-      }
+      const next = new Ctor()
+      if (id <= 1 || retried) trace(`env ${navigator.userAgent.slice(0, 80)}`)
       next.lang = LANGUAGE[localeRef.current]
       next.interimResults = true
       next.continuous = false
@@ -423,7 +401,10 @@ export function useVoiceSearch(
   // render must match it.
   useEffect(() => {
     alive.current = true
-    setSupported(constructorFor() !== undefined)
+    const available = constructorFor() !== undefined
+    const phoneOs = isIOS()
+    setSupported(available && !phoneOs)
+    setKeyboardOnly(available && phoneOs)
     setTouch(window.matchMedia('(pointer: coarse)').matches)
     const halt = () => {
       cancelled.current = true
@@ -457,6 +438,7 @@ export function useVoiceSearch(
     listening: phase !== 'idle',
     ready: phase === 'listening',
     hint: touch && empty >= 1 && error !== null,
+    keyboardOnly,
     error,
     toggle,
     stop,
