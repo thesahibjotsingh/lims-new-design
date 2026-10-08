@@ -407,6 +407,7 @@
     "voiceStart": "Search by voice",
     "voiceStop": "Stop listening",
     "voiceListening": "Listening… say what you need",
+    "voiceStarting": "Getting the microphone ready…",
     "voiceNoSpeech": "I did not hear anything. Tap the microphone and try again.",
     "voiceDenied": "The microphone is blocked. Allow it in your browser settings to search by voice.",
     "voiceFailed": "Voice search did not work this time. You can type instead."
