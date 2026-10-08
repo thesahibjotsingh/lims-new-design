@@ -6,8 +6,8 @@
 //
 //   variant="sheet"     phone header. A globe button showing the current language's short name
 //                       (EN, हिं, ਪੰ) that opens a panel with the three languages as big rows. The
-//                       panel grows out of the bottom navigation pill and shrinks back into it,
-//                       over a dimmed page.
+//                       panel grows out of that button and shrinks back into it, over a dimmed
+//                       page that cannot scroll.
 //   variant="dropdown"  desktop header. The same button and the same rows. The panel grows
 //                       out of the button itself, its top-right corner where the button was,
 //                       and the page behind is left as it is (it closes when you click away,
@@ -66,43 +66,45 @@ const ENGLISH_NAME: Record<Locale, string> = { en: 'English', hi: 'Hindi', pa: '
 const CODE: Record<Locale, string> = { en: 'EN', hi: 'हिं', pa: 'ਪੰ' }
 
 /*
- * THE PANEL GROWS OUT OF ITS TRIGGER (phone: the bottom pill; desktop: the button).
+ * THE PANEL GROWS OUT OF THE BUTTON THAT WAS PRESSED, on a phone and on desktop alike.
  *
  * Gate: opened a handful of times per visit, never from the keyboard, so it is allowed to
- * animate. Purpose: spatial consistency. The panel is a continuation of the bottom
- * navigation pill, not a separate sheet arriving from off-screen, so the motion has to
- * show that.
+ * animate. Purpose: spatial consistency. The panel is the button turning into a card, not a
+ * separate sheet arriving from somewhere else, so the motion has to show that. The booking panel
+ * and the search sheet do the same from their own buttons. (On a phone this used to grow out of
+ * the bottom navigation pill, which is not the thing the visitor touched.)
  *
- * How: the panel is laid out at its final size and position, bottom edge level with the
- * pill's, and revealed with `clip-path: inset(...)`. It starts clipped to exactly the pill's
- * rectangle (measured at open, with the pill's fully-round corners) and opens out to the
- * full panel. Because the panel is clipped rather than scaled, its text and corners are
- * never stretched, and the first frame is pixel-identical to the pill, so there is no jump.
- * Three Web Animations, all reversed together on close, so closing retraces the opening
+ * How: the panel is laid out at its final size and position, its top-right corner on the
+ * button's, and revealed with `clip-path: inset(...)`. It starts clipped to exactly the button's
+ * rectangle (measured at open, with the button's fully-round corners) and opens out down and to
+ * the left to the full panel. Because the panel is clipped rather than scaled, its text and
+ * corners are never stretched, and the first frame is pixel-identical to the button, so there is
+ * no jump. Three Web Animations, all reversed together on close, so closing retraces the opening
  * and a tap mid-way turns round from wherever it has got to:
  *
- *   clip-path         360ms   ease-in-out      pill rectangle -> whole panel
+ *   clip-path         360ms   ease-in-out      button rectangle -> whole panel
  *   background-color  140ms   ease-in-out      clear -> white, from 40ms in, then held
  *                                              (endDelay), so on close it turns clear only
  *                                              at the very end
  *   content opacity   200ms   ease-in-out      starts 120ms in, so no text sits over the
- *                                              pill's own tabs while they are still visible
+ *                                              button's own label while it is still visible
  *
  * THE CURVE IS SYMMETRIC ON PURPOSE. This is one on-screen shape morphing into another, so
  * the in-out curve (--ease-in-out, strong) is the right one, and because every animation is
  * played backwards on close, it must not be an ease-out: reversed, an ease-out is an ease-in,
  * and a close that hesitates before it moves feels like lag. (--ease-drawer was tried first;
  * it is so front-loaded that the panel was 90% open by 110ms and there was nothing left to
- * read as "growing out of the pill".)
+ * read as "growing out of" anything.)
  *
  * Close plays 1.35x faster than open (about 270ms): the user has decided, so get out of the
  * way. Reduced motion swaps the whole thing for a 150ms fade with no movement.
  *
- * DESKTOP is the same motion with a different origin. The panel is placed with its top-right
- * corner exactly on the button's, so the clip starts as the button's rectangle at the top
- * right of the panel and opens down and to the left. The panel's title row ends up where the
- * button was and its close button sits on the spot the button occupied, so the button reads
- * as turning into the panel's header.
+ * WHERE IT SITS. Desktop: the panel's right edge is the button's right edge (BLEED px past it)
+ * and its top is the button's top, so the panel's title row ends up where the button was and its
+ * close button lands on the spot the button occupied: the button reads as turning into the
+ * panel's header. Phone: the panel is centred on the screen with the same margin at the top as at
+ * the sides (the button sits inside its top row, not at its corner, because the menu icon is
+ * beyond it), and the clip opens down and out to both sides.
  *
  * A SEPARATE SHADOW LAYER on desktop. A box-shadow on the clipped panel would be cut off by
  * the clip-path (it paints outside the box), so the shadow is its own element behind the
@@ -130,8 +132,8 @@ export function LanguageMenu({ variant = 'sheet' }: { variant?: 'sheet' | 'dropd
   // `open` is intent; `rendered` keeps the panel mounted while the close animation plays.
   const [open, setOpen] = useState(false)
   const [rendered, setRendered] = useState(false)
-  // Where the panel sits and the rectangle it grows out of (the bottom pill on a phone, the
-  // button on desktop), all measured at the moment of the tap.
+  // Where the panel sits and the rectangle it grows out of (the button), all measured at the
+  // moment of the tap.
   const [anchor, setAnchor] = useState<{
     left: number
     top: number
@@ -149,35 +151,23 @@ export function LanguageMenu({ variant = 'sheet' }: { variant?: 'sheet' | 'dropd
     const viewport = document.documentElement.clientWidth
     const margin = 8
     const width = Math.min(PANEL_MAX_WIDTH[variant], viewport - margin * 2)
+    const button = triggerRef.current?.getBoundingClientRect() ?? null
 
-    if (variant === 'dropdown') {
-      // Top-right corner on the button's top-right corner, so the button sits inside the
-      // panel's top-right and the clip can start from its whole rectangle. The panel
-      // overhangs the button by BLEED on the top and right: the button's corner is rounder
-      // than the panel's (22px against 28px), and with the edges flush a hairline of the
-      // button's border would show past the panel's corner.
-      const button = triggerRef.current?.getBoundingClientRect() ?? null
-      const right = (button ? button.right : viewport - margin) + BLEED
-      const left = Math.max(margin, Math.min(right - width, viewport - margin - width))
-      setAnchor({ left, top: button ? button.top - BLEED : margin, width, origin: button })
+    if (variant === 'sheet') {
+      // Phone: centred, with the same margin at the top as at the sides, so it sits squarely on
+      // the screen like the booking panel. The button is inside it (the clip starts as the
+      // button's rectangle), so it still grows out of the button, down and out to both sides.
+      const left = (viewport - width) / 2
+      setAnchor({ left, top: Math.max(margin, button ? button.top - BLEED : margin), width, origin: button })
     } else {
-      const pillElement = document.querySelector<HTMLElement>('[data-bottom-pill]')
-      let pill = pillElement ? pillElement.getBoundingClientRect() : null
-      // The pill slides off the bottom while the page is read downwards (MobileBottomNav).
-      // Measure where it WILL be, not where it is mid-slide, and bring it back for the panel
-      // to grow out of: its wrapper's translateY is what to take off.
-      if (pillElement && pill && pillElement.parentElement) {
-        const shift = new DOMMatrixReadOnly(getComputedStyle(pillElement.parentElement).transform).m42
-        if (shift) pill = new DOMRect(pill.left, pill.top - shift, pill.width, pill.height)
-      }
-      document.documentElement.removeAttribute('data-nav-hidden')
-      // Centre the panel over the pill, but never let it stop short of the pill: the clip
-      // has to start from the pill's WHOLE rectangle, and on narrow phones the pill runs right
-      // up to the screen edge, so the left limit relaxes to the pill's own left.
-      const centre = pill ? pill.left + pill.width / 2 : viewport / 2
-      const minLeft = pill ? Math.min(margin, pill.left) : margin
-      const left = Math.max(minLeft, Math.min(centre - width / 2, viewport - margin - width))
-      setAnchor({ left, top: 0, width, origin: pill })
+      // Desktop: top-right corner on the button's top-right corner, so the button sits inside
+      // the panel's top-right and the clip can start from its whole rectangle. The panel
+      // overhangs the button by BLEED on the top and right: the button's corner is rounder than
+      // the panel's (22px against 28px), and with the edges flush a hairline of the button's
+      // border would show past the panel's corner.
+      const right = Math.min(viewport - margin, (button ? button.right : viewport - margin) + BLEED)
+      const left = Math.max(margin, right - width)
+      setAnchor({ left, top: button ? button.top - BLEED : margin, width, origin: button })
     }
     setOpen(true)
     setRendered(true)
@@ -188,7 +178,7 @@ export function LanguageMenu({ variant = 'sheet' }: { variant?: 'sheet' | 'dropd
     if (returnFocus) triggerRef.current?.focus()
   }, [])
 
-  // Opening: lay the panel out, measure it against the pill, start the three animations.
+  // Opening: lay the panel out, measure it against the button, start the three animations.
   // A layout effect, so the first frame is already the collapsed one and the expanded panel
   // never flashes.
   useLayoutEffect(() => {
@@ -223,8 +213,8 @@ export function LanguageMenu({ variant = 'sheet' }: { variant?: 'sheet' | 'dropd
       const box = panel.getBoundingClientRect()
       const origin = anchor.origin
       // Inset of the origin's rectangle from each edge of the panel. No origin to read (the
-      // pill is always there on phones and the button on desktop, but be safe): collapse to a
-      // strip of the same shape at the panel's own edge.
+      // button is always there, but be safe): collapse to a strip of the same shape at the
+      // panel's own edge.
       const top = origin ? Math.max(0, origin.top - box.top) : Math.max(0, box.height - 58)
       const bottom = origin ? Math.max(0, box.bottom - origin.bottom) : 0
       const left = origin ? Math.max(0, origin.left - box.left) : box.width * 0.1
@@ -281,7 +271,7 @@ export function LanguageMenu({ variant = 'sheet' }: { variant?: 'sheet' | 'dropd
   }, [open, rendered])
 
   // Closing: play every animation backwards, from wherever it currently is, a little faster.
-  // Unmount once the panel has finished shrinking back into the pill.
+  // Unmount once the panel has finished shrinking back into the button.
   useEffect(() => {
     if (open || !rendered) return
     const animations = animationsRef.current
@@ -321,17 +311,18 @@ export function LanguageMenu({ variant = 'sheet' }: { variant?: 'sheet' | 'dropd
     }
   }, [rendered, variant])
 
-  // Desktop: the page is not locked (taking the scrollbar away would shift the whole header
-  // sideways), so a panel pinned to the button's old position has to go as soon as the page
-  // or the window moves.
+  // The panel is pinned to where the button was, so it has to go as soon as the window moves
+  // (a resize, or turning a phone sideways). Desktop does not lock the page (taking the
+  // scrollbar away would shift the whole header sideways), so there it also goes on scroll; a
+  // phone's page cannot scroll while the panel is up.
   useEffect(() => {
-    if (!open || variant !== 'dropdown') return
+    if (!open) return
     const close = () => closeSheet({ returnFocus: false })
-    window.addEventListener('scroll', close, { passive: true })
     window.addEventListener('resize', close)
+    if (variant === 'dropdown') window.addEventListener('scroll', close, { passive: true })
     return () => {
-      window.removeEventListener('scroll', close)
       window.removeEventListener('resize', close)
+      window.removeEventListener('scroll', close)
     }
   }, [open, variant, closeSheet])
 
@@ -407,28 +398,13 @@ export function LanguageMenu({ variant = 'sheet' }: { variant?: 'sheet' | 'dropd
 
             {/*
               The frame places the panel; the panel inside is the thing that is clipped.
-
-              Phone: same bottom offset as the pill (MobileBottomNav:
-              `pb-[env(safe-area-inset-bottom)]` plus `mb-4`), so the panel's bottom edge is
-              level with the pill's and it grows upward from it. Left and width come from
-              `anchor` (see openSheet), which keeps the panel centred over the pill and always
-              wide enough to contain it.
-
-              Desktop: `anchor.top` is the button's top, and the panel's right edge is the
-              button's right edge (each BLEED px past it), so it grows down and to the left
-              from the button.
+              `anchor.top` is the button's top, and the panel's right edge is the button's right
+              edge (each BLEED px past it), so it grows down and to the left from the button, on
+              a phone and on desktop. See openSheet.
             */}
             <div
-              style={
-                variant === 'sheet'
-                  ? { left: anchor.left, width: anchor.width }
-                  : { left: anchor.left, top: anchor.top, width: anchor.width }
-              }
-              className={
-                variant === 'sheet'
-                  ? 'absolute bottom-[calc(env(safe-area-inset-bottom)+1rem)]'
-                  : 'absolute'
-              }
+              style={{ left: anchor.left, top: anchor.top, width: anchor.width }}
+              className="absolute"
             >
               {variant === 'dropdown' && (
                 <div
@@ -459,12 +435,12 @@ export function LanguageMenu({ variant = 'sheet' }: { variant?: 'sheet' | 'dropd
                       onClick={() => closeSheet()}
                       aria-label={t('close')}
                       className={[
-                      'tap-target h-11 w-11 rounded-full text-brand-dark-base/55 hover:bg-brand-mist',
-                      // Lands the X on the centre of the button this panel grew out of.
-                      variant === 'dropdown' && 'mr-[3px]',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
+                        'tap-target h-11 w-11 rounded-full text-brand-dark-base/55 hover:bg-brand-mist',
+                        // Desktop: lands the X on the centre of the button this panel grew out of.
+                        variant === 'dropdown' && 'mr-[3px]',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
                     >
                       <CloseIcon className="h-5 w-5" strokeWidth={2} />
                     </button>

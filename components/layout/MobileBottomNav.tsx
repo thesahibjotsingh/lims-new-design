@@ -9,8 +9,8 @@
 // IT GETS OUT OF THE WAY. Reading downwards slides the pill off the bottom of the screen and
 // the first scroll back up (or a tap on any control inside it, or keyboard focus) brings it
 // back, so the page gets the whole screen while it is being read. The state is one attribute,
-// data-nav-hidden on <html>, so the action bar above the pill (PhoneActionBar) and the language
-// sheet that opens out of it can follow without a shared store.
+// data-nav-hidden on <html>, so the action bar above the pill (PhoneActionBar) can follow
+// without a shared store.
 //
 // SEARCH IS A TAB, NOT A LINK. It sits between Departments and Book (Book stays last, under the
 // right thumb) and opens a panel that grows out of its icon (SearchSheet). Five slots is the
@@ -86,12 +86,7 @@ export function MobileBottomNav() {
       onFocusCapture={() => document.documentElement.removeAttribute('data-nav-hidden')}
       className="bottom-nav pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
-      {/*
-        `data-bottom-pill` is how LanguageMenu finds this pill: its panel opens out of this
-        exact rectangle and closes back into it.
-      */}
       <nav
-        data-bottom-pill=""
         aria-label={tA11y('quickNav')}
         className="pointer-events-auto mb-4 flex w-full max-w-[28rem] items-center justify-around rounded-full border border-white/40 bg-white/75 px-3 py-2 shadow-glass backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-white/95 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
       >
