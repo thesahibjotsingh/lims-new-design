@@ -31,7 +31,7 @@ import { contact } from '@/lib/site-config'
 import { localizedLocation } from '@/lib/site-i18n'
 import { plain } from '@/lib/text'
 import type { Locale } from '@/i18n/routing'
-import type { Weekday } from '@/types'
+import type { OpdSession, Weekday } from '@/types'
 
 export function generateStaticParams() {
   return DOCTORS.map((doctor) => ({ id: doctor.id }))
@@ -283,14 +283,34 @@ export default async function DoctorProfilePage({
   }
 
   if (doctor.opdSchedule?.length) {
-    const rows = doctor.opdSchedule.map((session) => ({
-      day: weekdayName(locale, session.day),
-      time: `${formatTime(locale, session.startTime)} - ${formatTime(locale, session.endTime)}`,
+    // Consecutive days with the same hours, place and note read as one row: "Monday - Saturday".
+    const groups: { first: OpdSession; last: OpdSession }[] = []
+    for (const session of doctor.opdSchedule) {
+      const group = groups[groups.length - 1]
+      const continues =
+        group &&
+        group.last.startTime === session.startTime &&
+        group.last.endTime === session.endTime &&
+        group.last.locationId === session.locationId &&
+        group.last.note === session.note &&
+        WEEKDAY_INDEX[session.day] === WEEKDAY_INDEX[group.last.day] + 1
+      if (group && continues) {
+        group.last = session
+      } else {
+        groups.push({ first: session, last: session })
+      }
+    }
+    const rows = groups.map(({ first, last }) => ({
+      day:
+        first === last
+          ? weekdayName(locale, first.day)
+          : `${weekdayName(locale, first.day)} - ${weekdayName(locale, last.day)}`,
+      time: `${formatTime(locale, first.startTime)} - ${formatTime(locale, first.endTime)}`,
       where:
-        session.locationId === localizedLocation(locale).id
+        first.locationId === localizedLocation(locale).id
           ? localizedLocation(locale).name
-          : session.locationId,
-      note: session.note,
+          : first.locationId,
+      note: first.note,
     }))
     add('opd', 'opd', (tone) => (
       <Band

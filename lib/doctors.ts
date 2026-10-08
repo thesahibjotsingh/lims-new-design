@@ -97,6 +97,30 @@ export const DOCTORS: Doctor[] = [
       degrees: 'MBBS, MS, DNB',
       fellowships: 'Laparoscopic Pelvic Surgery, Cosmetic Gynaecology',
     },
+    // Title, OPD times, languages and what she treats, in her own reply to the website sheet on
+    // 2026-10-08 (answers 5, 6, 7 and 9). Her title as she wrote it.
+    designation: 'Senior Consultant, Obstetrics & Gynaecology',
+    // She answered "All" to the sheet's language ticks: English, Hindi, Punjabi and Haryanvi.
+    languages: ['English', 'Hindi', 'Punjabi', 'Haryanvi'],
+    // Her list, one entry per item. The fifth line is hers, joined with a colon instead of her hyphen.
+    specialisations: [
+      'Pregnancy & High-Risk Pregnancy Care',
+      'Laparoscopic & Gynaecological Surgery',
+      'Infertility & PCOS Management',
+      "Menstrual & Women's Health Problems",
+      'Aesthetic & Cosmetic Gynaecology: Hymenoplasty, Labiaplasty',
+    ],
+    // "Monday to Saturday 10 AM - 5 PM, Sunday 1 PM - 5 PM". One session per day; the profile page
+    // joins consecutive days with the same hours into one row.
+    opdSchedule: [
+      ...(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const).map((day) => ({
+        day,
+        startTime: '10:00',
+        endTime: '17:00',
+        locationId: 'hisar-main',
+      })),
+      { day: 'sunday' as const, startTime: '13:00', endTime: '17:00', locationId: 'hisar-main' },
+    ],
     departmentSlug: 'obstetrics-gynaecology',
     registrationNumber: 'HN-31657',
     // Her qualifications one by one, as she wrote them to the "LIMS Website and social media" WhatsApp

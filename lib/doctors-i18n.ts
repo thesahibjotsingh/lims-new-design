@@ -33,6 +33,10 @@ interface DoctorText {
   quote?: string
   /** Doctor.education in this script, in the same order. */
   education?: CredentialEntry[]
+  /** Doctor.languages in this script, in the same order (the names of the languages). */
+  languages?: string[]
+  /** Doctor.specialisations in this script, in the same order. */
+  specialisations?: string[]
 }
 
 type TranslatedLocale = Exclude<Locale, 'en'>
@@ -51,6 +55,15 @@ const TEXT: Record<string, Record<TranslatedLocale, DoctorText>> = {
   'shweta-godara': {
     hi: {
       name: 'डॉ. श्वेता गोदारा',
+      designation: 'सीनियर कंसल्टेंट, प्रसूति एवं स्त्री रोग',
+      languages: ['अंग्रेज़ी', 'हिन्दी', 'पंजाबी', 'हरियाणवी'],
+      specialisations: [
+        'गर्भावस्था एवं हाई-रिस्क गर्भावस्था की देखभाल',
+        'लेप्रोस्कोपिक एवं स्त्री रोग सर्जरी',
+        'बांझपन एवं PCOS का उपचार',
+        'मासिक धर्म एवं महिला स्वास्थ्य संबंधी समस्याएँ',
+        'सौंदर्य एवं कॉस्मेटिक स्त्री रोग चिकित्सा: हाइमेनोप्लास्टी, लेबियाप्लास्टी',
+      ],
       qualifications:
         'MBBS, MS (एसएमएस मेडिकल कॉलेज, जयपुर), DNB प्रसूति एवं स्त्री रोग, ' +
         'एडवांस्ड लेप्रोस्कोपिक पेल्विक सर्जरी में फ़ेलोशिप, कॉस्मेटिक गाइनेकोलॉजी में फ़ेलोशिप',
@@ -69,6 +82,15 @@ const TEXT: Record<string, Record<TranslatedLocale, DoctorText>> = {
     },
     pa: {
       name: 'ਡਾ. ਸ਼ਵੇਤਾ ਗੋਦਾਰਾ',
+      designation: 'ਸੀਨੀਅਰ ਕੰਸਲਟੈਂਟ, ਪ੍ਰਸੂਤੀ ਅਤੇ ਇਸਤਰੀ ਰੋਗ',
+      languages: ['ਅੰਗਰੇਜ਼ੀ', 'ਹਿੰਦੀ', 'ਪੰਜਾਬੀ', 'ਹਰਿਆਣਵੀ'],
+      specialisations: [
+        'ਗਰਭ ਅਵਸਥਾ ਅਤੇ ਹਾਈ-ਰਿਸਕ ਗਰਭ ਅਵਸਥਾ ਦੀ ਦੇਖਭਾਲ',
+        'ਲੈਪਰੋਸਕੋਪਿਕ ਅਤੇ ਇਸਤਰੀ ਰੋਗ ਸਰਜਰੀ',
+        'ਬਾਂਝਪਨ ਅਤੇ PCOS ਦਾ ਇਲਾਜ',
+        'ਮਾਹਵਾਰੀ ਅਤੇ ਔਰਤਾਂ ਦੀ ਸਿਹਤ ਸੰਬੰਧੀ ਸਮੱਸਿਆਵਾਂ',
+        'ਸੁਹਜ ਅਤੇ ਕਾਸਮੈਟਿਕ ਗਾਇਨੀਕੋਲੋਜੀ: ਹਾਈਮੇਨੋਪਲਾਸਟੀ, ਲੈਬੀਆਪਲਾਸਟੀ',
+      ],
       qualifications:
         'MBBS, MS (ਐਸਐਮਐਸ ਮੈਡੀਕਲ ਕਾਲਜ, ਜੈਪੁਰ), DNB ਪ੍ਰਸੂਤੀ ਅਤੇ ਇਸਤਰੀ ਰੋਗ, ' +
         'ਐਡਵਾਂਸਡ ਲੈਪਰੋਸਕੋਪਿਕ ਪੇਲਵਿਕ ਸਰਜਰੀ ਵਿੱਚ ਫ਼ੈਲੋਸ਼ਿਪ, ਕਾਸਮੈਟਿਕ ਗਾਇਨੀਕੋਲੋਜੀ ਵਿੱਚ ਫ਼ੈਲੋਸ਼ਿਪ',
@@ -124,6 +146,8 @@ export function localizeDoctor(doctor: Doctor, locale: Locale): Doctor {
     qualifications: text.qualifications ?? doctor.qualifications,
     quote: text.quote ?? doctor.quote,
     education: text.education ?? doctor.education,
+    languages: text.languages ?? doctor.languages,
+    specialisations: text.specialisations ?? doctor.specialisations,
     cardCredentials:
       doctor.cardCredentials && text.cardFellowships
         ? { ...doctor.cardCredentials, fellowships: text.cardFellowships }
