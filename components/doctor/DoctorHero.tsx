@@ -13,8 +13,9 @@
 // Every chip below is a field LIMS supplied. A missing field is a missing chip, never a
 // placeholder (lib/doctors.ts, rules 1 and 4).
 //
-// ON A PHONE (below sm) it is a short layout: a back link, the portrait small beside the name and
-// department, the qualifications cut to three lines with Read more, the chips, and one row of
+// ON A PHONE (below sm) it is a short layout: a back link, the portrait small beside the name,
+// department and registration number, the qualifications one per line (a doctor with only the
+// one-line string gets it cut to three lines with Read more), the quote, the chips, and one row of
 // buttons (Book with this consultant, WhatsApp, Call). The notepad is left out, as on the
 // department pages, and PhoneTalkToUs carries its numbers at the end of the page. The grid below is
 // the one grid at every width: on a phone the text column is `display: contents`, so its parts
@@ -22,14 +23,16 @@
 
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
-import { ArrowRightIcon, ChevronLeftIcon, QuoteIcon, ShieldIcon } from '@/components/icons'
+import { ArrowRightIcon, CalendarIcon, ChevronLeftIcon, ShieldIcon } from '@/components/icons'
 import { initials } from '@/components/doctor/DoctorAvatar'
+import { PortraitLightbox } from '@/components/doctor/PortraitLightbox'
+import { QuoteReveal } from '@/components/doctor/QuoteReveal'
 import { ClampedText } from '@/components/service/ClampedText'
 import { ContactCard } from '@/components/service/ContactCard'
 import { HERO_ACTIONS_ID } from '@/components/service/PhoneActionBar'
 import { ActionButton, type PhoneAction } from '@/components/service/PhoneActions'
 import { registrationDisplay } from '@/lib/doctors'
-import { plain } from '@/lib/text'
+import { firstSentence, plain } from '@/lib/text'
 import type { Doctor } from '@/types'
 
 export async function DoctorHero({
@@ -56,8 +59,13 @@ export async function DoctorHero({
   const tA11y = await getTranslations('a11y')
   const portrait = doctor.portrait
 
+  // The quote: its first sentence shows, "Read more" reveals the rest (QuoteReveal).
+  const quoteFull = doctor.quote ? plain(doctor.quote) : ''
+  const quoteLead = doctor.quote ? firstSentence(doctor.quote) : ''
+  const quoteRest = quoteFull.startsWith(quoteLead) ? quoteFull.slice(quoteLead.length).trim() : ''
+
   const chipClass =
-    'rounded-full bg-white/12 px-3 py-1.5 text-xs font-semibold text-white sm:px-4 sm:py-2 sm:text-sm'
+    'rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-white sm:px-4 sm:py-2 sm:text-sm'
 
   return (
     <header className="teal-hero teal-curve text-white">
@@ -89,21 +97,28 @@ export async function DoctorHero({
           </ol>
         </nav>
 
-        <div className="mt-1 grid grid-cols-[6rem_minmax(0,1fr)] gap-x-4 sm:mt-6 sm:grid-cols-1 sm:gap-8 lg:grid-cols-[15rem_minmax(0,1fr)_22rem] lg:items-end lg:gap-10">
+        {/*
+          ON A DESKTOP (lg) the grid is three columns over two rows, all lined up at the top: the
+          portrait, the text and the "Talk to us" notepad in the first row, and the three buttons in
+          one line in the second, under the portrait and the text. The portrait is 16rem wide at lg
+          and 25rem (400 x 500) from xl. That is about as tall as her name, qualifications and the
+          WHOLE quote together: from xl the quote has no "Read more" (QuoteReveal), so the row is the
+          same height whatever is tapped and nothing moves.
+        */}
+        <div className="mt-1 grid grid-cols-[6rem_minmax(0,1fr)] gap-x-4 sm:mt-6 sm:grid-cols-1 sm:gap-8 lg:grid-cols-[16rem_minmax(0,1fr)_21rem] lg:items-start lg:gap-x-10 lg:gap-y-7 xl:grid-cols-[25rem_minmax(0,1fr)_21rem]">
           {/* A real portrait or the initials, never a stand-in face. */}
-          <div className="w-full sm:w-56 lg:w-full">
+          <div className="w-full sm:w-56 lg:col-start-1 lg:row-start-1 lg:w-full">
             <div className="aspect-[4/5] overflow-hidden rounded-2xl bg-white/10 shadow-lg ring-1 ring-white/25 sm:rounded-3xl">
               {portrait ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                // A real photograph is a button: tap it and it opens larger (PortraitLightbox).
+                <PortraitLightbox
                   src={portrait.src}
                   alt={portrait.alt}
                   width={portrait.width}
                   height={portrait.height}
-                  decoding="async"
-                  fetchPriority="high"
-                  style={{ objectPosition: `50% ${portrait.focusY ?? 50}%` }}
-                  className="h-full w-full object-cover"
+                  focusY={portrait.focusY ?? 50}
+                  name={doctor.name}
+                  department={departmentName}
                 />
               ) : (
                 <span
@@ -117,12 +132,12 @@ export async function DoctorHero({
           </div>
 
           {/* `contents` below sm: its children join the grid above instead of forming a column. */}
-          <div className="contents min-w-0 sm:block">
+          <div className="contents min-w-0 sm:block lg:col-start-2 lg:row-start-1">
             <div className="min-w-0 self-center sm:self-auto">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/75 sm:text-xs">
                 {departmentName}
               </p>
-              <h1 className="mt-1 text-balance font-serif text-[1.75rem] font-bold leading-[1.1] tracking-tight sm:text-4xl lg:text-5xl">
+              <h1 className="mt-1 text-balance font-serif sm:mt-2.5 text-[1.75rem] font-bold leading-[1.1] tracking-tight sm:text-4xl lg:text-5xl">
                 {doctor.name}
               </h1>
               {doctor.designation && (
@@ -130,43 +145,89 @@ export async function DoctorHero({
                   {plain(doctor.designation)}
                 </p>
               )}
+              {/* On a phone the registration number sits under her name, beside the portrait. */}
+              {doctor.registrationNumber && (
+                <p className={`mt-2.5 inline-flex items-center gap-1.5 sm:hidden ${chipClass}`}>
+                  <ShieldIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {tCard('regNo')} {registrationDisplay(doctor.registrationNumber)}
+                </p>
+              )}
             </div>
 
-            {doctor.qualifications && (
-              <>
-                <p className="mt-4 hidden max-w-xl text-base leading-relaxed text-white/85 sm:block">
-                  {plain(doctor.qualifications)}
-                </p>
-                <ClampedText
-                  className="col-span-2 mt-4 sm:hidden"
-                  readMore={readMore}
-                  readLess={readLess}
-                >
-                  {plain(doctor.qualifications)}
-                </ClampedText>
-              </>
+            {/*
+              Qualifications. When the doctor's credentials are on file one by one (Doctor.education)
+              they are listed one per line, in full, as she wrote them: a fellowship is a line of its
+              own, not the tail of a long sentence, so none of it hides behind "Read more". A doctor
+              with only the one-line string (Doctor.qualifications) keeps that, cut to three lines on
+              a phone. The same entries are in the page's Education and training section.
+            */}
+            {doctor.education?.length ? (
+              <ul
+                aria-label={t('educationHeading')}
+                className="col-span-2 mt-4 max-w-xl space-y-1 sm:col-span-1 sm:mt-5 sm:space-y-1.5"
+              >
+                {doctor.education.map((entry) => (
+                  <li
+                    key={entry.title}
+                    className="flex items-start gap-2.5 text-[15px] leading-snug text-white/90 sm:text-base"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="mt-[0.5em] h-1.5 w-1.5 shrink-0 rounded-full bg-brand-copper"
+                    />
+                    <span>
+                      {entry.title}
+                      {entry.institution ? ` · ${entry.institution}` : ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              doctor.qualifications && (
+                <>
+                  <p className="mt-4 hidden max-w-xl text-base leading-relaxed text-white/85 sm:block">
+                    {plain(doctor.qualifications)}
+                  </p>
+                  <ClampedText
+                    className="col-span-2 mt-4 sm:hidden"
+                    readMore={readMore}
+                    readLess={readLess}
+                  >
+                    {plain(doctor.qualifications)}
+                  </ClampedText>
+                </>
+              )
             )}
 
             {/*
               The doctor's own words, only when LIMS has supplied a quote (Doctor.quote). A soft panel
               on the teal, the quote mark in copper (the brand copper is for icons and fills on a dark
-              ground), the words in the site's serif. It sits above the chips so it is in the first
-              screen on a phone, beside the portrait.
+              ground), the words in the site's serif. The first sentence shows and "Read more" opens
+              the rest, so the panel stays short beside the portrait on a phone. It sits above the
+              chips so it is in the first screen.
             */}
             {doctor.quote && (
-              <figure className="col-span-2 mt-4 flex items-start gap-2.5 rounded-2xl bg-white/10 px-3.5 py-3 sm:col-span-1 sm:mt-5 sm:max-w-xl sm:gap-3 sm:px-4 sm:py-3.5">
-                <QuoteIcon
-                  aria-hidden="true"
-                  className="mt-0.5 h-5 w-5 shrink-0 text-brand-copper sm:h-6 sm:w-6"
-                  strokeWidth={2}
+              <figure className="col-span-2 mt-4 rounded-2xl bg-white/10 px-3.5 py-3 sm:col-span-1 sm:mt-5 sm:max-w-xl sm:px-4 sm:py-3.5">
+                {/* Both quotation marks are drawn by QuoteReveal, so they are always the same size. */}
+                <QuoteReveal
+                  lead={quoteLead}
+                  rest={quoteRest}
+                  readMore={readMore}
+                  readLess={readLess}
                 />
-                <blockquote className="font-serif text-[15px] italic leading-snug text-white sm:text-lg sm:leading-snug">
-                  {plain(doctor.quote)}
-                </blockquote>
               </figure>
             )}
 
-            <ul className="col-span-2 mt-3 flex flex-wrap gap-1.5 sm:col-span-1 sm:mt-6 sm:gap-2">
+          </div>
+
+          {/*
+            The buttons: the department, the registration number and booking. On a phone they join
+            the grid above (`contents`); on a tablet they stack under the text; on a desktop they
+            are one row under the portrait, the text and the notepad (the full width, so a narrow laptop
+            keeps all three on one line).
+          */}
+          <div className="contents sm:block lg:col-span-3 lg:col-start-1 lg:row-start-2 lg:flex lg:flex-wrap lg:items-center lg:gap-3">
+            <ul className="col-span-2 mt-3 flex flex-wrap gap-1.5 sm:col-span-1 sm:mt-0 sm:gap-2 lg:gap-3">
               {departmentHref && (
                 <li>
                   <Link
@@ -179,7 +240,7 @@ export async function DoctorHero({
                 </li>
               )}
               {doctor.registrationNumber && (
-                <li className={`flex items-center gap-1.5 ${chipClass}`}>
+                <li className={`hidden items-center gap-1.5 sm:flex ${chipClass}`}>
                   <ShieldIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
                   {tCard('regNo')} {registrationDisplay(doctor.registrationNumber)}
                 </li>
@@ -202,8 +263,9 @@ export async function DoctorHero({
             <Link
               href={`/appointments?doctor=${doctor.id}`}
               aria-label={t('requestWith', { name: doctor.name })}
-              className="tap-target mt-6 hidden rounded-full border border-white/40 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10 sm:inline-flex"
+              className="tap-target mt-6 hidden gap-2 rounded-full bg-brand-copper px-6 text-sm font-semibold text-white shadow-[0_10px_20px_-12px_rgba(194,110,78,0.9)] transition-colors hover:bg-brand-copper/90 sm:inline-flex lg:mt-0"
             >
+              <CalendarIcon className="h-[18px] w-[18px]" aria-hidden="true" />
               {tCommon('requestAnAppointment')}
             </Link>
 
@@ -220,7 +282,7 @@ export async function DoctorHero({
             )}
           </div>
 
-          <div className="hidden sm:block">
+          <div className="hidden sm:block lg:col-start-3 lg:row-start-1 lg:mt-3">
             <ContactCard heading={tService('talkToUs')} tag={doctor.name} />
           </div>
         </div>

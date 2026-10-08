@@ -21,7 +21,7 @@
 // this file and nothing else.
 
 import type { Locale } from '@/i18n/routing'
-import type { Doctor } from '@/types'
+import type { CredentialEntry, Doctor } from '@/types'
 
 interface DoctorText {
   name: string
@@ -31,6 +31,8 @@ interface DoctorText {
   cardFellowships?: string
   /** The doctor's quote (Doctor.quote) in this script. */
   quote?: string
+  /** Doctor.education in this script, in the same order. */
+  education?: CredentialEntry[]
 }
 
 type TranslatedLocale = Exclude<Locale, 'en'>
@@ -53,8 +55,17 @@ const TEXT: Record<string, Record<TranslatedLocale, DoctorText>> = {
         'MBBS, MS (एसएमएस मेडिकल कॉलेज, जयपुर), DNB प्रसूति एवं स्त्री रोग, ' +
         'एडवांस्ड लेप्रोस्कोपिक पेल्विक सर्जरी में फ़ेलोशिप, कॉस्मेटिक गाइनेकोलॉजी में फ़ेलोशिप',
       cardFellowships: 'लेप्रोस्कोपिक पेल्विक सर्जरी, कॉस्मेटिक गाइनेकोलॉजी',
-      // The first sentence of messages `home.quote`.
-      quote: 'हर महिला जीवन के हर चरण में करुणामय, प्रमाण-आधारित देखभाल की हकदार है।',
+      // Each entry is a piece of `qualifications` above, in the same words.
+      education: [
+        { title: 'MBBS' },
+        { title: 'MS', institution: 'एसएमएस मेडिकल कॉलेज, जयपुर' },
+        { title: 'DNB प्रसूति एवं स्त्री रोग' },
+        { title: 'एडवांस्ड लेप्रोस्कोपिक पेल्विक सर्जरी में फ़ेलोशिप' },
+        { title: 'कॉस्मेटिक गाइनेकोलॉजी में फ़ेलोशिप' },
+      ],
+      // The whole of messages `home.quote`, without its quotation marks.
+      quote:
+        'हर महिला जीवन के हर चरण में करुणामय, प्रमाण-आधारित देखभाल की हकदार है। हमारा विभाग प्रसूति एवं स्त्री रोग, उन्नत लेप्रोस्कोपिक सर्जरी, तथा सुरक्षित और नैतिक सौंदर्य एवं कॉस्मेटिक स्त्री रोग चिकित्सा में व्यक्तिगत देखभाल देने के लिए प्रतिबद्ध है, जहाँ हर निर्णय के केंद्र में गरिमा, गोपनीयता और रोगी की भलाई है।',
     },
     pa: {
       name: 'ਡਾ. ਸ਼ਵੇਤਾ ਗੋਦਾਰਾ',
@@ -62,8 +73,17 @@ const TEXT: Record<string, Record<TranslatedLocale, DoctorText>> = {
         'MBBS, MS (ਐਸਐਮਐਸ ਮੈਡੀਕਲ ਕਾਲਜ, ਜੈਪੁਰ), DNB ਪ੍ਰਸੂਤੀ ਅਤੇ ਇਸਤਰੀ ਰੋਗ, ' +
         'ਐਡਵਾਂਸਡ ਲੈਪਰੋਸਕੋਪਿਕ ਪੇਲਵਿਕ ਸਰਜਰੀ ਵਿੱਚ ਫ਼ੈਲੋਸ਼ਿਪ, ਕਾਸਮੈਟਿਕ ਗਾਇਨੀਕੋਲੋਜੀ ਵਿੱਚ ਫ਼ੈਲੋਸ਼ਿਪ',
       cardFellowships: 'ਲੈਪਰੋਸਕੋਪਿਕ ਪੇਲਵਿਕ ਸਰਜਰੀ, ਕਾਸਮੈਟਿਕ ਗਾਇਨੀਕੋਲੋਜੀ',
-      // The first sentence of messages `home.quote`.
-      quote: 'ਹਰ ਔਰਤ ਜ਼ਿੰਦਗੀ ਦੇ ਹਰ ਪੜਾਅ ’ਤੇ ਹਮਦਰਦੀ ਭਰੀ, ਸਬੂਤ-ਆਧਾਰਿਤ ਦੇਖਭਾਲ ਦੀ ਹੱਕਦਾਰ ਹੈ।',
+      // Each entry is a piece of `qualifications` above, in the same words.
+      education: [
+        { title: 'MBBS' },
+        { title: 'MS', institution: 'ਐਸਐਮਐਸ ਮੈਡੀਕਲ ਕਾਲਜ, ਜੈਪੁਰ' },
+        { title: 'DNB ਪ੍ਰਸੂਤੀ ਅਤੇ ਇਸਤਰੀ ਰੋਗ' },
+        { title: 'ਐਡਵਾਂਸਡ ਲੈਪਰੋਸਕੋਪਿਕ ਪੇਲਵਿਕ ਸਰਜਰੀ ਵਿੱਚ ਫ਼ੈਲੋਸ਼ਿਪ' },
+        { title: 'ਕਾਸਮੈਟਿਕ ਗਾਇਨੀਕੋਲੋਜੀ ਵਿੱਚ ਫ਼ੈਲੋਸ਼ਿਪ' },
+      ],
+      // The whole of messages `home.quote`, without its quotation marks.
+      quote:
+        'ਹਰ ਔਰਤ ਜ਼ਿੰਦਗੀ ਦੇ ਹਰ ਪੜਾਅ ’ਤੇ ਹਮਦਰਦੀ ਭਰੀ, ਸਬੂਤ-ਆਧਾਰਿਤ ਦੇਖਭਾਲ ਦੀ ਹੱਕਦਾਰ ਹੈ। ਸਾਡਾ ਵਿਭਾਗ ਪ੍ਰਸੂਤੀ ਅਤੇ ਇਸਤਰੀ ਰੋਗ, ਉੱਨਤ ਲੈਪਰੋਸਕੋਪਿਕ ਸਰਜਰੀ, ਅਤੇ ਸੁਰੱਖਿਅਤ ਤੇ ਨੈਤਿਕ ਸੁਹਜ ਅਤੇ ਕਾਸਮੈਟਿਕ ਗਾਇਨੀਕੋਲੋਜੀ ਵਿੱਚ ਨਿੱਜੀ ਦੇਖਭਾਲ ਦੇਣ ਲਈ ਵਚਨਬੱਧ ਹੈ, ਜਿੱਥੇ ਹਰ ਫ਼ੈਸਲੇ ਦੇ ਕੇਂਦਰ ਵਿੱਚ ਮਾਣ, ਨਿੱਜਤਾ ਅਤੇ ਮਰੀਜ਼ ਦੀ ਭਲਾਈ ਹੈ।',
     },
   },
   'vikash-raj': {
@@ -103,6 +123,7 @@ export function localizeDoctor(doctor: Doctor, locale: Locale): Doctor {
     designation: text.designation ?? doctor.designation,
     qualifications: text.qualifications ?? doctor.qualifications,
     quote: text.quote ?? doctor.quote,
+    education: text.education ?? doctor.education,
     cardCredentials:
       doctor.cardCredentials && text.cardFellowships
         ? { ...doctor.cardCredentials, fellowships: text.cardFellowships }

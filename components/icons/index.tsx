@@ -174,11 +174,10 @@ export function ArrowUpRightIcon(props: IconProps) {
   )
 }
 
-export function QuoteIcon(props: IconProps) {
+export function ExpandIcon(props: IconProps) {
   return (
     <Base {...props}>
-      <path d="M10 11H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.667-1.333 4.333-4 5" />
-      <path d="M19 11h-4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.667-1.333 4.333-4 5" />
+      <path d="M16 4h4v4M14 10l6-6M8 20H4v-4M4 20l6-6" />
     </Base>
   )
 }

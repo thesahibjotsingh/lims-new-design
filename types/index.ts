@@ -129,7 +129,8 @@ export interface Doctor {
 
 export interface CredentialEntry {
   title: string
-  institution: string
+  /** Only when the doctor gave one. A qualification with no institution on file shows without one. */
+  institution?: string
   /** e.g. "2011" or "2014 - 2019". Free text: real credentials are irregular. */
   period?: string
 }

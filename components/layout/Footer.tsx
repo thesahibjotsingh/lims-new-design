@@ -11,6 +11,7 @@ import {
   centresNav,
   contact,
   diagnosticsNav,
+  directionsUrl,
   patientServicesNav,
   siteConfig,
   whatsappUrl,
@@ -29,6 +30,7 @@ export async function Footer() {
   const t = await getTranslations('nav')
   const tFooter = await getTranslations('footer')
   const tCommon = await getTranslations('common')
+  const tContact = await getTranslations('contactPage')
   const text = siteText(locale)
   const location = localizedLocation(locale)
 
@@ -37,19 +39,64 @@ export async function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-8 md:py-14">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-10 lg:grid-cols-4">
           <div className="space-y-4">
-            <h2 className="font-serif text-xl font-bold text-white">
-              {siteConfig.shortName} {text.city}
-            </h2>
-            <p className="text-xs leading-relaxed text-white/55">{text.name}</p>
+            {/*
+              The round badge beside the name, the same pairing BrandMark gives the dark header
+              (`tone="dark"`): the badge carries its own light disc, so it reads on this near-black
+              ground where the colour lockup would lose its letters. Decorative: the heading beside
+              it says who this is. Width is set and height is auto, because the badge is trimmed to
+              its own content box and is not square.
+            */}
+            <div className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/brand/lims-badge.webp"
+                alt=""
+                aria-hidden="true"
+                width={44}
+                height={50}
+                className="block h-auto w-[44px] shrink-0"
+              />
+              <div className="min-w-0">
+                <h2 className="font-serif text-xl font-bold leading-tight text-white">
+                  {siteConfig.shortName} {text.city}
+                </h2>
+                <p className="mt-1 text-xs leading-snug text-white/55">{text.name}</p>
+              </div>
+            </div>
 
-            <p className="flex items-start gap-2 text-xs leading-relaxed text-white/60">
-              <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-copper" />
-              <span>
-                {location.addressLines.join(', ')}
-                <br />
-                {location.city}, {location.state}
-              </span>
-            </p>
+            {/*
+              The address is a link: one tap opens Google Maps with directions to the hospital from
+              wherever the visitor is, the same link as every "Get directions" button on the site.
+            */}
+            {directionsUrl ? (
+              <a
+                href={directionsUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                aria-label={`${tContact('getDirections')}: ${location.addressLines.join(', ')}, ${location.city}, ${location.state}`}
+                className="group flex items-start gap-2 text-xs leading-relaxed text-white/60 transition-colors hover:text-white/85"
+              >
+                <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-copper" />
+                <span>
+                  {location.addressLines.join(', ')}
+                  <br />
+                  {location.city}, {location.state}
+                  <span className="mt-1.5 flex items-center gap-1 font-semibold text-white/80 group-hover:text-white">
+                    {tContact('getDirections')}
+                    <ArrowUpRightIcon className="h-3 w-3" strokeWidth={2} />
+                  </span>
+                </span>
+              </a>
+            ) : (
+              <p className="flex items-start gap-2 text-xs leading-relaxed text-white/60">
+                <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-copper" />
+                <span>
+                  {location.addressLines.join(', ')}
+                  <br />
+                  {location.city}, {location.state}
+                </span>
+              </p>
+            )}
 
             <div className="space-y-1">
               <a

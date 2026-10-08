@@ -99,11 +99,26 @@ export const DOCTORS: Doctor[] = [
     },
     departmentSlug: 'obstetrics-gynaecology',
     registrationNumber: 'HN-31657',
-    // Her own words, the first sentence of the quote card that has been on the home banner since
-    // 2026-09-17 (messages `home.quote` has the whole of it). Shown near the top of her profile.
-    // CONFIRM WITH LIMS THAT DR. SHWETA APPROVED THIS WORDING: on her profile it is a statement in
-    // her name (rule 1 above), and nothing on file records who wrote it.
-    quote: 'Every woman deserves compassionate, evidence-based care through every stage of life.',
+    // Her qualifications one by one, as she wrote them to the "LIMS Website and social media" WhatsApp
+    // group: "MBBS, MS ( SMS Medical College Jaipur), DNB Obstetrics & Gynaecology", then a line each
+    // for the two fellowships. They feed the profile's "Education and training" section. No years and
+    // no institutions beyond the one she gave: none are invented (rule 1 above).
+    education: [
+      { title: 'MBBS' },
+      { title: 'MS', institution: 'SMS Medical College Jaipur' },
+      { title: 'DNB Obstetrics & Gynaecology' },
+      { title: 'Fellowship in Advance Laparoscopic Pelvic Surgeries' },
+      { title: 'Fellowship in Cosmetic Gynaecology' },
+    ],
+    // Her own words, verbatim: the quote card Dr. Shweta posted herself in the "LIMS Website and
+    // social media" WhatsApp group (the image on the home banner since 2026-09-17; messages `home.quote`
+    // has it for the banner). Shown near the top of her profile, first sentence with "Read more".
+    // The spaced dash is hers; it renders as a comma, as everywhere on the site (lib/text.ts plain()).
+    quote:
+      'Every woman deserves compassionate, evidence-based care through every stage of life. ' +
+      'Our department is committed to providing personalised care in Obstetrics and Gynaecology, ' +
+      'advanced Laparoscopic Surgery, and safe, ethical Aesthetic & Cosmetic Gynaecology \u2014 ' +
+      'with dignity, privacy, and patient wellbeing at the heart of every decision.',
     // Real photograph, supplied 2026-09-16.
     portrait: {
       src: '/doctors/shweta-godara.webp',
