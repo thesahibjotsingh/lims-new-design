@@ -19,6 +19,9 @@ import { buildSearchDocs } from '@/lib/search/build-docs'
 import { createEngine } from '@/lib/search/engine'
 import type { SearchEngine } from '@/lib/search/engine'
 import type { SearchHit } from '@/lib/search/types'
+import { MORE } from './search-cases'
+import { EXTRA_SCRIPT } from './search-cases-script'
+import { EXTRA_VOICE } from './search-cases-voice'
 
 type Locale = 'en' | 'hi' | 'pa'
 
@@ -32,6 +35,8 @@ interface Case {
   emergency?: boolean
   locale?: Locale
   top?: number
+  /** None of these may appear among the first three results (a safety check, not a relevance one). */
+  avoid?: string[]
 }
 
 const GAS = 'svc:gastroenterology'
@@ -494,6 +499,50 @@ const CASES: Case[] = [
   { q: 'hair fall', none: true },
 ]
 
+/* ------------------------------------------------------------------ the compact cases (search-cases.ts)
+ *
+ * One string per case:  [hi:|pa:]query => ID ID !  @3  -ID
+ *   ID     a department or page above (GAS, ER, CALL...), or a literal id such as svc:ent
+ *   !      the emergency card must come first
+ *   none   no page exists for this: pass when the engine still returns somewhere to go
+ *   @3     look only at the first three results (default five)
+ *   -ID    that page must NOT be among the first three
+ */
+
+const ALIAS: Record<string, string> = {
+  GAS, GEN, SURG, ORTHO, SPINE, NEURO, URO, OBG, PED, EYE, ENT, DENT, ANAES, TRAUMA, ER, XRAY, USG, DOPP, ECHO,
+  LAB, ENDO, RAD, PHYSIO, DIET, PHARM, AMB,
+  CALL: 'action:call', EMERG: 'action:emergency', DIR: 'action:directions', WA: 'action:whatsapp',
+  APPT: 'page:appointments', DOCS: 'page:doctors', CONTACT: 'page:contact', TIMES: 'info:timings',
+  VISIT: 'page:visitors', PRICES: 'info:prices', INS: 'info:insurance', ABHA: 'action:abha',
+  SPECS: 'page:specialities', DIAG: 'page:diagnostics', CARE: 'page:patient-care', LIB: 'page:health-library',
+  ABOUT: 'page:about',
+  SHWETA: 'doc:shweta-godara', UDIT: 'doc:udit-choudhary', VIKASH: 'doc:vikash-raj',
+  HARSHAL: 'doc:harshal-godara', NIRMALA: 'doc:nirmala-goyat',
+}
+
+function parse(line: string): Case {
+  const [left, right = ''] = line.split(' => ')
+  const locale = /^(hi|pa):/.exec(left)?.[1] as Locale | undefined
+  const test: Case = { q: locale ? left.slice(3) : left }
+  if (locale) test.locale = locale
+  const expect: string[] = []
+  const avoid: string[] = []
+  for (const token of right.split(/\s+/).filter(Boolean)) {
+    if (token === '!') test.emergency = true
+    else if (token === 'none') test.none = true
+    else if (token.startsWith('@')) test.top = Number(token.slice(1))
+    else if (token.startsWith('-')) avoid.push(ALIAS[token.slice(1)] ?? token.slice(1))
+    else expect.push(ALIAS[token] ?? token)
+  }
+  if (expect.length) test.expect = expect
+  if (avoid.length) test.avoid = avoid
+  if (!test.expect && !test.none && !test.avoid) throw new Error(`case has no expectation: ${line}`)
+  return test
+}
+
+CASES.push(...MORE.map(parse), ...EXTRA_SCRIPT.map(parse), ...EXTRA_VOICE.map(parse))
+
 /* ------------------------------------------------------------------ the runner */
 
 const verbose = process.argv.includes('-v')
@@ -511,6 +560,21 @@ function reaches(expected: string, hit: SearchHit): boolean {
   if (expected.startsWith('svc:') && hit.parent === expected.slice(4)) return true
   return false
 }
+
+const CORRECTIONS: [string, string | null][] = [
+  ['neurosergery', 'neurosurgery'],
+  ['gastroentrology', 'gastroenterology'],
+  ['orthopeadic', 'orthopedics'],
+  ['ultrasond', 'ultrasound'],
+  ['physiotherpy', 'physiotherapy'],
+  ['knee replacment', 'knee replacement'],
+  ['dr sweta godra', 'dr shweta godara'],
+  ['stomach ache', null],
+  ['chest pain', null],
+  ['neurosurgery', null],
+  ['neuro', null],
+  ['ultra', null],
+]
 
 let passed = 0
 let failed = 0
@@ -532,6 +596,8 @@ for (const test of CASES) {
   if (test.none) {
     ok = result.hits.length > 0
     note = ok ? '' : 'returned nothing'
+  } else if (!test.expect && test.avoid) {
+    ok = true
   } else {
     const first = result.hits.slice(0, top)
     const found = first.findIndex((hit) => (test.expect ?? []).some((e) => reaches(e, hit)))
@@ -541,6 +607,14 @@ for (const test of CASES) {
       note = ok ? '' : 'emergency card not first'
     } else if (!ok) {
       note = `expected ${test.expect?.join(' | ')}`
+    }
+  }
+
+  if (ok && test.avoid) {
+    const bad = result.hits.slice(0, 3).find((hit) => test.avoid!.some((a) => reaches(a, hit)))
+    if (bad) {
+      ok = false
+      note = `must not show ${bad.title}`
     }
   }
 
@@ -555,6 +629,15 @@ for (const test of CASES) {
         .join('\n')
     if (ok) console.log(line)
     else failures.push(line)
+  }
+}
+
+for (const [typed, expected] of CORRECTIONS) {
+  const got = engineFor('en').correct(typed)
+  if (got === expected) passed += 1
+  else {
+    failed += 1
+    failures.push(`FAIL [en] correct(${typed})  expected ${expected} got ${got}`)
   }
 }
 

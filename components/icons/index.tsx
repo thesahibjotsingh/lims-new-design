@@ -269,3 +269,11 @@ export function MicIcon(props: IconProps) {
     </Base>
   )
 }
+
+export function SparkleIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z" />
+    </Base>
+  )
+}

@@ -39,6 +39,7 @@ import {
   ShieldIcon,
   StethoscopeIcon,
   WhatsAppIcon,
+  ArrowRightIcon,
 } from '@/components/icons'
 import { reportMiss } from '@/components/search/reportMiss'
 import { useSearchEngine } from '@/components/search/useSearchEngine'
@@ -254,21 +255,17 @@ export function useSearchSuggest({
   }
 
   /**
-   * Enter or the Search button, with nothing highlighted. Takes the best answer when there is a
-   * confident one that is a place on this site. Otherwise (a near miss, a phone call, an emergency)
-   * leaves the list open so the reader chooses, instead of sending them somewhere on a guess.
-   * Returns false when it did nothing (no index yet, or nothing typed), so the host can fall back to
-   * what it did before.
+   * Enter or the Search button, with nothing highlighted: the results page for what was typed, where the
+   * answer is laid out (a short guide, then departments, tests, reasons and questions). A row that is
+   * highlighted and chosen goes straight to its own page instead (see choose). Returns false when there is
+   * nothing to search for, so the host can fall back to what it did before.
    */
   function submit(): boolean {
-    if (!searching || !engine) return false
-    setOpen(true)
-    const first = suggestions[0]
-    if (!first || emergency || first.external || mode !== 'match') {
-      setActive(-1)
-      return true
-    }
-    choose(0)
+    if (trimmed.length < 2) return false
+    setOpen(false)
+    setActive(-1)
+    voice.stop()
+    router.push(`/search?q=${encodeURIComponent(trimmed)}`)
     return true
   }
 
@@ -325,6 +322,8 @@ export function useSearchSuggest({
     loading,
     unavailable,
     voice: voiceState,
+    query: searching ? trimmed : '',
+    onSeeAll: searching ? submit : undefined,
   }
 
   return {
@@ -372,7 +371,7 @@ export function useCloseOnOutside(
 /* -------------------------------------------------------------------------- */
 
 /** The row's icon, from where it goes: the kind of page, or the kind of thing it does. */
-function iconFor(suggestion: SearchSuggestion): React.ComponentType<React.SVGProps<SVGSVGElement>> {
+export function iconFor(suggestion: SearchSuggestion): React.ComponentType<React.SVGProps<SVGSVGElement>> {
   const { href, kind } = suggestion
   if (href.startsWith('tel:')) return PhoneIcon
   if (href.includes('wa.me')) return WhatsAppIcon
@@ -389,7 +388,7 @@ function iconFor(suggestion: SearchSuggestion): React.ComponentType<React.SVGPro
 }
 
 /** The words of the query, bold where they appear in a title. Plain text for anything not matched. */
-function Highlight({ text, terms }: { text: string; terms: string[] }) {
+export function Highlight({ text, terms }: { text: string; terms: string[] }) {
   if (terms.length === 0) return <>{text}</>
   const lower = text.toLowerCase()
   const ranges: [number, number][] = []
@@ -436,6 +435,8 @@ export function SuggestionList({
   loading = false,
   unavailable = false,
   voice,
+  query = '',
+  onSeeAll,
   className = '',
   variant = 'floating',
   visible = true,
@@ -453,6 +454,10 @@ export function SuggestionList({
   loading?: boolean
   unavailable?: boolean
   voice?: Voice & { available: boolean; tip?: boolean }
+  /** What was typed, for the "see all results" row. */
+  query?: string
+  /** Opens the results page for the query. Without it there is no such row. */
+  onSeeAll?: () => void
   className?: string
   /**
    * 'floating' (default): absolutely positioned below the field, overlaying
@@ -672,6 +677,22 @@ export function SuggestionList({
           </Fragment>
         )
       })}
+      {onSeeAll && query && suggestions.length > 0 && (
+        <li role="presentation" className="border-t border-brand-teal/10">
+          <button
+            type="button"
+            onMouseDown={(event) => {
+              event.preventDefault()
+              onSeeAll()
+            }}
+            className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-brand-teal transition-colors hover:bg-brand-mist active:bg-brand-mist"
+          >
+            <SearchIcon className="h-4 w-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate">{t('seeAll', { query })}</span>
+            <ArrowRightIcon className="h-4 w-4 shrink-0" />
+          </button>
+        </li>
+      )}
     </ul>
   )
 }

@@ -97,11 +97,14 @@ const POPULAR_DEPARTMENTS: Record<string, number> = {
 const FALLBACK_DEPARTMENT: Record<string, number> = { 'general-medicine': 3 }
 
 /** The first sentence, trimmed to a length a result row can hold. */
-function lead(text: string | undefined, max = 110): string | undefined {
+function lead(text: string | undefined, max = 200): string | undefined {
   if (!text) return undefined
   const first = text.split(/(?<=[.।])\s/)[0] ?? text
   if (first.length <= max) return first
-  return `${first.slice(0, max - 1).trimEnd()}…`
+  // Cut at a word, not in the middle of one.
+  const cut = first.slice(0, max - 1)
+  const space = cut.lastIndexOf(' ')
+  return `${(space > max * 0.6 ? cut.slice(0, space) : cut).trimEnd().replace(/[,;:—-]$/, '')}…`
 }
 
 function join(parts: (string | undefined)[]): string {

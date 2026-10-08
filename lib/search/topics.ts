@@ -177,3 +177,32 @@ export const ROLE_WORDS: Record<string, string> = {
   'general-laparoscopic-surgery': 'general surgeon laparoscopic surgeon surgeon',
   'trauma-management': 'trauma surgeon',
 }
+
+/**
+ * Words added with the 1,000-case test set: what patients typed that the lists above did not reach.
+ * Merged into TOPICS below, so the rest of the code sees one list. Same status as the rest: keywords,
+ * not claims, and unreviewed.
+ */
+const MORE_TOPICS: Record<string, string> = {
+  gastroenterology:
+    'black stool tarry stool burning in chest chest burning after eating loss of appetite poor appetite not eating ' +
+    'no appetite gallbladder gallstones',
+  'ortho-joint-replacement':
+    'cramps leg cramps muscle cramps fell down fallen sprain twisted ankle swollen arm swollen hand',
+  'trauma-management': 'fell down fall fallen cut deep cut wound stitches',
+  ophthalmology: 'cannot see clearly unable to see poor eyesight weak eyesight blurry hazy vision',
+  'obstetrics-gynaecology': 'baby kicks fetal movement baby movement foetal movements bleeding in pregnancy',
+  'general-medicine':
+    'irregular heartbeat heartbeat heart rate arrhythmia allergy allergies allergic hives insomnia sleeplessness ' +
+    'cannot sleep trouble sleeping sleep problem loss of appetite poor appetite not eating wound not healing',
+  'echocardiogram-tmt': 'irregular heartbeat heart rate arrhythmia',
+  'general-laparoscopic-surgery':
+    'swelling after surgery post operative wound not healing non healing wound dressing stitches gallstones ' +
+    'gallbladder surgeon general surgeon',
+  ent: 'enteh hearing loss cannot hear',
+  neurosurgery: 'memory loss forgetfulness',
+  'paediatrics-neonatology': 'child not eating baby not eating poor feeding refuses food',
+  'pathology-microbiology': 'vitamin vitamin d vitamin b12 b12 blood group blood grouping hemoglobin hb',
+  pharmacy: '24 hour 24x7 round the clock open night medicine shop',
+}
+for (const [slug, words] of Object.entries(MORE_TOPICS)) TOPICS[slug] = `${TOPICS[slug] ?? ''} ${words}`.trim()

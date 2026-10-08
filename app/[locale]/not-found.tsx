@@ -2,7 +2,7 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import { PageHeader, Section } from '@/components/primitives/PageShell'
-import { NotFoundSearch } from '@/components/search/NotFoundSearch'
+import { ResultsSearchBox } from '@/components/search/ResultsSearchBox'
 import { PhoneIcon } from '@/components/icons'
 import { contact } from '@/lib/site-config'
 import { SERVICE_CATEGORIES } from '@/lib/services'
@@ -38,7 +38,9 @@ export default async function LocaleNotFound() {
           {t('searchHeading')}
         </h2>
         <p className="mb-4 mt-1 text-sm text-brand-dark-base/65">{t('searchHelp')}</p>
-        <NotFoundSearch />
+        <div className="max-w-xl">
+          <ResultsSearchBox variant="plain" id="notfound-search" />
+        </div>
 
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {SERVICE_CATEGORIES.map((category) => (

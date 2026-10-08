@@ -214,6 +214,25 @@ export const GROUPS: readonly string[] = [
   'complaint|grievance|feedback|suggestion ; shikayat|शिकायत|ਸ਼ਿਕਾਇਤ',
   'parking ; parking|पार्किंग|ਪਾਰਕਿੰਗ',
   'specialities|specialties|speciality|specialty|departments|department|services|service ; vibhag|vibhaag|विभाग|सेवाएं|ਵਿਭਾਗ|ਸੇਵਾਵਾਂ',
+  /* ---------------------------------------------------------------------- added with the 1,000-case test set */
+  'joint|joints ; joron|joro|जोड़ों|ਜੋੜਾਂ',
+  'headache|head ache|head pain ; sir dukh|sar dukh|sir dukhda|sir vich dard|sir da dard|सिर दुख|ਸਿਰ ਦੁਖ|ਸਿਰ ਵਿੱਚ ਦਰਦ',
+  'knee|knees ; gode|godeyan|godian|godey|ghutna|ਗੋਡੇ|ਗੋਡਿਆਂ',
+  'child|children|kid|kids|baby ; bache|bachey|bacheyan|bacha|bachiyan|ਬੱਚੇ|ਬੱਚਿਆਂ',
+  'sprain|twisted|strain ; moch|moch aana|mach|मोच|ਮੋਚ',
+  'broken|broke|fractured ; toot gaya|toot gayi|tut gaya|tut gayi|toota|tuta|टूट गया|टूट गई|ਟੁੱਟ ਗਿਆ|ਟੁੱਟ ਗਈ',
+  'cut|cuts|wound|gash|laceration ; kat gaya|kat gayi|kat liya|cut lag gaya|कट गया|कट गई|ਕੱਟ ਲੱਗ ਗਿਆ',
+  'blurred|blurry|hazy|dim vision|poor vision|cannot see|cannot see clearly ; dhundhla|dhundla|dhundhala|kam dikhai|kam dikhta|kam dikhayi|धुंधला|कम दिखाई|ਧੁੰਦਲਾ|ਘੱਟ ਦਿਖਾਈ',
+  'hearing loss|hard of hearing|deaf|deafness|cannot hear|poor hearing ; kam sunai|kam sunayi|kam sunta|bahra|bahrapan|बहरा|कम सुनाई|ਘੱਟ ਸੁਣਾਈ|ਬੋਲਾ',
+  'memory loss|forgetfulness|forgetful|dementia|alzheimer ; bhoolne|bhulne|bhulakkad|yaddasht|याददाश्त|भूलने|ਯਾਦਦਾਸ਼ਤ|ਭੁੱਲਣ',
+  'breathlessness|shortness of breath|breathless ; saans phoolna|saans phulna|sans phoolna|saans phoolti|dam phoolna|सांस फूलना|साँस फूलना|ਸਾਹ ਫੁੱਲਣਾ',
+  'sleep|sleeplessness|insomnia|cannot sleep ; neend|nind|neend nahi|नींद|ਨੀਂਦ',
+  'loss of appetite|poor appetite|not hungry|no appetite ; bhookh nahi|bhukh nahi|bhookh kam|भूख नहीं|ਭੁੱਖ ਨਹੀਂ',
+  'not eating|refuses food|poor feeding ; nahi kha raha|nahi kha rahi|khana nahi khata|khana nahi kha|bachcha nahi kha raha|bachcha nahi kha rahi|bacha nahi kha raha|bache ne khana nahi khaya|bachcha khana nahi khata|खाना नहीं खा|बच्चा नहीं खा रहा|ਖਾਣਾ ਨਹੀਂ ਖਾ|ਬੱਚਾ ਨਹੀਂ ਖਾ ਰਿਹਾ',
+  'gallbladder|gall bladder|gallstone|gallstones ; pittashay|pitashay|pitte ki pathri|पित्ताशय|ਪਿੱਤੇ',
+  'burning in chest|chest burning ; seene me jalan|seene mein jalan|sine me jalan|सीने में जलन|ਸੀਨੇ ਵਿੱਚ ਜਲਨ',
+  'open|opens|opening|timings|timing|hours ; khulta|khulta hai|khulte|kitne baje|kab khulta|खुलता|कितने बजे|ਖੁੱਲ੍ਹਦਾ|ਕਿੰਨੇ ਵਜੇ',
+  'bleeding|bleed|blood coming ; khoon aa raha|khoon aana|khoon nikal raha|khoon beh raha|खून आ रहा|ਖੂਨ ਆ ਰਿਹਾ',
 ]
 
 /**
@@ -225,5 +244,23 @@ export const GROUPS: readonly string[] = [
  * "English ; Hindi/Punjabi" split as GROUPS, with alternatives separated by "|".
  */
 export const EMERGENCY_PHRASES: readonly string[] = [
+  'face drooping|facial droop|slurred speech|not responding|unresponsive|wont wake up|not waking up|bleeding wont stop|bleeding will not stop|cannot stop bleeding|bleeding not stopping|phenyl|rat poison|pesticide|insecticide|harpic|kerosene|swallowed acid|drank acid|too many tablets|too many pills|overdosed|ambulance urgently|ambulance urgent|urgent ambulance|urgent help|need help urgently|pregnancy bleeding|bleeding pregnant|bleeding during pregnancy ; khoon nahi ruk|khoon band nahi|bahut khoon|saap kaat|sap kaat|saanp kaat|kutte kaat|kutta kaat|ambulance jaldi|jaldi ambulance|ambulance bhejo|ambulance bulao|pregnancy khoon|garbh khoon|खून नहीं रुक|बहुत खून|ਖੂਨ ਨਹੀਂ ਰੁਕ|ਬਹੁਤ ਖੂਨ',
   'chest pain|chest tightness|heart attack|cardiac arrest|stroke|paralysis|cannot breathe|cant breathe|can not breathe|not breathing|difficulty breathing|breathing difficulty|severe breathlessness|unconscious|fainted|seizure|seizures|fits|convulsion|convulsions|severe bleeding|heavy bleeding|bleeding heavily|road accident|accident|head injury|snake bite|snakebite|poisoning|poison|overdose|dog bite|animal bite|monkey bite|electric shock|drowning|choking|severe burn|severe burns|serious injury|emergency ; seene mein dard|seene me dard|chhati dard|chati me dard|dil ka daura|lakwa|behosh|behoshi|saans nahi|sans nahi|accident|durghatna|saanp ne kata|kutte ne kata|kutta kata|zeher|सीने में दर्द|छाती में दर्द|दिल का दौरा|लकवा|बेहोश|बेहोशी|सांस नहीं|साँस नहीं|दुर्घटना|सांप ने काटा|कुत्ते ने काटा|ज़हर|जहर|ਛਾਤੀ ਵਿੱਚ ਦਰਦ|ਦਿਲ ਦਾ ਦੌਰਾ|ਲਕਵਾ|ਬੇਹੋਸ਼|ਸਾਹ ਨਹੀਂ|ਹਾਦਸਾ|ਸੱਪ ਨੇ ਡੰਗਿਆ|ਜ਼ਹਿਰ',
+]
+
+/**
+ * Words and phrases of distress about living or about hurting oneself. A match shows the Emergency card
+ * and the hospital's phone number and NOTHING ELSE: never a department, never a "closest match", never
+ * a way out that looks like a shop window. It is not logged (a match counts as a match, not a miss) and
+ * nothing here is a diagnosis.
+ *
+ * Same "English ; Hindi/Punjabi" format as EMERGENCY_PHRASES, with one difference: filler words are
+ * NOT dropped, so "kill myself" needs both words and "my back is killing me" does not match.
+ *
+ * UNREVIEWED. These phrases, and what the card should say to someone in this state, need a clinician
+ * (ideally a mental-health one) before launch. The numbers of national helplines are not here because
+ * they are a decision for the hospital: see the plan in the repository notes.
+ */
+export const DISTRESS_PHRASES: readonly string[] = [
+  'suicide|suicidal|commit suicide|kill myself|killing myself|want to die|wanna die|dont want to live|do not want to live|end my life|ending my life|take my life|hurt myself|harm myself|self harm|selfharm|cut myself|slit my wrists|life is not worth living|no reason to live|better off dead|end it all ; suicide|khudkushi|khudkhushi|aatmahatya|atmahatya|marna chahta|marna chahti|marna hai|mar jana|mar jaun|jeena nahi|jeene ka mann nahi|jeene ka man nahi|jine ka man nahi|jaan dena|apni jaan|zindagi khatam|zindagi se thak|khud ko khatam|khud ko nuksan|खुदकुशी|आत्महत्या|मरना चाहता|मरना चाहती|मरना है|जीने का मन नहीं|जीना नहीं|जान दे|ਖੁਦਕੁਸ਼ੀ|ਆਤਮਹੱਤਿਆ|ਮਰਨਾ ਚਾਹੁੰਦਾ|ਮਰਨਾ ਚਾਹੁੰਦੀ|ਜਿਊਣ ਨੂੰ ਦਿਲ ਨਹੀਂ|ਜੀਣ ਨੂੰ ਦਿਲ ਨਹੀਂ|ਜਾਨ ਦੇ',
 ]

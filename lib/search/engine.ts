@@ -26,7 +26,7 @@
 // of dictionary lookups and a short scan. There is no need for anything cleverer, and nothing here
 // is slow enough to debounce.
 
-import { EMERGENCY_PHRASES, GROUPS } from '@/lib/search/groups'
+import { DISTRESS_PHRASES, EMERGENCY_PHRASES, GROUPS } from '@/lib/search/groups'
 import {
   commonPrefix,
   contentWords,
@@ -214,26 +214,33 @@ interface EmergencyPhrase {
   indic: boolean
 }
 
-const EMERGENCY: EmergencyPhrase[] = EMERGENCY_PHRASES.flatMap((line) => {
-  const [english = '', local = ''] = line.split(';')
-  const out: EmergencyPhrase[] = []
-  for (const [side, indic] of [
-    [english, false],
-    [local, true],
-  ] as const) {
-    for (const raw of side.split('|')) {
-      const list = stemmed(contentWords(raw))
-      if (list.length > 0) out.push({ words: list, indic })
+/** Compiles "English ; Hindi/Punjabi" phrase lines. `keepFiller` keeps the little words (for distress). */
+function compilePhrases(lines: readonly string[], keepFiller: boolean): EmergencyPhrase[] {
+  return lines.flatMap((line) => {
+    const [english = '', local = ''] = line.split(';')
+    const out: EmergencyPhrase[] = []
+    for (const [side, indic] of [
+      [english, false],
+      [local, true],
+    ] as const) {
+      for (const raw of side.split('|')) {
+        const list = stemmed(keepFiller ? words(raw) : contentWords(raw))
+        if (list.length > 0) out.push({ words: list, indic })
+      }
     }
-  }
-  return out
-})
+    return out
+  })
+}
+
+const EMERGENCY: EmergencyPhrase[] = compilePhrases(EMERGENCY_PHRASES, false)
+const DISTRESS: EmergencyPhrase[] = compilePhrases(DISTRESS_PHRASES, true)
+
+function matchesPhrase(list: EmergencyPhrase[], typed: string[]): boolean {
+  return list.some((phrase) => phrase.words.every((word) => typed.some((t) => sameWord(t, word, phrase.indic))))
+}
 
 function looksLikeEmergency(typed: string[]): boolean {
-  for (const phrase of EMERGENCY) {
-    if (phrase.words.every((word) => typed.some((t) => sameWord(t, word, phrase.indic)))) return true
-  }
-  return false
+  return matchesPhrase(EMERGENCY, typed)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -266,6 +273,8 @@ export class SearchEngine {
   private readonly byLength = new Map<number, string[]>()
   private readonly byKey = new Map<string, string[]>()
   private readonly titleNorm: string[]
+  /** Index word -> the way it is spelt on the site (the index folds "gynaecology" to "gynecology"). */
+  private readonly spelling = new Map<string, string>()
   private readonly serviceDoc = new Map<string, number>()
   private readonly emergencyDoc: number
   private readonly fallbackDocs: number[]
@@ -302,6 +311,17 @@ export class SearchEngine {
       })
       if (doc.id.startsWith('svc:')) this.serviceDoc.set(doc.id.slice(4), docIndex)
     })
+
+    // How each word is really spelt, from the titles first and the keywords after, for showing a correction.
+    for (const field of ['title', 'keys'] as const) {
+      for (const doc of docs) {
+        for (const raw of (doc[field] ?? '').split(/[^\p{L}\p{N}]+/u)) {
+          if (raw.length < 4 || !/^[a-zA-Z]+$/.test(raw)) continue
+          const key = stem(words(raw)[0] ?? '')
+          if (key && !this.spelling.has(key)) this.spelling.set(key, raw.toLowerCase())
+        }
+      }
+    }
 
     this.sortedVocab = [...this.postings.keys()].sort()
     for (const token of this.sortedVocab) {
@@ -566,6 +586,15 @@ export class SearchEngine {
     const terms = everyWord.filter((word) => word.length >= 2 && !STOP_WORDS.has(word))
     const emergency = this.emergencyDoc >= 0 && looksLikeEmergency(typed)
 
+    // Someone saying they want to die or hurt themselves gets the emergency card and the phone number, and
+    // nothing else: no department, no "closest match". Judged on every word typed, filler included.
+    if (this.emergencyDoc >= 0 && matchesPhrase(DISTRESS, everyWord.map((word) => stem(word)))) {
+      const card = this.toHit(this.emergencyDoc, 99, false)
+      card.emergency = true
+      const call = this.fallbackHits(kinds, 12).find((hit) => hit.id === 'action:call')
+      return { mode: 'match', hits: call ? [card, call] : [card], terms, emergency: true, distress: true }
+    }
+
     const cache = new Map<string, Scored>()
     const units = this.buildUnits(typed)
     const lastUnit = units[units.length - 1]
@@ -766,6 +795,42 @@ export class SearchEngine {
   }
 
   /** What to offer before anything is typed. */
+  /**
+   * The query with its misspelt English words put right ("neurosergery" becomes "neurosurgery"), or null
+   * when nothing needed correcting. For the results page's "Showing results for". Only a word that is not
+   * one we know, is not the start of one, and is a spelling mistake or a sound-alike of one that is, gets
+   * changed; short words, names in other scripts and anything that already matches are left alone.
+   */
+  correct(query: string): string | null {
+    let changed = false
+    const out = words(query).map((word) => {
+      if (STOP_WORDS.has(word) || word.length < 5 || !/^[a-z]+$/.test(word)) return word
+      const token = stem(word)
+      if (this.postings.has(token)) return word
+      const found = this.candidates(token, true, false)
+      let best = ''
+      let bestWeight = 0
+      for (const [candidate, weight] of found) {
+        // 0.82 and 0.7 are "starts with what was typed": the word is unfinished, not misspelt.
+        if (weight >= 0.7) return word
+        // Corrections only: one letter wrong (0.66) or the same sound (0.55). The weaker guesses (two
+        // letters, a shared start, a shorter form) still help the search itself but are not worth announcing.
+        if (weight < 0.55 || weight === 0.6) continue
+        const better =
+          weight > bestWeight ||
+          (weight === bestWeight && (this.docFrequency.get(candidate) ?? 0) > (this.docFrequency.get(best) ?? 0))
+        if (better) {
+          best = candidate
+          bestWeight = weight
+        }
+      }
+      if (!best) return word
+      changed = true
+      return this.spelling.get(best) ?? best
+    })
+    return changed ? out.join(' ') : null
+  }
+
   popular(limit = 6, kinds?: readonly SearchKind[]): SearchHit[] {
     const allowed = kinds ? new Set<SearchKind>(kinds) : undefined
     return this.popularDocs

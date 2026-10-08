@@ -31,7 +31,7 @@ export const STOP_WORDS = new Set([
   'meri', 'mere', 'aur', 'ya', 'par', 'bhi', 'ho', 'raha', 'rahi', 'hota', 'hoti', 'wala', 'wali',
   'karwana', 'karana', 'karna', 'karni', 'karwani', 'karu', 'karun', 'kare', 'kijiye', 'dikhana',
   'dikhani', 'dikhao', 'chahta', 'chahti', 'chahte', 'lena', 'dena', 'milegi', 'milega', 'gaya', 'gayi',
-  'hoga', 'hogi', 'jana', 'jaana',
+  'hoga', 'hogi', 'jana', 'jaana', 'bimari', 'bimaari', 'milna', 'milne', 'milni',
   // Plain English function words: "i want to see a doctor for my knees".
   'am', 'be', 'been', 'was', 'were', 'has', 'have', 'had', 'having', 'his', 'her', 'him', 'she', 'he',
   'they', 'them', 'their', 'your', 'you', 'we', 'our', 'us', 'this', 'that', 'these', 'those', 'there',
@@ -40,6 +40,7 @@ export const STOP_WORDS = new Set([
   'tell', 'let', 'know', 'like',
   // The same kind of filler in Hindi and Punjabi: "and", "of", "in", "is", "for".
   'एवं', 'और', 'के', 'का', 'की', 'में', 'है', 'हैं', 'को', 'से', 'लिए', 'ਅਤੇ', 'ਦੇ', 'ਦਾ', 'ਦੀ',
+  'बीमारी', 'मिलना', 'मिलने', 'ਬਿਮਾਰੀ', 'ਮਿਲਣਾ',
   'ਵਿੱਚ', 'ਹੈ', 'ਨੂੰ', 'ਲਈ', 'ਤੋਂ',
 ])
 

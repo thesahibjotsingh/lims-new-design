@@ -59,7 +59,8 @@ function entries(whatsappMessage: string): Entry[] {
       fallback: 1,
       keys:
         'call phone number contact number helpline mobile telephone landline reception enquiry inquiry ' +
-        'appointment number booking number talk to someone speak ' + contact.secondaryDisplay.replace(/\D/g, ''),
+        'appointment number booking number talk to someone speak reports report medical reports lab report ' +
+        'test report discharge summary records medical records file copy ' + contact.secondaryDisplay.replace(/\D/g, ''),
       en: { title: `Call the hospital: ${call}`, detail: 'Appointments and enquiries' },
       hi: { title: `अस्पताल को कॉल करें: ${call}`, detail: 'अपॉइंटमेंट और पूछताछ' },
       pa: { title: `ਹਸਪਤਾਲ ਨੂੰ ਕਾਲ ਕਰੋ: ${call}`, detail: 'ਅਪਾਇੰਟਮੈਂਟ ਅਤੇ ਪੁੱਛਗਿੱਛ' },
@@ -70,7 +71,9 @@ function entries(whatsappMessage: string): Entry[] {
       href: '/appointments',
       fallback: 2,
       pop: 1,
-      keys: 'book booking appointment appointments opd slot consultation consult visit register registration token',
+      keys:
+        'book booking appointment appointments opd slot consultation consult visit register registration token ' +
+        'meet see tomorrow today next week change reschedule postpone modify time',
       en: { title: 'Book an appointment', detail: 'Choose a doctor and book online' },
       hi: { title: 'अपॉइंटमेंट बुक करें', detail: 'डॉक्टर चुनें और ऑनलाइन बुक करें' },
       pa: { title: 'ਮੁਲਾਕਾਤ ਬੁੱਕ ਕਰੋ', detail: 'ਡਾਕਟਰ ਚੁਣੋ ਅਤੇ ਆਨਲਾਈਨ ਬੁੱਕ ਕਰੋ' },
@@ -81,7 +84,9 @@ function entries(whatsappMessage: string): Entry[] {
       href: '/doctors',
       fallback: 4,
       pop: 3,
-      keys: 'doctor doctors consultant consultants physician specialist roster directory find a doctor which doctor',
+      keys:
+        'doctor doctors consultant consultants physician specialist roster directory find a doctor which doctor ' +
+        'list of doctors all doctors doctor list doctors list available availability senior team meet',
       en: { title: 'Find a doctor', detail: 'The consultants and their departments' },
       hi: { title: 'डॉक्टर खोजें', detail: 'परामर्शदाता और उनके विभाग' },
       pa: { title: 'ਡਾਕਟਰ ਲੱਭੋ', detail: 'ਸਲਾਹਕਾਰ ਅਤੇ ਉਨ੍ਹਾਂ ਦੇ ਵਿਭਾਗ' },
@@ -113,7 +118,7 @@ function entries(whatsappMessage: string): Entry[] {
       id: 'page:contact',
       kind: 'page',
       href: '/contact',
-      keys: 'contact contact us phone number address location email reach enquiry reception helpline',
+      keys: 'contact contact us phone number address location email reach enquiry reception helpline parking park vehicle',
       en: { title: 'Contact LIMS', detail: 'Phone numbers, address and directions' },
       hi: { title: 'LIMS से संपर्क करें', detail: 'फ़ोन नंबर, पता और दिशा-निर्देश' },
       pa: { title: 'LIMS ਨਾਲ ਸੰਪਰਕ ਕਰੋ', detail: 'ਫ਼ੋਨ ਨੰਬਰ, ਪਤਾ ਅਤੇ ਦਿਸ਼ਾ-ਨਿਰਦੇਸ਼' },
@@ -124,7 +129,7 @@ function entries(whatsappMessage: string): Entry[] {
       href: '/contact',
       keys:
         'hospital timing hospital timings opening hours open closed hours of operation what time sunday holiday ' +
-        'night 24 hours 24x7 round the clock',
+        'night 24 hours 24x7 round the clock when baje khulta kab',
       en: {
         title: 'Hospital timings',
         detail: openAllHours
@@ -160,7 +165,8 @@ function entries(whatsappMessage: string): Entry[] {
       kind: 'info',
       href: '/contact',
       keys:
-        'price prices cost charges fee fees rate rates how much billing bill payment pay discount free',
+        'price prices cost charges fee fees rate rates how much billing bill payment pay discount free ' +
+        'doctor fee doctor visit fee consultation fee consultation charges opd fee opd charges visit charges',
       en: { title: 'Prices and billing', detail: 'Not published online: please call the hospital' },
       hi: { title: 'शुल्क और बिलिंग', detail: 'ऑनलाइन उपलब्ध नहीं: कृपया अस्पताल को कॉल करें' },
       pa: { title: 'ਫੀਸ ਅਤੇ ਬਿਲਿੰਗ', detail: 'ਆਨਲਾਈਨ ਉਪਲਬਧ ਨਹੀਂ: ਕਿਰਪਾ ਕਰਕੇ ਹਸਪਤਾਲ ਨੂੰ ਕਾਲ ਕਰੋ' },
@@ -193,7 +199,9 @@ function entries(whatsappMessage: string): Entry[] {
       kind: 'page',
       href: '/specialities',
       fallback: 5,
-      keys: 'specialities specialties departments department clinical departments all departments which department',
+      keys:
+        'specialities specialties departments department clinical departments all departments which department ' +
+        'specialist doctor specialist doctors specialists',
       en: { title: 'All departments', detail: 'The specialities and clinical departments' },
       hi: { title: 'सभी विभाग', detail: 'विशेषज्ञताएं और क्लिनिकल विभाग' },
       pa: { title: 'ਸਾਰੇ ਵਿਭਾਗ', detail: 'ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ ਅਤੇ ਕਲੀਨਿਕਲ ਵਿਭਾਗ' },

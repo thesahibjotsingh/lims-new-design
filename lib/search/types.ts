@@ -72,6 +72,8 @@ export interface SearchResult {
   terms: string[]
   /** True when the query looks like an emergency; the first hit is then the emergency card. */
   emergency: boolean
+  /** The words of someone in distress about living: the result is the emergency card and the phone number only. */
+  distress?: boolean
 }
 
 export interface SearchOptions {

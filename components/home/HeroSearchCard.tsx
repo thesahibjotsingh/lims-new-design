@@ -93,7 +93,7 @@ export function HeroSearchCard() {
       return
     }
 
-    // The best answer, or the list left open to choose from (see useSearchSuggest.submit).
+    // Opens the results page for what was typed (see useSearchSuggest.submit).
     if (submit()) return
 
     const trimmed = query.trim()
