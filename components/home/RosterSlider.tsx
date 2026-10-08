@@ -205,7 +205,7 @@ export function RosterSlider({
         ref={listRef}
         style={{ WebkitMaskImage: ROW_MASK, maskImage: ROW_MASK }}
         className="
-          -mx-5 -my-6 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-5 px-5 py-6
+          -mx-5 -my-6 flex snap-x snap-mandatory gap-4 overflow-x-auto overflow-y-hidden overscroll-x-contain scroll-px-5 px-5 py-6
           [overscroll-behavior-x:contain] [scrollbar-width:none] [-webkit-overflow-scrolling:touch]
           sm:-mx-6 sm:scroll-px-6 sm:px-6 md:gap-5 [&::-webkit-scrollbar]:hidden
         "

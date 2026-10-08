@@ -14,6 +14,7 @@
 // Server component: there is no state any more, so no JavaScript is shipped for it.
 
 import { getLocale, getTranslations } from 'next-intl/server'
+import { FadeScroller } from '@/components/primitives/FadeScroller'
 import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import { ArrowRightIcon } from '@/components/icons'
@@ -59,7 +60,7 @@ export async function ServiceRail({ categoryId }: { categoryId: ServiceCategory 
         </Link>
       </div>
 
-      <ul className="mt-3 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-5 pb-1.5 [scroll-padding-left:1.25rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <FadeScroller as="ul" className="mt-3 flex snap-x snap-mandatory gap-2.5 overflow-x-auto overflow-y-hidden overscroll-x-contain px-5 pb-1.5 [scroll-padding-left:1.25rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {services.map((service) => (
           <li key={service.slug} className="w-32 shrink-0 snap-start">
             <Link
@@ -82,7 +83,7 @@ export async function ServiceRail({ categoryId }: { categoryId: ServiceCategory 
             <ArrowRightIcon className="h-4 w-4" />
           </Link>
         </li>
-      </ul>
+      </FadeScroller>
     </section>
   )
 }

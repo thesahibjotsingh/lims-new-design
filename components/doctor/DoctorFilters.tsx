@@ -12,6 +12,7 @@
 // dead end, and the full department list is one section down ("Browse by speciality").
 
 import { Link } from '@/i18n/navigation'
+import { FadeScroller } from '@/components/primitives/FadeScroller'
 
 export interface FilterOption {
   slug: string
@@ -53,7 +54,7 @@ export function DoctorFilters({
   return (
     <nav aria-label={label}>
       {/* One swipe row on a phone (four rows of pills was a screen), wrapped pills from sm up. */}
-      <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
+      <FadeScroller as="ul" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
         <li className="shrink-0">
           <Link
             href={`/doctors${suffix()}`}
@@ -74,7 +75,7 @@ export function DoctorFilters({
             </Link>
           </li>
         ))}
-      </ul>
+      </FadeScroller>
     </nav>
   )
 }

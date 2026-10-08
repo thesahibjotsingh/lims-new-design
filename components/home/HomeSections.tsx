@@ -22,6 +22,7 @@
 // in the order as a plain "Coming soon" card that does not link to an empty page.
 
 import type { ReactNode } from 'react'
+import { FadeScroller } from '@/components/primitives/FadeScroller'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
@@ -132,13 +133,13 @@ export async function DoctorsSection() {
             {t('launcherAllDoctors')}
           </Link>
         </div>
-        <ul className="mt-3 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-5 pb-1.5 [scroll-padding-left:1.25rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <FadeScroller as="ul" className="mt-3 flex snap-x snap-mandatory gap-2.5 overflow-x-auto overflow-y-hidden overscroll-x-contain px-5 pb-1.5 [scroll-padding-left:1.25rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {doctors.map((doctor) => (
             <li key={doctor.id} className="w-[8.5rem] shrink-0 snap-start">
               <DoctorRailCard doctor={doctor} locale={locale} />
             </li>
           ))}
-        </ul>
+        </FadeScroller>
       </section>
       <div className="hidden lg:block">
         <ConsultantRoster />

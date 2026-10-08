@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { FadeScroller } from '@/components/primitives/FadeScroller'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { ChevronLeftIcon } from '@/components/icons'
@@ -250,7 +251,7 @@ export default async function DoctorsPage({
         <SectionHeading id="browse" lead={t('browseLead')}>
           {t('browseHeading')}
         </SectionHeading>
-        <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
+        <FadeScroller as="ul" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
           {servicesByCategory('clinical').map((service) => {
             const count = getDoctorsByDepartment(service.slug).length
             return (
@@ -267,7 +268,7 @@ export default async function DoctorsPage({
               </li>
             )
           })}
-        </ul>
+        </FadeScroller>
         <p className="mt-8 max-w-2xl text-xs leading-relaxed text-brand-dark-base/55">
           {t('notPublishedYet')}
         </p>

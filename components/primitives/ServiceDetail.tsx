@@ -22,6 +22,7 @@
 // and the white / tinted alternation is applied in one place.
 
 import { Fragment, type ReactNode } from 'react'
+import { FadeScroller } from '@/components/primitives/FadeScroller'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { PhoneIcon, ShieldIcon } from '@/components/icons'
@@ -610,7 +611,7 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
         {t('otherIn', { category: categoryName.toLowerCase() })}
       </h3>
       {/* One swipe row on a phone: fifteen wrapped pills were a screen of their own. */}
-      <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
+      <FadeScroller as="ul" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
         {siblings.map((sibling) => (
           <li key={sibling.slug} className="shrink-0">
             <Link
@@ -621,7 +622,7 @@ export async function ServiceDetail({ service: englishService }: { service: Clin
             </Link>
           </li>
         ))}
-      </ul>
+      </FadeScroller>
 
       {/* The honest footnote: what this page does not say, and why. */}
       <p className="mt-8 max-w-2xl text-xs leading-relaxed text-brand-dark-base/55 lg:mt-12">

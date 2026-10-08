@@ -48,6 +48,7 @@ import {
   useSearchSuggest,
 } from '@/components/search/SearchSuggest'
 import { TypewriterPlaceholder } from '@/components/search/TypewriterPlaceholder'
+import { useScrollFade } from '@/components/primitives/useScrollFade'
 import { searchPhrases } from '@/components/search/searchPhrases'
 import type { Locale } from '@/i18n/routing'
 import { SERVICES } from '@/lib/services'
@@ -111,6 +112,10 @@ export function TypewriterSearchBar() {
         key: service.slug,
         label: translatedServiceName(service.slug, locale),
       }))
+
+  // The chip row scrolls sideways; its ends fade into the hero (see useScrollFade). The teal behind
+  // the row shows through, so the white chips dissolve into it rather than stopping at an edge.
+  const chipRow = useScrollFade<HTMLDivElement>(undefined, `${displayedChips.length}:${locale}`)
 
   function handleChoose(index: number) {
     choose(index)
@@ -205,9 +210,11 @@ export function TypewriterSearchBar() {
       )}
 
       <div
+        ref={chipRow.ref}
         role="group"
         aria-label={showingHistory ? t('recentSearchesShort') : t('popularDepartments')}
-        className="-mx-5 mt-2.5 flex gap-2 overflow-x-auto px-5 pb-0.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        onScroll={chipRow.onScroll}
+        className="-mx-5 -mb-0.5 mt-1.5 flex gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain px-5 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {displayedChips.map((chip) => (
           <button

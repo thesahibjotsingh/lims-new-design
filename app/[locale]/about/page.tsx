@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { FadeScroller } from '@/components/primitives/FadeScroller'
 import { getLocale, getTranslations, setRequestLocale } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { ArrowRightIcon, PinIcon } from '@/components/icons'
@@ -223,7 +224,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
           <h3 className="font-serif text-lg font-bold text-brand-dark-base sm:text-2xl">{t('diagnosticsHeading')}</h3>
           <p className="mt-1 max-w-2xl text-sm text-brand-dark-base/70 sm:mt-2 sm:text-base">{t('diagnosticsLead')}</p>
           {/* One swipe row on a phone, wrapped pills from sm up. */}
-          <ul className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:mt-5 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
+          <FadeScroller as="ul" className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:mt-5 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
             {diagnostics.map((service) => (
               <li key={service.slug} className="shrink-0">
                 <Link
@@ -234,7 +235,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                 </Link>
               </li>
             ))}
-          </ul>
+          </FadeScroller>
         </div>
       </Band>
 

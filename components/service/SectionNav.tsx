@@ -23,6 +23,7 @@
 // IntersectionObserver rather than a scroll listener, so it costs nothing per frame.
 
 import { useEffect, useRef, useState } from 'react'
+import { useScrollFade } from '@/components/primitives/useScrollFade'
 
 export interface SectionNavItem {
   id: string
@@ -34,6 +35,7 @@ export interface SectionNavItem {
 export function SectionNav({ items, label }: { items: SectionNavItem[]; label: string }) {
   const [active, setActive] = useState(items[0]?.id ?? '')
   const listRef = useRef<HTMLUListElement>(null)
+  const fade = useScrollFade(listRef)
   const key = items.map((item) => item.id).join('|')
 
   useEffect(() => {
@@ -82,6 +84,7 @@ export function SectionNav({ items, label }: { items: SectionNavItem[]; label: s
     >
       <ul
         ref={listRef}
+        onScroll={fade.onScroll}
         className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-4 py-2.5 sm:px-5 lg:gap-1 lg:px-3 lg:py-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {items.map((item) => {

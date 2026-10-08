@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from 'react'
+import { FadeScroller } from '@/components/primitives/FadeScroller'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getLocale, getTranslations } from 'next-intl/server'
@@ -391,13 +392,13 @@ export default async function DoctorProfilePage({
             ))}
           </ul>
           {/* The same people, as small cards in a swipe row, for a phone. */}
-          <ul className="-mx-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 pb-1.5 [scroll-padding-left:1rem] [scrollbar-width:none] sm:hidden [&::-webkit-scrollbar]:hidden">
+          <FadeScroller as="ul" className="-mx-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 pb-1.5 [scroll-padding-left:1rem] [scrollbar-width:none] sm:hidden [&::-webkit-scrollbar]:hidden">
             {colleagues.map((other) => (
               <li key={other.id} className="w-[8.5rem] shrink-0 snap-start">
                 <DoctorRailCard doctor={other} locale={locale} />
               </li>
             ))}
-          </ul>
+          </FadeScroller>
         </>
       )}
       <div className="mt-5 flex flex-wrap gap-3 sm:mt-8">

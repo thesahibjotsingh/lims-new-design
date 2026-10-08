@@ -13,6 +13,7 @@
 // are full, and nothing else is rounded differently.
 
 import { Link } from '@/i18n/navigation'
+import { FadeScroller } from '@/components/primitives/FadeScroller'
 import { ArrowRightIcon, ChevronDownIcon } from '@/components/icons'
 import { DoctorAvatar } from '@/components/doctor/DoctorAvatar'
 import { Collapse } from '@/components/service/Collapse'
@@ -390,7 +391,7 @@ export interface RelatedCard {
 export function RelatedGrid({ cards }: { cards: RelatedCard[] }) {
   return (
     // A swipe row on a phone (a peek of the next card says there is more), the grid from sm up.
-    <ul className="-mx-4 flex snap-x gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
+    <FadeScroller as="ul" className="-mx-4 flex snap-x gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
       {cards.map((card) => (
         <li key={card.slug} className="w-[72%] shrink-0 snap-start sm:w-auto">
           <Link
@@ -408,6 +409,6 @@ export function RelatedGrid({ cards }: { cards: RelatedCard[] }) {
           </Link>
         </li>
       ))}
-    </ul>
+    </FadeScroller>
   )
 }
