@@ -10,24 +10,28 @@
 // number stays reachable. Focus is never moved to it, and Escape or "Not now" puts it away. On a
 // phone it floats above the bottom bar; from sm up it sits bottom right.
 //
-// "NOT NOW" MEANS NOT NOW. It is shown on a visit, and if the visitor does not take it up it comes
-// back on a LATER visit, so a busy first day does not lose the chance. It stops for good when they
-// tap "Create ABHA ID", and after SHOW_LIMIT appearances in total whatever they did, so it never
-// becomes a permanent resident. What is remembered (localStorage, one key): when it was last
-// shown, how many times, and whether they took it up. A "visit" is simply a gap of at least
-// VISIT_GAP_MS since it was last shown, so moving between pages never brings it back.
+// ONCE PER TAB, AND "NOT NOW" IS ONLY "NOT NOW". It appears once each time the site is opened in a
+// tab (a new tab, or the site opened again after closing it), and not again while that tab keeps
+// browsing, so moving between pages or reloading never brings it back. If the visitor taps "Not
+// now" or the close button, or ignores it, it is back the next time they open the site. It stops
+// for good only when they tap "Create ABHA ID". There is no time limit and no cap on how often it
+// returns: an earlier version waited 6 hours between showings and stopped after 3, and the
+// hospital wanted it on every visit.
+//
+// What is remembered: that it was shown in THIS tab (sessionStorage, which a new tab does not
+// share), and that the visitor took it up (localStorage, which lasts).
 //
 // Rules that exist to avoid nagging:
 //   - It waits 3s after the page loads, so it never competes with the first paint.
 //   - It waits for the tab to be visible (a link opened in a background tab is not "seen").
 //   - It holds back while a sheet is open (booking, menu, search) or the visitor is typing in a
-//     field, and tries again a few times, then gives up WITHOUT counting, so it can still show on
-//     the next page or visit.
-//   - If storage cannot be read or written (some private modes) it does not show at all: it could
-//     not remember that it had, and a pop-up on every page is worse than none.
+//     field, and tries again a few times, then gives up WITHOUT marking the tab, so it can still
+//     show on the next page.
+//   - If the tab cannot remember (sessionStorage blocked) it does not show at all: it could not
+//     tell that it had already shown, and a pop-up on every page is worse than none.
 //
-// TO LOOK AT IT AGAIN, open any page with ?abha=1. That ignores the stored state and does not
-// change it.
+// TO LOOK AT IT AGAIN in a tab where it has already shown, or after tapping "Create ABHA ID",
+// open any page with ?abha=1. That ignores what is remembered and does not change it.
 //
 // Motion is in globals.css (.abha-popup): rises and fades in, leaves faster, fade only under
 // "reduce motion".
@@ -36,11 +40,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { ArrowUpRightIcon, CloseIcon } from '@/components/icons'
 
-const STATE_KEY = 'lims:abha-prompt'
-/** Gap since it was last shown that counts as a new visit: not the next page, but a later return. */
-const VISIT_GAP_MS = 6 * 60 * 60 * 1000
-/** The most times it is ever shown to one browser. */
-const SHOW_LIMIT = 3
+/** sessionStorage: it has been shown in this tab. A new tab starts without it. */
+const TAB_KEY = 'lims:abha-prompt-this-tab'
+/** localStorage: the visitor tapped "Create ABHA ID", so never show it again. */
+const DONE_KEY = 'lims:abha-prompt-done'
 const DELAY_MS = 3000
 const RETRY_MS = 3000
 const MAX_TRIES = 6
@@ -48,34 +51,15 @@ const LEAVE_MS = 200
 
 type Phase = 'hidden' | 'shown' | 'leaving'
 
-interface PromptState {
-  /** When it was last shown (ms since 1970), or 0 if never. */
-  shownAt: number
-  /** How many times it has been shown. */
-  shows: number
-  /** They tapped "Create ABHA ID": never show it again. */
-  done: boolean
-}
-
-/** Throws if storage is unavailable, which the callers treat as "do not show". */
-function readState(): PromptState {
-  const empty: PromptState = { shownAt: 0, shows: 0, done: false }
-  const raw = window.localStorage.getItem(STATE_KEY)
-  if (!raw) return empty
+/** Whether this tab may still be shown it. Throws if sessionStorage is unavailable. */
+function mayShow(): boolean {
+  if (window.sessionStorage.getItem(TAB_KEY) !== null) return false
   try {
-    const parsed = JSON.parse(raw) as Partial<PromptState>
-    return {
-      shownAt: Number(parsed.shownAt) || 0,
-      shows: Number(parsed.shows) || 0,
-      done: parsed.done === true,
-    }
+    if (window.localStorage.getItem(DONE_KEY) !== null) return false
   } catch {
-    return empty
+    // Cannot read "taken up": show it. Worst case it is offered again to someone who did.
   }
-}
-
-function writeState(patch: Partial<PromptState>): void {
-  window.localStorage.setItem(STATE_KEY, JSON.stringify({ ...readState(), ...patch }))
+  return true
 }
 
 /** True while the visitor is in the middle of typing somewhere. */
@@ -95,11 +79,9 @@ export function AbhaPrompt({ href }: { href: string }) {
 
     if (!force) {
       try {
-        const state = readState()
-        if (state.done || state.shows >= SHOW_LIMIT) return
-        if (state.shownAt && Date.now() - state.shownAt < VISIT_GAP_MS) return // same visit
+        if (!mayShow()) return
       } catch {
-        return // storage unavailable: cannot promise to show it sparingly, so do not show it
+        return // this tab cannot remember: do not show it
       }
     }
 
@@ -119,7 +101,7 @@ export function AbhaPrompt({ href }: { href: string }) {
       }
       if (!force) {
         try {
-          writeState({ shownAt: Date.now(), shows: readState().shows + 1 })
+          window.sessionStorage.setItem(TAB_KEY, '1')
         } catch {
           return
         }
@@ -139,7 +121,7 @@ export function AbhaPrompt({ href }: { href: string }) {
     }
   }, [])
 
-  /** Puts it away. It is NOT a refusal: the stored state is untouched, so it can return later. */
+  /** Puts it away. It is NOT a refusal: nothing is recorded, so it is back on the next visit. */
   const dismiss = useCallback(() => {
     setPhase('leaving')
     window.setTimeout(() => setPhase('hidden'), LEAVE_MS)
@@ -149,9 +131,9 @@ export function AbhaPrompt({ href }: { href: string }) {
   const takeUp = useCallback(() => {
     if (new URLSearchParams(window.location.search).get('abha') !== '1') {
       try {
-        writeState({ done: true })
+        window.localStorage.setItem(DONE_KEY, '1')
       } catch {
-        // Nothing to record it in; it will not show again in this browser anyway.
+        // Nothing to record it in, so it may be offered again.
       }
     }
     dismiss()
@@ -169,8 +151,7 @@ export function AbhaPrompt({ href }: { href: string }) {
       }}
       className="abha-popup fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom,0px)+6.25rem)] z-[55] mx-auto max-w-[26rem] origin-bottom overflow-hidden rounded-3xl border border-brand-teal/10 bg-white shadow-[0_30px_70px_-20px_rgba(11,20,22,0.5),0_10px_24px_-12px_rgba(11,20,22,0.25)] sm:left-auto sm:right-6 sm:mx-0 sm:w-[22.5rem] sm:origin-bottom-right lg:bottom-6"
     >
-      {/* The picture is for a wide card; a phone has no room to spare above the bottom bar. */}
-      <div aria-hidden="true" className="hidden sm:block">
+      <div aria-hidden="true">
         <PromptArt />
       </div>
 
@@ -178,29 +159,19 @@ export function AbhaPrompt({ href }: { href: string }) {
         type="button"
         onClick={dismiss}
         aria-label={t('close')}
-        className="tap-target press absolute right-2.5 top-2.5 h-10 w-10 rounded-full bg-white/85 text-brand-dark-base/65 shadow-sm backdrop-blur transition-colors hover:bg-white hover:text-brand-dark-base sm:bg-white/90"
+        className="tap-target press absolute right-2.5 top-2.5 h-10 w-10 rounded-full bg-white/90 text-brand-dark-base/65 shadow-sm backdrop-blur transition-colors hover:bg-white hover:text-brand-dark-base"
       >
         <CloseIcon className="h-[18px] w-[18px]" strokeWidth={2} />
       </button>
 
-      <div className="p-4 sm:px-5 sm:pb-5 sm:pt-4">
-        <div className="flex items-start gap-3.5 pr-9 sm:pr-0">
-          <span
-            aria-hidden="true"
-            className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-teal text-white sm:hidden"
-          >
-            <IdGlyph />
-          </span>
-          <div>
-            <h2
-              id="abha-popup-title"
-              className="font-serif text-lg font-bold leading-tight tracking-tight text-brand-dark-base sm:text-xl"
-            >
-              {t('heading')}
-            </h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-brand-dark-base/70">{t('body')}</p>
-          </div>
-        </div>
+      <div className="px-4 pb-4 pt-3.5 sm:px-5 sm:pb-5 sm:pt-4">
+        <h2
+          id="abha-popup-title"
+          className="font-serif text-lg font-bold leading-tight tracking-tight text-brand-dark-base sm:text-xl"
+        >
+          {t('heading')}
+        </h2>
+        <p className="mt-1.5 text-sm leading-relaxed text-brand-dark-base/70">{t('body')}</p>
 
         <div className="mt-4 flex items-center gap-2">
           <a
@@ -230,11 +201,18 @@ export function AbhaPrompt({ href }: { href: string }) {
 /**
  * A health-ID card, drawn for this site: a teal card with a name line, a masked 14-digit number
  * and a copper tick. It is deliberately NOT the government's emblem or the portal's logo; the
- * link goes to the real portal, and this only says "an ID card".
+ * link goes to the real portal, and this only says "an ID card". Shown at every screen size,
+ * 100px tall on a phone and 120px from sm up. `slice` keeps the band full width and trims a few
+ * pixels top and bottom, which the card sits well inside.
  */
 function PromptArt() {
   return (
-    <svg viewBox="0 0 360 120" className="block h-[7.5rem] w-full" role="presentation">
+    <svg
+      viewBox="0 0 360 120"
+      preserveAspectRatio="xMidYMid slice"
+      className="block h-[6.25rem] w-full sm:h-[7.5rem]"
+      role="presentation"
+    >
       <defs>
         <linearGradient id="abha-art-bg" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#E7F3F4" />
@@ -271,18 +249,6 @@ function PromptArt() {
         <circle cx="252" cy="32" r="15" fill="none" stroke="#FFFFFF" strokeWidth="2.5" />
         <path d="M245.5 32.4l4.2 4.2 7.2-8.2" fill="none" stroke="#FFFFFF" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
       </g>
-    </svg>
-  )
-}
-
-/** The small card mark that stands in for the picture on a phone. */
-function IdGlyph() {
-  return (
-    <svg viewBox="0 0 32 32" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3.5" y="7" width="25" height="18" rx="3.5" />
-      <circle cx="11" cy="14.5" r="2.6" />
-      <path d="M7.4 20.2c.8-2 2-2.8 3.6-2.8s2.8.8 3.6 2.8" />
-      <path d="M18.5 13.5h6M18.5 17.5h4" />
     </svg>
   )
 }
