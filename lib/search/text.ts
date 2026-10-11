@@ -31,7 +31,7 @@ export const STOP_WORDS = new Set([
   'meri', 'mere', 'aur', 'ya', 'par', 'bhi', 'ho', 'raha', 'rahi', 'hota', 'hoti', 'wala', 'wali',
   'karwana', 'karana', 'karna', 'karni', 'karwani', 'karu', 'karun', 'kare', 'kijiye', 'dikhana',
   'dikhani', 'dikhao', 'chahta', 'chahti', 'chahte', 'lena', 'dena', 'milegi', 'milega', 'gaya', 'gayi',
-  'hoga', 'hogi', 'jana', 'jaana', 'bimari', 'bimaari', 'milna', 'milne', 'milni',
+  'hoga', 'hogi', 'jana', 'jaana', 'bimari', 'bimaari', 'milna', 'milne', 'milni', 'ilaj', 'ilaaj', 'liye', 'lie', 'kharab', 'kharabi', 'since', 'morning', 'yesterday', 'today', 'tonight', 'really',
   // Plain English function words: "i want to see a doctor for my knees".
   'am', 'be', 'been', 'was', 'were', 'has', 'have', 'had', 'having', 'his', 'her', 'him', 'she', 'he',
   'they', 'them', 'their', 'your', 'you', 'we', 'our', 'us', 'this', 'that', 'these', 'those', 'there',
@@ -40,7 +40,7 @@ export const STOP_WORDS = new Set([
   'tell', 'let', 'know', 'like',
   // The same kind of filler in Hindi and Punjabi: "and", "of", "in", "is", "for".
   'एवं', 'और', 'के', 'का', 'की', 'में', 'है', 'हैं', 'को', 'से', 'लिए', 'ਅਤੇ', 'ਦੇ', 'ਦਾ', 'ਦੀ',
-  'बीमारी', 'मिलना', 'मिलने', 'ਬਿਮਾਰੀ', 'ਮਿਲਣਾ',
+  'बीमारी', 'मिलना', 'मिलने', 'इलाज', 'खराब', 'ਬਿਮਾਰੀ', 'ਮਿਲਣਾ', 'ਇਲਾਜ', 'ਖਰਾਬ',
   'ਵਿੱਚ', 'ਹੈ', 'ਨੂੰ', 'ਲਈ', 'ਤੋਂ',
 ])
 
@@ -117,6 +117,8 @@ export function contentWords(value: string): string[] {
  * covers the rest (surgery, surgical, surgeon).
  */
 export function stem(token: string): string {
+  // "hives" must not become "hiv": that is a different word.
+  if (token === 'hives') return 'hive'
   if (token.length <= 3 || !/^[a-z]+$/.test(token)) return token
   if (token.endsWith('ies') && token.length > 4) return `${token.slice(0, -3)}y`
   if (token.endsWith('sses')) return token.slice(0, -2)

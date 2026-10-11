@@ -128,10 +128,16 @@ function serviceDocs(locale: Locale, sections: boolean): SearchDoc[] {
     const slug = english.slug
     const english_ = locale !== 'en'
 
+    const lists =
+      extras?.seeDoctorIf || extras?.emergencyIf
+        ? { when: extras.seeDoctorIf ?? [], emergency: extras.emergencyIf ?? [] }
+        : undefined
+
     docs.push({
       id: `svc:${slug}`,
       kind: departmentKind(english),
       title: name,
+      lists,
       detail: lead(service.overview),
       href,
       keys: join([

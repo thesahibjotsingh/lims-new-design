@@ -279,6 +279,32 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
         title="Needs LIMS input: getting here and practical details"
       />
 
+      {/* ---- someone to talk to: always on this page, so help does not depend on a search matching ---- */}
+      <Band id="support" tone="white" phone="plain">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-brand-teal/15 bg-brand-mist p-5 sm:p-6">
+          <h2 className="font-serif text-xl font-bold text-brand-teal-dark">{t('supportHeading')}</h2>
+          <p className="mt-2 text-[15px] leading-relaxed text-brand-dark-base/80">{t('supportText')}</p>
+          <ul className="mt-4 grid gap-2 sm:grid-cols-3">
+            {[
+              { href: 'tel:14416', label: 'Tele-MANAS', number: '14416' },
+              { href: 'tel:18005990019', label: 'KIRAN', number: '1800-599-0019' },
+              { href: 'tel:112', label: t('supportEmergency'), number: '112' },
+            ].map((line) => (
+              <li key={line.href}>
+                <a
+                  href={line.href}
+                  className="tap-target flex flex-col justify-center rounded-xl border border-brand-teal/20 bg-white px-4 py-3 hover:shadow-md"
+                >
+                  <span className="text-xs font-semibold uppercase tracking-wider text-brand-dark-base/55">{line.label}</span>
+                  <span className="text-lg font-bold text-brand-teal-dark">{line.number}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-brand-dark-base/55">{t('supportNote')}</p>
+        </div>
+      </Band>
+
       {/* ---- reviews: only once approved (live), or as a preview in review mode ------------ */}
       {showReviews && (
         <Band id="reviews" tone="mist">

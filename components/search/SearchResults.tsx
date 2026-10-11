@@ -23,6 +23,7 @@ import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import { ArrowRightIcon, ArrowUpRightIcon, PhoneIcon, SparkleIcon } from '@/components/icons'
 import { hitToSuggestion } from '@/lib/search'
+import { firstSentence, goodToKnowHit, pickAnswers, pickSectionLines, pickWhen } from '@/lib/search/answers'
 import type { SearchHit, SearchKind } from '@/lib/search/types'
 import { Highlight, iconFor, rememberSearch } from '@/components/search/SearchSuggest'
 import { ResultsSearchBox } from '@/components/search/ResultsSearchBox'
@@ -50,8 +51,6 @@ const GROUP_LABEL: Record<Group, string> = {
   doctors: 'tabDoctors',
   pages: 'tabPages',
 }
-
-const squash = (text: string) => text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '')
 
 /* -------------------------------------------------------------------------- */
 /* Pieces                                                                      */
@@ -180,6 +179,7 @@ export function SearchResults() {
   const locale = useLocale() as Locale
   const t = useTranslations('searchPage')
   const tk = useTranslations('searchSuggest')
+  const tw = useTranslations('serviceDetail')
   const { engine, status, ensure } = useSearchEngine(locale)
   const [view, setView] = useState<View>('guide')
 
@@ -230,67 +230,81 @@ export function SearchResults() {
   const counts = Object.fromEntries(GROUPS.map((group) => [group, byGroup(group).length])) as Record<Group, number>
   const showing = result && result.mode !== 'none' ? rest : []
 
-  /* ---- the quick guide: one sentence from the top result ---- */
-  const top = showing[0]
-  const dept: SearchHit | undefined = !top
-    ? undefined
-    : top.kind === 'department'
-      ? top
-      : top.parent
-        ? rest.find((hit) => hit.id === `svc:${top.parent}`)
-        : undefined
-  const named = dept && (squash(dept.title).includes(squash(query)) || squash(query).includes(squash(dept.title)))
-  const start =
-    dept && !['svc:general-medicine', 'svc:emergency-services'].includes(dept.id) && !named && result?.mode === 'match'
+  /* ---- the quick guide: what the engine is willing to say (see lib/search/guide.ts) ---- */
+  const guide = useMemo(() => (engine && query ? engine.guide(query) : null), [engine, query])
+  const says = guide?.kind === 'department' || guide?.kind === 'named'
+  const notListed = guide?.kind === 'notListed'
+  const startAtGp =
+    guide?.kind === 'department' &&
+    !['svc:general-medicine', 'svc:emergency-services'].includes(guide.hit.id) &&
+    result?.mode === 'match'
+
+  // GOOD TO KNOW and FROM THIS SITE: lines quoted from the site's own pages, only when lib/search/answers.ts
+  // says they may be (never for an emergency, never for a close match).
+  const goodHit = goodToKnowHit(guide, result)
+  const goodWhen = useMemo(() => pickWhen(goodHit, query), [goodHit, query])
+  const sectionLines = useMemo(() => {
+    if (!engine || !result) return []
+    return pickSectionLines(result.terms, rest, result, (slug, prefix) => engine.lines(slug, prefix))
+  }, [engine, result, rest])
+  const answers = useMemo(() => {
+    const asked = pickAnswers(query, rest, result, notListed)
+    const seen = new Set(sectionLines.map((hit) => hit.id))
+    return [...sectionLines, ...asked.filter((hit) => !seen.has(hit.id))].slice(0, 3)
+  }, [query, rest, result, notListed, sectionLines])
 
   const bold = (chunks: React.ReactNode) => (
     <b className="rounded bg-brand-teal/15 px-1 font-bold text-brand-dark-base">{chunks}</b>
   )
   const guideBody = () => {
-    if (!result || !query) return null
+    if (!result || !query || !guide) return null
     // An emergency gets the red banner and nothing that names a department as if it were the answer.
     if (result.distress || result.emergency) return null
+    if (guide.kind === 'notListed') {
+      return (
+        <>
+          <p>{guide.key === 'advice' ? t('guideAdvice') : t('guideNotListed', { subject: t(`subjects.${guide.key}`) })}</p>
+          <p className="mt-2 text-sm text-brand-dark-base/80">
+            {t.rich(guide.key === 'advice' ? 'guideAdviceHelp' : 'guideNotListedHelp', {
+              number: contact.secondaryDisplay,
+              call: (c) => (
+                <a href={`tel:${contact.secondary}`} className="font-semibold text-brand-teal hover:underline">
+                  {c}
+                </a>
+              ),
+            })}
+          </p>
+        </>
+      )
+    }
     if (result.mode === 'none') return <p>{t('guideNone', { query })}</p>
-    if (result.mode === 'weak') return <p>{t('guideWeak', { query })}</p>
-    if (dept) {
+    // A close match, but one the site has a quotable answer for: no "not exact" apology above it.
+    if (result.mode === 'weak') return <p>{sectionLines.length > 0 ? t('guideNeutral', { query }) : t('guideWeak', { query })}</p>
+    if (guide.kind === 'named') {
+      const hit = guide.hit
       return (
         <>
           <p>
-            {named ? (
-              bold(dept.title)
-            ) : (
-              t.rich('guideDept', { query, dept: dept.title, b: bold })
-            )}
+            {hit.kind === 'test'
+              ? t.rich('guideTest', { title: hit.title, b: bold })
+              : hit.kind === 'doctor'
+                ? t.rich('guideDoctor', { title: hit.title, b: bold })
+                : bold(hit.title)}
           </p>
-          {dept.detail && <p className="mt-2 text-sm text-brand-dark-base/70">{dept.detail}</p>}
+          {hit.detail && <p className="mt-2 text-sm text-brand-dark-base/70">{hit.detail}</p>}
         </>
       )
     }
-    if (top?.kind === 'test') {
+    if (guide.kind === 'department') {
       return (
         <>
-          <p>{t.rich('guideTest', { title: top.title, b: bold })}</p>
-          {top.detail && <p className="mt-2 text-sm text-brand-dark-base/70">{top.detail}</p>}
+          <p>{t.rich('guideDept', { query, dept: guide.hit.title, b: bold })}</p>
+          {guide.hit.detail && <p className="mt-2 text-sm text-brand-dark-base/70">{guide.hit.detail}</p>}
         </>
       )
     }
-    if (top?.kind === 'doctor') {
-      return (
-        <>
-          <p>{t.rich('guideDoctor', { title: top.title, b: bold })}</p>
-          {top.detail && <p className="mt-2 text-sm text-brand-dark-base/70">{top.detail}</p>}
-        </>
-      )
-    }
-    if (top) {
-      return (
-        <>
-          <p>{bold(top.title)}</p>
-          {top.detail && <p className="mt-2 text-sm text-brand-dark-base/70">{top.detail}</p>}
-        </>
-      )
-    }
-    return null
+    // Pages match, but no department is claimed: say so, and let the list speak.
+    return <p>{t('guideNeutral', { query })}</p>
   }
 
   const tabs = (tone: 'dark' | 'light', className: string) => {
@@ -376,7 +390,7 @@ export function SearchResults() {
     const questions = byGroup('questions').slice(0, 4)
     const doctors = byGroup('doctors').slice(0, 4)
     const pages = byGroup('pages').slice(0, 6)
-    const guide = guideBody()
+    const guideNode = guideBody()
     body = (
       <div>
         {corrected && (
@@ -414,14 +428,26 @@ export function SearchResults() {
           </a>
         )}
 
-        {guide && (
+        {result.distress && (
+          <div className="mb-5 rounded-2xl border border-brand-teal/20 bg-white p-4">
+            <h2 className="font-serif text-lg font-bold text-brand-teal-dark">{t('helplinesTitle')}</h2>
+            <p className="mb-1 mt-1 text-sm text-brand-dark-base/70">{t('helplinesIntro')}</p>
+            {rest
+              .filter((hit) => hit.id.startsWith('action:helpline') || hit.id === 'action:call')
+              .map((hit, index, list) => (
+                <Row key={hit.id} hit={hit} terms={[]} bordered={index < list.length - 1} />
+              ))}
+          </div>
+        )}
+
+        {guideNode && (
           <div className="rounded-2xl border-l-4 border-brand-copper bg-brand-mist p-4 lg:p-5">
             <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-teal">
               <SparkleIcon className="h-4 w-4" />
               {t('guideLabel')}
             </p>
-            <div className="text-[15px] leading-relaxed text-brand-dark-base lg:text-base">{guide}</div>
-            {start && (
+            <div className="text-[15px] leading-relaxed text-brand-dark-base lg:text-base">{guideNode}</div>
+            {startAtGp && (
               <p className="mt-2 text-sm text-brand-dark-base/80">
                 {t.rich('guideStart', {
                   name: t('generalMedicine'),
@@ -437,9 +463,77 @@ export function SearchResults() {
           </div>
         )}
 
-        {result.mode !== 'none' && depts.length > 0 && (
+        {goodHit && (
+          <div className="mt-4 rounded-2xl border border-brand-teal/15 bg-white p-4 lg:p-5">
+            <h2 className="font-serif text-lg font-bold text-brand-teal-dark">{t('goodToKnow')}</h2>
+            {goodWhen.length > 0 && (
+              <>
+                <h3 className="mt-3 text-sm font-semibold text-brand-dark-base">{tw('seeDoctorIf')}</h3>
+                <ul className="mt-2 space-y-1.5">
+                  {goodWhen.map((line) => (
+                    <li key={line} className="flex gap-2.5 text-[15px] leading-snug text-brand-dark-base/90">
+                      <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-copper" />
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {(goodHit.lists?.emergency.length ?? 0) > 0 && (
+              <div className="mt-4 rounded-xl bg-red-50 p-3 ring-1 ring-red-200">
+                <h3 className="text-sm font-semibold text-brand-emergency">{tw('emergencyIf')}</h3>
+                <ul className="mt-2 space-y-1.5">
+                  {goodHit.lists!.emergency.slice(0, 4).map((line) => (
+                    <li key={line} className="flex gap-2.5 text-[15px] leading-snug text-brand-dark-base/90">
+                      <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-emergency" />
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+                <a
+                  href={`tel:${contact.primary}`}
+                  className="tap-target mt-3 inline-flex items-center gap-2 rounded-full bg-brand-emergency px-5 text-sm font-bold text-white"
+                >
+                  <PhoneIcon className="h-4 w-4" />
+                  {tw('emergencyCall', { number: contact.primaryDisplay })}
+                </a>
+              </div>
+            )}
+            <Link href={`${goodHit.href}#when`} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:underline">
+              {t('seeAllWhen', { dept: goodHit.title })}
+              <ArrowRightIcon className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        )}
+
+        {answers.length > 0 && (
+          <div className="mt-4 rounded-2xl border border-brand-teal/15 bg-white p-4 lg:p-5">
+            <h2 className="font-serif text-lg font-bold text-brand-teal-dark">{t('fromSite')}</h2>
+            <ul className="mt-3 space-y-4">
+              {answers.map((hit) => (
+                <li key={hit.id}>
+                  <Link href={hit.href} onClick={() => rememberSearch(hitToSuggestion(hit))} className="block hover:underline">
+                    <span className="block text-[15px] font-semibold leading-snug text-brand-dark-base">{hit.title}</span>
+                    {hit.answer && <span className="mt-1 block text-[15px] leading-snug text-brand-dark-base/80">{firstSentence(hit.answer)}</span>}
+                    {hit.detail && <span className="mt-1 block text-xs text-brand-dark-base/55">{hit.detail}</span>}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {notListed && showing.length > 0 && (
           <>
-            <SectionTitle>{t('sectionDepartments')}</SectionTitle>
+            <SectionTitle>{t('sectionMentions')}</SectionTitle>
+            {showing.slice(0, 8).map((hit) => (
+              <Row key={hit.id} hit={hit} terms={terms} kindLabel={kindLabel[hit.kind]} />
+            ))}
+          </>
+        )}
+        {!notListed && result.mode !== 'none' && depts.length > 0 && (
+          <>
+            <SectionTitle>{says ? t('sectionDepartments') : t('sectionRelated')}</SectionTitle>
             <div className="grid gap-3 sm:grid-cols-2">
               {depts.map((hit) => (
                 <DeptCard key={hit.id} hit={hit} terms={terms} />
@@ -447,7 +541,7 @@ export function SearchResults() {
             </div>
           </>
         )}
-        {result.mode !== 'none' && tests.length > 0 && (
+        {!notListed && result.mode !== 'none' && tests.length > 0 && (
           <>
             <SectionTitle>{t('sectionTests')}</SectionTitle>
             {tests.map((hit) => (
@@ -455,13 +549,13 @@ export function SearchResults() {
             ))}
           </>
         )}
-        {result.mode !== 'none' && reasons.length > 0 && (
+        {!notListed && result.mode !== 'none' && reasons.length > 0 && (
           <>
             <SectionTitle>{t('sectionReasons')}</SectionTitle>
             <ReasonList hits={reasons} />
           </>
         )}
-        {result.mode !== 'none' && questions.length > 0 && (
+        {!notListed && result.mode !== 'none' && questions.length > 0 && (
           <>
             <SectionTitle>{t('sectionQuestions')}</SectionTitle>
             <ReasonList hits={questions} />
@@ -513,7 +607,7 @@ export function SearchResults() {
         </div>
 
         <aside className="mt-8 space-y-4 lg:mt-0">
-          {view === 'guide' && showing.length > 0 && (
+          {view === 'guide' && showing.length > 0 && !notListed && !result?.distress && (
             <div className="hidden rounded-2xl border border-brand-teal/15 bg-white p-4 lg:block">
               <h2 className="mb-1 font-serif text-lg font-bold text-brand-teal-dark">{t('sidebarTitle')}</h2>
               {showing.slice(0, 4).map((hit, index, list) => (

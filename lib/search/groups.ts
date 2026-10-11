@@ -82,7 +82,7 @@ export const GROUPS: readonly string[] = [
   'headache|head pain|migraine ; sir dard|sar dard|sirdard|sardard|सिरदर्द|सिर दर्द|सरदर्द|आधासीसी|ਸਿਰ ਦਰਦ|ਸਿਰਦਰਦ',
   'stomach pain|stomachache|abdominal pain|belly pain|tummy ache|tummy pain|stomach ache ; pet dard|pet me dard|pait dard|पेट दर्द|पेट में दर्द|ਪੇਟ ਦਰਦ|ਪੇਟ ਵਿੱਚ ਦਰਦ|ਢਿੱਡ ਦਰਦ',
   'chest pain|chest tightness|chest discomfort ; seene mein dard|chhati mein dard|chati dard|seene me dard|सीने में दर्द|छाती में दर्द|छाती दर्द|ਛਾਤੀ ਵਿੱਚ ਦਰਦ|ਛਾਤੀ ਦਰਦ|ਸੀਨੇ ਵਿੱਚ ਦਰਦ',
-  'back pain|backache|lower back pain|lumbago ; kamar dard|kamar me dard|peeth dard|कमर दर्द|कमर में दर्द|पीठ दर्द|पीठ में दर्द|ਕਮਰ ਦਰਦ|ਕਮਰ ਦਰਦ|ਪਿੱਠ ਦਰਦ',
+  'back pain|backache|lower back pain|lumbago|pain in lower back|pain in the lower back|low back pain|lower backache ; kamar dard|kamar me dard|peeth dard|कमर दर्द|कमर में दर्द|पीठ दर्द|पीठ में दर्द|ਕਮਰ ਦਰਦ|ਕਮਰ ਦਰਦ|ਪਿੱਠ ਦਰਦ',
   'neck pain|stiff neck ; gardan dard|gardan me dard|गर्दन दर्द|गर्दन में दर्द|ਗਰਦਨ ਦਰਦ|ਗਰਦਨ ਦਾ ਦਰਦ',
   'joint pain|arthritis|rheumatism|rheumatoid|osteoarthritis|gout ; jodon ka dard|jodo ka dard|gathiya|gathia|जोड़ों का दर्द|जोड़ो का दर्द|गठिया|ਜੋੜਾਂ ਦਾ ਦਰਦ|ਗਠੀਆ',
   'knee pain ; ghutne mein dard|ghutne me dard|ghutne ka dard|घुटने में दर्द|घुटने का दर्द|ਗੋਡੇ ਦਾ ਦਰਦ|ਗੋਡਿਆਂ ਦਾ ਦਰਦ',

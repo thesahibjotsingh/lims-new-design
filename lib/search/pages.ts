@@ -52,6 +52,40 @@ function entries(whatsappMessage: string): Entry[] {
       pa: { title: `ਐਮਰਜੈਂਸੀ: ${emergency} ’ਤੇ ਕਾਲ ਕਰੋ`, detail: 'ਐਮਰਜੈਂਸੀ ਸੇਵਾਵਾਂ, 24 ਘੰਟੇ' },
     },
     {
+      id: 'action:helpline-telemanas',
+      kind: 'action',
+      href: 'tel:14416',
+      external: true,
+      keys:
+        'tele manas telemanas tele-manas mental health helpline counselling counseling depression anxiety stress ' +
+        'suicide prevention talk to someone free helpline 14416 18008914416',
+      en: { title: 'Tele-MANAS: free mental health helpline, 14416', detail: 'Government of India, toll-free' },
+      hi: { title: 'Tele-MANAS: मुफ़्त मानसिक स्वास्थ्य हेल्पलाइन, 14416', detail: 'भारत सरकार, टोल-फ़्री' },
+      pa: { title: 'Tele-MANAS: ਮੁਫ਼ਤ ਮਾਨਸਿਕ ਸਿਹਤ ਹੈਲਪਲਾਈਨ, 14416', detail: 'ਭਾਰਤ ਸਰਕਾਰ, ਟੋਲ-ਫ਼੍ਰੀ' },
+    },
+    {
+      id: 'action:helpline-kiran',
+      kind: 'action',
+      href: 'tel:18005990019',
+      external: true,
+      keys:
+        'kiran mental health helpline rehabilitation counselling counseling depression anxiety stress suicide ' +
+        'prevention talk to someone free helpline 18005990019',
+      en: { title: 'KIRAN: free mental health helpline, 1800-599-0019', detail: 'Government of India, toll-free, 24 hours' },
+      hi: { title: 'KIRAN: मुफ़्त मानसिक स्वास्थ्य हेल्पलाइन, 1800-599-0019', detail: 'भारत सरकार, टोल-फ़्री, 24 घंटे' },
+      pa: { title: 'KIRAN: ਮੁਫ਼ਤ ਮਾਨਸਿਕ ਸਿਹਤ ਹੈਲਪਲਾਈਨ, 1800-599-0019', detail: 'ਭਾਰਤ ਸਰਕਾਰ, ਟੋਲ-ਫ਼੍ਰੀ, 24 ਘੰਟੇ' },
+    },
+    {
+      id: 'action:helpline-112',
+      kind: 'action',
+      href: 'tel:112',
+      external: true,
+      keys: 'national emergency number 112 police fire ambulance one number dial 112',
+      en: { title: 'National emergency number: 112', detail: 'Police, fire and health, anywhere in India' },
+      hi: { title: 'राष्ट्रीय आपातकालीन नंबर: 112', detail: 'पुलिस, फ़ायर और स्वास्थ्य, पूरे भारत में' },
+      pa: { title: 'ਰਾਸ਼ਟਰੀ ਐਮਰਜੈਂਸੀ ਨੰਬਰ: 112', detail: 'ਪੁਲਿਸ, ਫ਼ਾਇਰ ਅਤੇ ਸਿਹਤ, ਪੂਰੇ ਭਾਰਤ ਵਿੱਚ' },
+    },
+    {
       id: 'action:call',
       kind: 'action',
       href: `tel:${contact.secondary}`,
@@ -99,7 +133,7 @@ function entries(whatsappMessage: string): Entry[] {
       pop: 4,
       keys:
         'directions direction map route how to reach how to come where is location address navigate google maps ' +
-        'jindal chowk hisar haryana near me way',
+        'jindal chowk hisar haryana near me way model town raipur road',
       en: { title: 'Get directions', detail: 'Open Google Maps to LIMS Hisar, Jindal Chowk' },
       hi: { title: 'दिशा-निर्देश पाएं', detail: 'LIMS हिसार, जिंदल चौक के लिए Google Maps खोलें' },
       pa: { title: 'ਦਿਸ਼ਾ-ਨਿਰਦੇਸ਼ ਲਓ', detail: 'LIMS ਹਿਸਾਰ, ਜਿੰਦਲ ਚੌਕ ਲਈ Google Maps ਖੋਲ੍ਹੋ' },
@@ -118,7 +152,7 @@ function entries(whatsappMessage: string): Entry[] {
       id: 'page:contact',
       kind: 'page',
       href: '/contact',
-      keys: 'contact contact us phone number address location email reach enquiry reception helpline parking park vehicle',
+      keys: 'contact contact us phone number address location email reach enquiry reception helpline parking park vehicle model town jindal chowk raipur road',
       en: { title: 'Contact LIMS', detail: 'Phone numbers, address and directions' },
       hi: { title: 'LIMS से संपर्क करें', detail: 'फ़ोन नंबर, पता और दिशा-निर्देश' },
       pa: { title: 'LIMS ਨਾਲ ਸੰਪਰਕ ਕਰੋ', detail: 'ਫ਼ੋਨ ਨੰਬਰ, ਪਤਾ ਅਤੇ ਦਿਸ਼ਾ-ਨਿਰਦੇਸ਼' },
@@ -201,7 +235,7 @@ function entries(whatsappMessage: string): Entry[] {
       fallback: 5,
       keys:
         'specialities specialties departments department clinical departments all departments which department ' +
-        'specialist doctor specialist doctors specialists',
+        'specialist doctor specialist doctors specialists multispeciality multispecialty super speciality superspeciality',
       en: { title: 'All departments', detail: 'The specialities and clinical departments' },
       hi: { title: 'सभी विभाग', detail: 'विशेषज्ञताएं और क्लिनिकल विभाग' },
       pa: { title: 'ਸਾਰੇ ਵਿਭਾਗ', detail: 'ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ ਅਤੇ ਕਲੀਨਿਕਲ ਵਿਭਾਗ' },
@@ -237,7 +271,7 @@ function entries(whatsappMessage: string): Entry[] {
       id: 'page:about',
       kind: 'page',
       href: '/about',
-      keys: 'about hospital lims lifeline institute of medical sciences about us who we are history team hisar',
+      keys: 'about hospital lims lifeline institute of medical sciences about us who we are history team hisar multispeciality multispecialty super speciality superspeciality multi specialty life line jindal',
       en: { title: 'About LIMS', detail: 'The hospital' },
       hi: { title: 'LIMS के बारे में', detail: 'अस्पताल' },
       pa: { title: 'LIMS ਬਾਰੇ', detail: 'ਹਸਪਤਾਲ' },

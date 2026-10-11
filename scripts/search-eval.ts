@@ -19,9 +19,13 @@ import { buildSearchDocs } from '@/lib/search/build-docs'
 import { createEngine } from '@/lib/search/engine'
 import type { SearchEngine } from '@/lib/search/engine'
 import type { SearchHit } from '@/lib/search/types'
+import { goodToKnowHit, pickAnswers, pickSectionLines, pickWhen, wholeWords } from '@/lib/search/answers'
 import { MORE } from './search-cases'
 import { EXTRA_SCRIPT } from './search-cases-script'
 import { EXTRA_VOICE } from './search-cases-voice'
+import { GENERATED } from './search-cases-generated'
+import { GRID } from './search-cases-grid'
+import { GOOGLE } from './search-cases-google'
 
 type Locale = 'en' | 'hi' | 'pa'
 
@@ -37,6 +41,14 @@ interface Case {
   top?: number
   /** None of these may appear among the first three results (a safety check, not a relevance one). */
   avoid?: string[]
+  /**
+   * What the results page Quick guide must say: a department id (it names exactly that one), `none` (it
+   * names no department), `notlisted` (it says the site has no department for the subject), or
+   * `named:<id>` (the question is the name of that page).
+   */
+  guide?: string
+  /** The guide must not name any of these (or, for `none`, anything at all). */
+  noGuide?: string[]
 }
 
 const GAS = 'svc:gastroenterology'
@@ -100,7 +112,7 @@ const CASES: Case[] = [
 
   /* ------------------------------------------------ heart, fever, general, English */
   { q: 'heart', expect: [ECHO, GEN] },
-  { q: 'heart problem', expect: [ECHO, GEN] },
+  { q: 'heart problem', expect: [ECHO, GEN], guide: 'notlisted' },
   { q: 'heart checkup', expect: [ECHO] },
   { q: 'chest pain', emergency: true, expect: [ER] },
   { q: 'heart attack', emergency: true, expect: [ER] },
@@ -350,7 +362,7 @@ const CASES: Case[] = [
   { q: 'physiotheraphy', expect: [PHYSIO] },
   { q: 'laproscopic', expect: [SURG] },
   { q: 'ultrasond', expect: [USG] },
-  { q: 'cardilogy', expect: [ECHO, GEN] },
+  { q: 'cardilogy', expect: [ECHO, GEN], guide: 'notlisted' },
   { q: 'diabeties', expect: [GEN, DIET] },
   { q: 'pregnent', expect: [OBG] },
   { q: 'kidny stone', expect: [URO] },
@@ -532,16 +544,21 @@ function parse(line: string): Case {
     if (token === '!') test.emergency = true
     else if (token === 'none') test.none = true
     else if (token.startsWith('@')) test.top = Number(token.slice(1))
+    else if (token.startsWith('G:')) {
+      const want = token.slice(2)
+      test.guide = want === 'none' || want === 'notlisted' || want.startsWith('named:') ? want : ALIAS[want] ?? want
+    } else if (token.startsWith('Gx:')) (test.noGuide ??= []).push(ALIAS[token.slice(3)] ?? token.slice(3))
     else if (token.startsWith('-')) avoid.push(ALIAS[token.slice(1)] ?? token.slice(1))
     else expect.push(ALIAS[token] ?? token)
   }
   if (expect.length) test.expect = expect
   if (avoid.length) test.avoid = avoid
-  if (!test.expect && !test.none && !test.avoid) throw new Error(`case has no expectation: ${line}`)
+  if (!test.expect && !test.none && !test.avoid && !test.guide && !test.noGuide) throw new Error(`case has no expectation: ${line}`)
   return test
 }
 
-CASES.push(...MORE.map(parse), ...EXTRA_SCRIPT.map(parse), ...EXTRA_VOICE.map(parse))
+CASES.push(...MORE.map(parse), ...EXTRA_SCRIPT.map(parse), ...EXTRA_VOICE.map(parse), ...GRID.map(parse), ...GOOGLE.map(parse))
+if (!process.argv.includes('--fast')) CASES.push(...GENERATED.map(parse))
 
 /* ------------------------------------------------------------------ the runner */
 
@@ -564,7 +581,7 @@ function reaches(expected: string, hit: SearchHit): boolean {
 const CORRECTIONS: [string, string | null][] = [
   ['neurosergery', 'neurosurgery'],
   ['gastroentrology', 'gastroenterology'],
-  ['orthopeadic', 'orthopedics'],
+  ['orthopeadic', 'orthopedic'],
   ['ultrasond', 'ultrasound'],
   ['physiotherpy', 'physiotherapy'],
   ['knee replacment', 'knee replacement'],
@@ -576,6 +593,9 @@ const CORRECTIONS: [string, string | null][] = [
   ['ultra', null],
 ]
 
+const guideTally: Record<string, number> = { department: 0, named: 0, notListed: 0, none: 0 }
+let distressCases = 0
+const quoteTally = { good: 0, answers: 0, sections: 0 }
 let passed = 0
 let failed = 0
 const failures: string[] = []
@@ -587,7 +607,9 @@ for (const test of CASES) {
   const locale = test.locale ?? 'en'
   const engine = engineFor(locale)
   const t0 = performance.now()
-  const result = engine.search(test.q, { limit: 8 })
+  // The page, and the suggestion list, search the query with a clear slip put right.
+  const asked = engine.correct(test.q) ?? test.q
+  const result = engine.search(asked, { limit: 8 })
   slowest = Math.max(slowest, performance.now() - t0)
   const top = test.top ?? 5
 
@@ -607,6 +629,84 @@ for (const test of CASES) {
       note = ok ? '' : 'emergency card not first'
     } else if (!ok) {
       note = `expected ${test.expect?.join(' | ')}`
+    }
+  }
+
+  // THE GUIDE. Whatever the page would say about a department must be true of this question.
+  //   - a case that expects departments: the guide may name one of them, or none, never another;
+  //   - a case about a subject with no department (`none`): the guide must name no department;
+  //   - an explicit `G:` / `Gx:` on the case is checked exactly.
+  {
+    const g = engine.guide(asked)
+    guideTally[g.kind] += 1
+    const named = g.kind === 'department' || g.kind === 'named' ? g.hit.id : null
+    const wantsDepts = (test.expect ?? []).filter((e) => e.startsWith('svc:'))
+    let problem = ''
+    if (test.guide) {
+      if (test.guide === 'none') {
+        if (g.kind === 'department' || g.kind === 'named' || g.kind === 'notListed') problem = `guide should say nothing, said ${g.kind} ${named ?? ''}`
+      } else if (test.guide === 'notlisted') {
+        if (g.kind !== 'notListed') problem = `guide should say not listed, said ${g.kind}`
+      } else if (test.guide.startsWith('named:')) {
+        if (g.kind !== 'named' || named !== test.guide.slice(6)) problem = `guide should name ${test.guide.slice(6)}, said ${g.kind} ${named ?? ''}`
+      } else if (g.kind !== 'department' || named !== test.guide) {
+        problem = `guide should name ${test.guide}, said ${g.kind} ${named ?? ''}`
+      }
+    }
+    if (!problem && test.noGuide && named && test.noGuide.includes(named)) problem = `guide must not name ${named}`
+    if (!problem && !test.guide && g.kind === 'department' && !test.emergency) {
+      if (test.none) problem = `guide named ${named} for a subject with no department`
+      else if (wantsDepts.length > 0 && !wantsDepts.includes(named!)) problem = `guide named ${named}, expected one of ${wantsDepts.join(' | ')}`
+      else if (wantsDepts.length === 0 && test.expect) problem = `guide named ${named} for a question about a page`
+    }
+    if (!problem && !test.guide && g.kind === 'notListed' && wantsDepts.length > 0 && !test.none) problem = `guide said "no department" for ${g.key}, but the case expects ${wantsDepts.join(' | ')}`
+    if (problem) {
+      ok = false
+      note = note ? `${note}; ${problem}` : problem
+    }
+  }
+
+  // QUOTING: what the results page may copy from the site's own pages (lib/search/answers.ts).
+  {
+    const guideNow = engine.guide(asked)
+    const notListed = guideNow.kind === 'notListed'
+    const good = goodToKnowHit(guideNow, result)
+    const when = pickWhen(good, asked)
+    const answers = pickAnswers(asked, engine.search(asked, { limit: 40 }).hits.filter((hit) => !hit.emergency), result, notListed)
+    const section = pickSectionLines(result.terms, result.hits, result, (slug, prefix) => engine.lines(slug, prefix))
+    answers.push(...section)
+    quoteTally.good += good ? 1 : 0
+    quoteTally.sections += section.length > 0 ? 1 : 0
+    quoteTally.answers += answers.length > 0 ? 1 : 0
+    let problem = ''
+    if ((result.emergency || result.distress) && (good || answers.length > 0)) problem = 'quoted something for an emergency or distress search'
+    else if (result.mode !== 'match' && (good || answers.some((entry) => !section.includes(entry)))) problem = 'quoted something for a close match'
+    else if (good && !when.every((line) => good.lists!.when.includes(line))) problem = 'quoted a line that is not on the department page'
+    else if (good && good.id === 'svc:emergency-services') problem = 'quoted the emergency department'
+    else {
+      const asks = [...wholeWords(asked)].filter((word) => word.length > 2)
+      for (const hit of answers.filter((entry) => !section.includes(entry))) {
+        const have = wholeWords(`${hit.title} ${hit.detail ?? ''} ${hit.answer ?? ''}`)
+        if (!asks.every((word) => have.has(word))) problem = `quoted "${hit.title}" without every word of the question`
+      }
+    }
+    if (problem) {
+      ok = false
+      note = `${note ? note + '; ' : ''}${problem}`
+    }
+  }
+
+  // DISTRESS: the result is the emergency card, the hospital's number and the three national helplines, and
+  // never a department, a test or a "closest match".
+  if (result.distress) {
+    distressCases += 1
+    const ids = result.hits.map((hit) => hit.id)
+    const need = ['action:call', 'action:helpline-telemanas', 'action:helpline-kiran', 'action:helpline-112']
+    const missing = need.filter((id) => !ids.includes(id))
+    const stray = result.hits.filter((hit) => hit.kind === 'department' || hit.kind === 'test' || hit.kind === 'condition' || hit.kind === 'faq')
+    if (missing.length > 0 || stray.length > 0 || !result.hits[0]?.emergency) {
+      ok = false
+      note = `${note ? note + '; ' : ''}distress result wrong (missing ${missing.join(',') || 'none'}, stray ${stray.map((h) => h.id).join(',') || 'none'})`
     }
   }
 
@@ -632,6 +732,40 @@ for (const test of CASES) {
   }
 }
 
+/* The quoting rules, on questions that matter (lib/search/answers.ts). Each is a sentence the page may or may not show. */
+const QUOTES: [string, string, (c: { when: string[]; emergency: string[]; section: string[]; answers: string[] }) => boolean][] = [
+  ['can i eat before an ultrasound', 'quotes the ultrasound page own preparing line about food', (c) => c.section.some((line) => /avoid food/.test(line))],
+  ['is a ct scan safe', 'quotes the CT page own safety line about radiation', (c) => c.section.some((line) => /radiation/.test(line))],
+  ['can i drink water before endoscopy', 'quotes the endoscopy page own line about eating or drinking', (c) => c.section.some((line) => /eat or drink/.test(line))],
+  ['is ultrasound safe in pregnancy', 'quotes the common question about pregnancy', (c) => c.answers.some((line) => /pregnancy/.test(line))],
+  ['stomach pain', 'shows the gastroenterology page own lines, with its emergency signs', (c) => c.when.some((line) => /Stomach pain/.test(line)) && c.emergency.some((line) => /Vomiting blood/.test(line))],
+  ['knee pain', 'shows the orthopaedic page own emergency signs', (c) => c.emergency.length > 0 && c.when.length >= 2],
+  ['pregnancy', 'quotes nothing for a single word', (c) => c.answers.length === 0 && c.section.length === 0],
+  ['chest pain', 'quotes nothing for an emergency', (c) => c.when.length + c.answers.length + c.section.length === 0],
+  ['i want to kill myself', 'quotes nothing for distress', (c) => c.when.length + c.answers.length + c.section.length === 0],
+  ['cancer', 'quotes nothing for a subject with no department', (c) => c.when.length + c.answers.length + c.section.length === 0],
+  ['can i eat before breakfast', 'quotes nothing when the question is not about a test', (c) => c.section.length === 0],
+  ['lipid profile', 'quotes nothing about a department for a test', (c) => c.when.length === 0],
+]
+for (const [query, label, check] of QUOTES) {
+  const engine = engineFor('en')
+  const asked = engine.correct(query) ?? query
+  const result = engine.search(asked, { limit: 40 })
+  const guideNow = engine.guide(asked)
+  const good = goodToKnowHit(guideNow, result)
+  const context = {
+    when: pickWhen(good, asked),
+    emergency: good?.lists?.emergency ?? [],
+    section: pickSectionLines(result.terms, result.hits, result, (slug, prefix) => engine.lines(slug, prefix)).map((hit) => hit.title),
+    answers: pickAnswers(asked, result.hits.filter((hit) => !hit.emergency), result, guideNow.kind === 'notListed').map((hit) => `${hit.title} ${hit.answer ?? ''}`),
+  }
+  if (check(context)) passed += 1
+  else {
+    failed += 1
+    failures.push(`FAIL [en] quote(${query})  should have: ${label}`)
+  }
+}
+
 for (const [typed, expected] of CORRECTIONS) {
   const got = engineFor('en').correct(typed)
   if (got === expected) passed += 1
@@ -642,6 +776,12 @@ for (const [typed, expected] of CORRECTIONS) {
 }
 
 for (const line of failures) console.log(line)
+console.log(
+  `\nQuick guide: named a department ${guideTally.department}, named a page ${guideTally.named}, ` +
+    `said "no department listed" ${guideTally.notListed}, said nothing ${guideTally.none}. ` +
+    `Distress searches checked: ${distressCases}. ` +
+    `"Good to know" shown for ${quoteTally.good}, quoted answers for ${quoteTally.answers}, a test's own preparing or safety lines for ${quoteTally.sections}.`,
+)
 console.log(
   `\n${passed} passed, ${failed} failed, of ${passed + failed} cases.` +
     `  ${(performance.now() - started).toFixed(0)} ms in all, slowest query ${slowest.toFixed(1)} ms.`,

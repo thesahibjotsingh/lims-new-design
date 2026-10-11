@@ -11,7 +11,7 @@
 // Add a line here whenever a real patient search goes wrong, then fix the vocabulary until it passes.
 
 /* ----------------------------------------------------------------- everyday English: body and symptoms */
-const ENGLISH_SYMPTOMS: readonly string[] = [
+export const ENGLISH_SYMPTOMS: readonly string[] = [
   'stomach pain => GAS',
   'stomach ache => GAS',
   'pain in stomach => GAS',
@@ -207,8 +207,8 @@ const ENGLISH_SYMPTOMS: readonly string[] = [
   'prostate => URO',
   'enlarged prostate => URO',
   'cannot pass urine => URO ER',
-  'kidney failure => URO GEN',
-  'dialysis => URO GEN',
+  'kidney failure => URO GEN G:notlisted',
+  'dialysis => URO GEN G:notlisted',
   'kidney pain => URO',
   'bladder problem => URO',
   'circumcision => URO SURG',
@@ -244,7 +244,7 @@ const ENGLISH_SYMPTOMS: readonly string[] = [
   'asthma => GEN',
   'wheezing => GEN PED',
   'chest tightness => ECHO GEN ER',
-  'heart problem => ECHO GEN',
+  'heart problem => ECHO GEN G:notlisted',
   'heart checkup => ECHO',
   'irregular heartbeat => ECHO GEN',
   'swelling after surgery => SURG',
@@ -270,7 +270,7 @@ const ENGLISH_SYMPTOMS: readonly string[] = [
 
 
 /* ----------------------------------------------------------------- Hindi and Punjabi in English letters */
-const ROMAN: readonly string[] = [
+export const ROMAN: readonly string[] = [
   'pet dard => GAS',
   'pet me dard => GAS',
   'pet mein dard hai => GAS',

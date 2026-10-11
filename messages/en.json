@@ -322,6 +322,10 @@
   },
   "contactPage": {
     "eyebrow": "Get in touch",
+    "supportHeading": "Struggling, or worried about someone?",
+    "supportText": "You do not have to cope alone. These government helplines are free, and you can call at any time. For an emergency at the hospital, use the emergency number above.",
+    "supportEmergency": "National emergency",
+    "supportNote": "Tele-MANAS and KIRAN are the Government of India's mental health helplines. 112 is the national emergency number.",
     "title": "Contact LIMS Hisar",
     "intro": "Call the hospital, find it on the map, or book an appointment online. In an emergency, call the emergency number now.",
     "getDirections": "Get directions",
@@ -645,10 +649,35 @@
     "listTitle": "All {count} results",
     "askTitle": "Search again…",
     "guideDistress": "If you are thinking of ending your life or hurting yourself, please call <b>{number}</b> now or go to the nearest emergency room. You do not have to face this alone.",
+    "helplinesTitle": "You can talk to someone right now",
+    "helplinesIntro": "These calls are free and the people on the line are trained to listen.",
     "emergencyLine": "In an emergency, call {number}",
     "loading": "Searching…",
     "unavailable": "Search could not start. Please call {number}.",
     "emptyPrompt": "Type what you are looking for above: a symptom, a doctor, a test or a page.",
-    "popular": "Popular searches"
+    "popular": "Popular searches",
+    "guideNotListed": "This site does not list a {subject} department.",
+    "guideNotListedHelp": "To ask whether LIMS can help, <call>call {number}</call>. The pages below mention it.",
+    "goodToKnow": "Good to know",
+    "seeAllWhen": "See everything on the {dept} page",
+    "fromSite": "From this site",
+    "guideAdvice": "This site does not give advice on medicines, doses or home remedies. For your symptoms, please see a doctor.",
+    "guideAdviceHelp": "To book, or to ask a question, <call>call {number}</call>. The pages below are the closest on this site.",
+    "guideNeutral": "These are the pages on this site that match “{query}”.",
+    "sectionRelated": "Related departments",
+    "sectionMentions": "Pages that mention it",
+    "subjects": {
+      "cancer": "cancer (oncology)",
+      "skin": "skin (dermatology)",
+      "mental": "mental health (psychiatry)",
+      "heart": "heart (cardiology)",
+      "dialysis": "kidney failure and dialysis (nephrology)",
+      "lung": "lung (pulmonology)",
+      "plastic": "plastic and cosmetic surgery",
+      "alternative": "Ayurveda and other alternative medicine",
+      "hormone": "hormone and diabetes specialist (endocrinology)",
+      "rheumatology": "joint inflammation (rheumatology)",
+      "advice": "medicines, doses and home remedies"
+    }
   }
 }

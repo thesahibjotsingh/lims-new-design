@@ -187,9 +187,11 @@ export function useSearchSuggest({
     if (searching && !engine && status === 'idle') ensure()
   }, [searching, engine, status, ensure])
 
+  // A slip the results page would put right ("neurosergery") is put right here too.
+  const asked = useMemo(() => (searching && engine ? engine.correct(trimmed) ?? trimmed : trimmed), [engine, searching, trimmed])
   const result = useMemo(
-    () => (searching && engine ? engine.search(trimmed, { kinds, limit: RESULT_LIMIT }) : null),
-    [engine, searching, trimmed, kinds],
+    () => (searching && engine ? engine.search(asked, { kinds, limit: RESULT_LIMIT }) : null),
+    [engine, searching, asked, kinds],
   )
 
   // With nothing typed, the list shows where this reader went last time and then what most people

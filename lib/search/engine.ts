@@ -27,6 +27,7 @@
 // is slow enough to debounce.
 
 import { DISTRESS_PHRASES, EMERGENCY_PHRASES, GROUPS } from '@/lib/search/groups'
+import { NOT_LISTED, PRIMARY, PRIMARY_WITH, QUALIFIERS, THINGS } from '@/lib/search/guide'
 import {
   commonPrefix,
   contentWords,
@@ -38,6 +39,7 @@ import {
   words,
 } from '@/lib/search/text'
 import type {
+  Guide,
   SearchDoc,
   SearchHit,
   SearchKind,
@@ -119,6 +121,27 @@ function parseGroup(line: string): GroupDef {
 
 const GROUP_DEFS: GroupDef[] = GROUPS.map(parseGroup)
 
+/* The guide's word lists, in the form the typed words take (canonical spelling, stemmed). */
+const asTokens = (text: string) => stemmed(words(text))
+const PRIMARY_SETS = new Map<string, Set<string>>(
+  Object.entries(PRIMARY).map(([slug, list]) => [slug, new Set(asTokens(list))]),
+)
+const ALL_PRIMARY = new Set<string>([...PRIMARY_SETS.values()].flatMap((set) => [...set]))
+const WITH_SETS = new Map<string, Set<string>>(
+  Object.entries(PRIMARY_WITH).map(([slug, list]) => [slug, new Set(asTokens(list))]),
+)
+/** Words that ask for "a doctor" without saying which: they should not outweigh the complaint. */
+const GENERIC_WORDS = new Set(asTokens('doctor doctors dr specialist specialists consultant treatment clinic centre center problem problems issue issues trouble dry cannot cant unable days day weeks week months month years year two three four five six seven'))
+const QUALIFIER_SET = new Set(asTokens([...QUALIFIERS].join(' ')))
+const THING_SET = new Set(asTokens([...THINGS].join(' ')))
+const NOT_LISTED_WORDS = NOT_LISTED.flatMap((entry) => entry.words).filter((word) => /^[a-z]{6,}$/.test(word))
+const NOT_LISTED_SETS = NOT_LISTED.map((entry) => ({
+  key: entry.key,
+  words: new Set(entry.words.flatMap((word) => asTokens(word))),
+  pairs: (entry.pairs ?? []).map(([a, b]) => [asTokens(a)[0], asTokens(b)[0]] as const),
+  unless: new Set((entry.unless ?? []).flatMap((word) => asTokens(word))),
+}))
+
 /** Single-word terms by exact word. */
 const SINGLE = new Map<string, TermRef[]>()
 /** Single-word Hindi/Punjabi terms by phonetic key. */
@@ -126,6 +149,9 @@ const SINGLE_KEY = new Map<string, TermRef[]>()
 /** Multi-word terms by their first word (exact) and by its phonetic key. */
 const PHRASE_FIRST = new Map<string, TermRef[]>()
 const PHRASE_FIRST_KEY = new Map<string, TermRef[]>()
+
+/** Single-word group terms in English letters, by length, for repairing a misspelt one ("mahari", "numbess"). */
+const TERM_BY_LENGTH = new Map<number, { word: string; ref: TermRef }[]>()
 
 function push(map: Map<string, TermRef[]>, key: string, ref: TermRef) {
   const list = map.get(key)
@@ -142,6 +168,11 @@ GROUP_DEFS.forEach((group, groupIndex) => {
     const first = term.words[0]
     if (term.words.length === 1) {
       push(SINGLE, first, ref)
+      if (/^[a-z]{6,}$/.test(first)) {
+        const bucket = TERM_BY_LENGTH.get(first.length)
+        if (bucket) bucket.push({ word: first, ref })
+        else TERM_BY_LENGTH.set(first.length, [{ word: first, ref }])
+      }
       if (term.indic && !english.has(first)) {
         const key = phoneticKey(first)
         if (key) push(SINGLE_KEY, key, ref)
@@ -184,8 +215,11 @@ function groupMatchesAt(typed: string[], at: number): GroupMatch[] {
   }
 
   // By sound only for Hindi and Punjabi, which have no one spelling in English letters: a short
-  // English word ("skin", "dent") is not matched to a word it merely sounds like.
-  const sound = scriptOf(word) !== 'latin' || word.length >= 5 ? phoneticKey(word) : ''
+  // English word ("skin", "dent") is not matched to a word it merely sounds like. And a word that IS a
+  // word of some group, as typed, is that word and nothing it merely sounds like: "tired" is not
+  // "thyroid", "kahan" (where) is not "kuhni" (elbow), "thakan" (tiredness) is not "takhna" (ankle).
+  const known = SINGLE.has(word) || PHRASE_FIRST.has(word)
+  const sound = !known && (scriptOf(word) !== 'latin' || word.length >= 6) ? phoneticKey(word) : ''
   const phraseCandidates = [
     ...(PHRASE_FIRST.get(word) ?? []),
     ...(sound ? PHRASE_FIRST_KEY.get(sound) ?? [] : []),
@@ -205,6 +239,22 @@ function groupMatchesAt(typed: string[], at: number): GroupMatch[] {
 
   for (const ref of SINGLE.get(word) ?? []) add(ref, 1)
   if (sound) for (const ref of SINGLE_KEY.get(sound) ?? []) add(ref, 1)
+
+  // A word we do not know that is one letter away from exactly one group's word is that word, misspelt
+  // ("mahari" for "mahwari", "numbess" for "numbness"). Two groups at the same distance: not guessed.
+  if (out.length === 0 && /^[a-z]{6,}$/.test(word)) {
+    const found = new Map<number, TermRef[]>()
+    for (let size = word.length - 1; size <= word.length + 1; size += 1) {
+      for (const entry of TERM_BY_LENGTH.get(size) ?? []) {
+        if (entry.word[0] !== word[0] || entry.word === word) continue
+        if (editDistance(word, entry.word, 1) > 1) continue
+        const list = found.get(entry.ref.group)
+        if (list) list.push(entry.ref)
+        else found.set(entry.ref.group, [entry.ref])
+      }
+    }
+    if (found.size === 1) for (const ref of [...found.values()][0]) add(ref, 1)
+  }
   return out
 }
 
@@ -312,13 +362,24 @@ export class SearchEngine {
       if (doc.id.startsWith('svc:')) this.serviceDoc.set(doc.id.slice(4), docIndex)
     })
 
-    // How each word is really spelt, from the titles first and the keywords after, for showing a correction.
+    // How each word is really spelt, for showing a correction: a word in a title beats one in a keyword
+    // list, and of two forms the shorter (the singular, "cancer" not "cancers") wins.
+    const spellingFrom = new Map<string, 'title' | 'keys'>()
     for (const field of ['title', 'keys'] as const) {
       for (const doc of docs) {
         for (const raw of (doc[field] ?? '').split(/[^\p{L}\p{N}]+/u)) {
           if (raw.length < 4 || !/^[a-zA-Z]+$/.test(raw)) continue
           const key = stem(words(raw)[0] ?? '')
-          if (key && !this.spelling.has(key)) this.spelling.set(key, raw.toLowerCase())
+          if (!key) continue
+          const have = this.spelling.get(key)
+          const better =
+            !have ||
+            (field === 'title' && spellingFrom.get(key) === 'keys') ||
+            (spellingFrom.get(key) === field && raw.length < have.length)
+          if (better) {
+            this.spelling.set(key, raw.toLowerCase())
+            spellingFrom.set(key, field)
+          }
         }
       }
     }
@@ -416,6 +477,19 @@ export class SearchEngine {
           if (length === 4 && word[0] !== token[0]) continue
           const distance = editDistance(token, word, limit)
           if (distance <= limit) add(word, distance === 1 ? 0.66 : 0.5)
+        }
+      }
+    }
+
+    // The index holds stems ("bloat"), the visitor types whole words ("bloaitng"): compare against the
+    // common endings put back, so a slip in a word that is normally typed with one is still repaired.
+    if (length >= 6) {
+      for (const ending of ['ing', 'ed', 'es', 's', 'er']) {
+        for (let size = length - ending.length - 1; size <= length - ending.length + 1; size += 1) {
+          for (const word of this.byLength.get(size) ?? []) {
+            if (word[0] !== token[0] || word.length < 4) continue
+            if (editDistance(token, word + ending, 1) <= 1) add(word, 0.66)
+          }
         }
       }
     }
@@ -527,17 +601,32 @@ export class SearchEngine {
       const consumed = typed.slice(at, at + longest)
 
       const alts: Alt[] = [{ tokens: consumed, weight: 1, loose: true }]
+      // The two words side by side in a title or topic ("neck pain") beat the same two words found apart.
+      if (consumed.length === 2) {
+        const together = stem(consumed[0] + consumed[1])
+        if (this.postings.has(together)) alts.push({ tokens: [together], weight: 1.04, loose: false })
+      }
+      // "kidney problem": a phrase that means the kidney, with a generic word along for the ride. The
+      // kidney alone is a (nearly) full answer.
+      if (consumed.length > 1) {
+        const core = consumed.filter((word) => !GENERIC_WORDS.has(word))
+        if (core.length > 0 && core.length < consumed.length) alts.push({ tokens: core, weight: 0.92, loose: true })
+      }
 
       // "x ray" typed with a space and indexed without one, or the other way round.
       if (longest === 1 && at + 1 < typed.length) {
         const joined = stem(word + typed[at + 1])
         if (this.postings.has(joined)) {
           const pair = Math.max(this.idf(stem(word)), this.idf(stem(typed[at + 1])))
+          const pairAlts: Alt[] = [
+            { tokens: [joined], weight: 0.95, loose: false },
+            { tokens: [word, typed[at + 1]], weight: 1, loose: true },
+          ]
+          // "kidney problem": the kidney alone is nearly the whole answer when the other word is generic.
+          if (GENERIC_WORDS.has(typed[at + 1]) && !GENERIC_WORDS.has(word)) pairAlts.push({ tokens: [word], weight: 0.92, loose: true })
+          if (GENERIC_WORDS.has(word) && !GENERIC_WORDS.has(typed[at + 1])) pairAlts.push({ tokens: [typed[at + 1]], weight: 0.92, loose: true })
           units.push({
-            alts: [
-              { tokens: [joined], weight: 0.95, loose: false },
-              { tokens: [word, typed[at + 1]], weight: 1, loose: true },
-            ],
+            alts: pairAlts,
             importance: 0.5 + 0.5 * pair,
             words: [word, typed[at + 1]],
           })
@@ -556,6 +645,12 @@ export class SearchEngine {
           if (seenAlt.has(id)) return
           seenAlt.add(id)
           alts.push({ tokens: term.words, weight: 0.8, loose: false })
+          // A two-word phrase said in another language ("gardan dard") is the same two words as a title or topic that
+          // has them side by side ("neck pain"): that page beats one that only has both words somewhere.
+          if (consumed.length === 2 && term.words.length === 2 && /^[a-z]+$/.test(term.words[0] + term.words[1])) {
+            const together = stem(term.words[0] + term.words[1])
+            if (this.postings.has(together)) alts.push({ tokens: [together], weight: 0.85, loose: false })
+          }
         })
       }
 
@@ -566,6 +661,17 @@ export class SearchEngine {
         words: consumed,
       })
       at += longest
+    }
+    // "dant kharab ka doctor": the tooth is the question, the doctor is not. A generic word beside a
+    // specific one counts for less, or it pulls every doctor's page above the department.
+    const generic = (unit: Unit) => unit.words.every((word) => GENERIC_WORDS.has(word))
+    if (units.some((unit) => !generic(unit))) {
+      for (const unit of units) {
+        if (generic(unit)) {
+          unit.importance *= 0.3
+          unit.generic = true
+        }
+      }
     }
     return units
   }
@@ -591,24 +697,35 @@ export class SearchEngine {
     if (this.emergencyDoc >= 0 && matchesPhrase(DISTRESS, everyWord.map((word) => stem(word)))) {
       const card = this.toHit(this.emergencyDoc, 99, false)
       card.emergency = true
-      const call = this.fallbackHits(kinds, 12).find((hit) => hit.id === 'action:call')
-      return { mode: 'match', hits: call ? [card, call] : [card], terms, emergency: true, distress: true }
+      // The hospital's own numbers first, then the national helplines (checked against the Government of
+      // India's own pages: Tele-MANAS, KIRAN and the 112 emergency number).
+      const extra = ['action:call', 'action:helpline-telemanas', 'action:helpline-kiran', 'action:helpline-112']
+        .map((id) => this.docs.findIndex((doc) => doc.id === id))
+        .filter((index) => index >= 0)
+        .map((index) => this.toHit(index, 98, false))
+      return { mode: 'match', hits: [card, ...extra], terms, emergency: true, distress: true }
     }
 
     const cache = new Map<string, Scored>()
     const units = this.buildUnits(typed)
     const lastUnit = units[units.length - 1]
 
-    const scored: { map: Map<number, number>; importance: number }[] = []
+    const scored: { map: Map<number, number>; importance: number; generic: boolean }[] = []
     const strongDocs = new Set<number>()
+    /** For each document, in how many of the question's words it is ABOUT the word (title or topic). */
+    const strongUnits = new Map<number, number>()
     let droppedImportance = 0
     let allImportance = 0
     for (const unit of units) {
       const isLast = unit === lastUnit && typing
       let map: Map<number, number> | undefined
+      const strongHere = new Set<number>()
       for (const alt of unit.alts) {
         const found = this.altScores(alt, isLast, cache)
-        for (const doc of found.strong) strongDocs.add(doc)
+        for (const doc of found.strong) {
+          strongDocs.add(doc)
+          strongHere.add(doc)
+        }
         if (!map) {
           map = new Map(found.scores)
         } else {
@@ -618,22 +735,26 @@ export class SearchEngine {
         }
       }
       allImportance += unit.importance
+      if (!unit.generic) for (const doc of strongHere) strongUnits.set(doc, (strongUnits.get(doc) ?? 0) + 1)
       // A word that matches nothing anywhere (a typo past repair, a name we do not have) does not
       // sink the rest of the query; the rest is answered, and the answer is marked as a close match.
-      if (map && map.size > 0) scored.push({ map, importance: unit.importance })
+      if (map && map.size > 0) scored.push({ map, importance: unit.importance, generic: unit.generic === true })
       else droppedImportance += unit.importance
     }
 
-    const totalImportance = scored.reduce((sum, unit) => sum + unit.importance, 0)
+    // What must be covered is the specific words; a generic one ("doctor") adds to the score when it is
+    // there and costs nothing when it is not.
+    const totalImportance = scored.reduce((sum, unit) => sum + (unit.generic ? 0 : unit.importance), 0) || 1
     const accumulated = new Map<number, { score: number; covered: number }>()
-    for (const { map, importance } of scored) {
+    for (const { map, importance, generic } of scored) {
       for (const [doc, value] of map) {
         const entry = accumulated.get(doc)
+        const covered = generic ? 0 : importance
         if (entry) {
           entry.score += value * importance
-          entry.covered += importance
+          entry.covered += covered
         } else {
-          accumulated.set(doc, { score: value * importance, covered: importance })
+          accumulated.set(doc, { score: value * importance, covered })
         }
       }
     }
@@ -672,8 +793,11 @@ export class SearchEngine {
 
     // Everything the query asked for beats a partial answer, but a partial answer is kept when
     // there is not enough of the first kind.
-    const full = ranked.filter((entry) => entry.coverage >= 0.999)
-    const all = full.length >= 3 ? full : ranked
+    // ...but only when those full answers are also ABOUT every word: a page that merely mentions "pregnancy" and
+    // "swelling" in passing does not outrank the pregnancy department just for containing both.
+    const specific = scored.filter((unit) => !unit.generic).length
+    const full = ranked.filter((entry) => entry.coverage >= 0.999 && (strongUnits.get(entry.doc) ?? 0) >= specific)
+    const all = full.length >= 3 && full[0].rank >= ranked[0].rank * 0.85 ? full : ranked
     // Pages that are ABOUT the words (a title, an alias or a topic matches) come before pages that merely
     // mention them in passing. The passing mentions are kept only when there are too few of the first.
     const aboutIt = all.filter((entry) => strongDocs.has(entry.doc))
@@ -684,6 +808,16 @@ export class SearchEngine {
     const candidates = base.filter((entry, index) => index < 3 || entry.rank >= floor).slice(0, 80)
 
     const hits = this.shape(candidates, limit, emergency)
+    // What the results page needs to decide whether a row is an answer: whether it covers the whole question
+    // and whether it is about the words (a title or a topic), not a passing mention.
+    const rankedById = new Map(ranked.map((entry) => [this.docs[entry.doc].id, entry]))
+    for (const hit of hits) {
+      const entry = rankedById.get(hit.id)
+      if (entry) {
+        hit.coverage = entry.coverage
+        hit.strong = strongDocs.has(entry.doc)
+      }
+    }
 
     let mode: SearchMode = 'match'
     if (hits.length === 0) {
@@ -784,7 +918,20 @@ export class SearchEngine {
       parent: record.parent,
       score,
       inferred: inferred || undefined,
+      lists: record.lists,
+      answer: record.kind === 'faq' ? record.text : undefined,
     }
+  }
+
+  /** The lines of one section of one page, as written there: ("ultrasound", "prep") is its "Preparing" list. */
+  lines(slug: string, prefix: string): SearchHit[] {
+    const out: SearchHit[] = []
+    this.docs.forEach((record, index) => {
+      if (record.parent === slug && record.id.startsWith(prefix) && /^\d+:/.test(record.id.slice(prefix.length))) {
+        out.push(this.toHit(index, 0, false))
+      }
+    })
+    return out
   }
 
   /** The places a patient can go when nothing matched. */
@@ -801,28 +948,168 @@ export class SearchEngine {
    * one we know, is not the start of one, and is a spelling mistake or a sound-alike of one that is, gets
    * changed; short words, names in other scripts and anything that already matches are left alone.
    */
+  /**
+   * What the results page may say about this question. See lib/search/guide.ts for the rule and why it is
+   * stricter than the search: a sentence naming a department is a claim, a result list is not.
+   */
+  guide(query: string): Guide {
+    const everyWord = words(query)
+    let typed = everyWord.filter((word) => !STOP_WORDS.has(word)).map((word) => stem(word))
+    if (typed.length === 0) return { kind: 'none' }
+    const without = typed.filter((word) => !CONTEXT_WORDS.has(word))
+    if (without.length > 0) typed = without
+    const typedSet = new Set(typed)
+
+    // 1. A subject this site has no department for.
+    for (const entry of NOT_LISTED_SETS) {
+      if ([...entry.unless].some((word) => typedSet.has(word))) continue
+      const near = (word: string) =>
+        entry.words.has(word) ||
+        (word.length >= 6 && [...entry.words].some((anchor) => anchor.length >= 6 && anchor[0] === word[0] && editDistance(word, anchor, 1) <= 1))
+      if (typed.some(near) || entry.pairs.some(([a, b]) => typedSet.has(a) && typedSet.has(b))) {
+        return { kind: 'notListed', key: entry.key }
+      }
+    }
+
+    const found = this.search(query, { limit: 12 })
+    const pages = found.hits.filter((hit) => !hit.inferred && !hit.emergency && !isChildId(hit.id))
+
+    // 2. The question is the name of one page.
+    const needed = typed.filter((word) => !QUALIFIER_SET.has(word))
+    if (needed.length > 0) {
+      const named = pages
+        .slice(0, 6)
+        .filter((hit) => ['department', 'test', 'doctor', 'page', 'info'].includes(hit.kind))
+        .filter((hit) => {
+          const title = new Set(asTokens(hit.title))
+          return needed.every((word) => title.has(word))
+        })
+      if (named.length === 1) return { kind: 'named', hit: named[0] }
+    }
+
+    // 3. Every meaningful word is a first-stop word of one department.
+    const units = this.buildUnits(typed).map((unit) => {
+      const singles = unit.alts.filter((alt) => alt.tokens.length === 1).map((alt) => alt.tokens[0])
+      const qualifier =
+        unit.words.every((word) => QUALIFIER_SET.has(word)) ||
+        (singles.some((word) => QUALIFIER_SET.has(word)) && !singles.some((word) => ALL_PRIMARY.has(word)))
+      return { typedWords: unit.words, alts: unit.alts, qualifier }
+    })
+    // A question about a test, a scan or a report is not a question about which doctor.
+    if (units.some((unit) => unit.alts.some((alt) => alt.tokens.some((word) => THING_SET.has(word))))) {
+      return { kind: 'none' }
+    }
+    const meaningful = units.filter((unit) => !unit.qualifier)
+    if (meaningful.length === 0) return { kind: 'none' }
+    // A word the site does not know at all (a slip the search repaired by guessing) is not something to
+    // build a sentence on.
+    const knownWord = (word: string) => this.postings.has(word) || SINGLE.has(word) || PHRASE_FIRST.has(word)
+    if (meaningful.some((unit) => !unit.typedWords.some((word) => QUALIFIER_SET.has(word) || knownWord(word)))) {
+      return { kind: 'none' }
+    }
+
+    /** 2: covered through the words as typed; 1: covered only through a synonym; 0: not covered. */
+    const cover = (slug: string): 0 | 1 | 2 => {
+      const primary = PRIMARY_SETS.get(slug)
+      if (!primary) return 0
+      const extra = WITH_SETS.get(slug)
+      const covered = (words: Set<string>, unit: (typeof meaningful)[number]) => {
+        const typedHere = unit.typedWords.filter((word) => !QUALIFIER_SET.has(word))
+        const viaTyped = typedHere.length > 0 && typedHere.every((word) => words.has(word))
+        const viaSynonym = unit.alts.some((alt) => {
+          const core = alt.tokens.filter((word) => !QUALIFIER_SET.has(word))
+          return core.length > 0 && core.every((word) => words.has(word))
+        })
+        return { viaTyped, viaSynonym }
+      }
+      const withExtra = extra ? new Set([...primary, ...extra]) : primary
+      let direct = true
+      let anchored = false
+      for (const unit of meaningful) {
+        const all = covered(withExtra, unit)
+        if (!all.viaTyped && !all.viaSynonym) return 0
+        if (!all.viaTyped) direct = false
+        const own = covered(primary, unit)
+        if (own.viaTyped || own.viaSynonym) anchored = true
+      }
+      if (!anchored) return 0
+      return direct ? 2 : 1
+    }
+
+    // The search's own best department is the only one the sentence may name: the sentence confirms the
+    // ranking, it never promotes a lower department that happens to fit the words.
+    const firstHit = pages.find((hit) => hit.id.startsWith('svc:') || hit.parent)
+    const topSlug = firstHit ? (firstHit.id.startsWith('svc:') ? firstHit.id.slice(4) : firstHit.parent) : undefined
+    if (!topSlug || !PRIMARY_SETS.has(topSlug)) return { kind: 'none' }
+    const topCover = cover(topSlug)
+    if (topCover === 0) return { kind: 'none' }
+    // Reached only through synonyms, and another department fits as well: not clear enough to say.
+    if (topCover === 1) {
+      for (const slug of PRIMARY_SETS.keys()) if (slug !== topSlug && cover(slug) > 0) return { kind: 'none' }
+    }
+    const doc = this.serviceDoc.get(topSlug)
+    if (doc === undefined) return { kind: 'none' }
+    return { kind: 'department', hit: this.toHit(doc, firstHit?.score ?? 0, false) }
+  }
+
   correct(query: string): string | null {
+    // Words of an emergency or of distress are matched as they were typed; they are never "corrected".
+    const asTyped = words(query).map((word) => stem(word))
+    if (matchesPhrase(DISTRESS, asTyped) || looksLikeEmergency(asTyped.filter((word) => !STOP_WORDS.has(word)))) return null
     let changed = false
     const out = words(query).map((word) => {
+      // A word the vocabulary knows, in any language, is never "corrected": "peeth" (back, in Hindi) is not
+      // a misspelt "teeth".
       if (STOP_WORDS.has(word) || word.length < 5 || !/^[a-z]+$/.test(word)) return word
+      if (SINGLE.has(word) || PHRASE_FIRST.has(word)) return word
+      // "pimles" is a slip for "pimples" (skin) as much as for "piles": near a subject the site has no
+      // department for, nothing is guessed.
+      if (NOT_LISTED_WORDS.some((anchor) => anchor[0] === word[0] && editDistance(word, anchor, 2) <= 2)) return word
       const token = stem(word)
       if (this.postings.has(token)) return word
-      const found = this.candidates(token, true, false)
+      let found = this.candidates(token, true, false)
+      // "gastrits" is stemmed to "gastrit", which is the start of "gastritis": it looks unfinished. As typed
+      // it is not the start of anything, so look again at the word itself.
+      if (token === word.slice(0, -1) && word.endsWith('s') && [...found.values()].some((weight) => weight >= 0.7)) found = this.candidates(word, true, false)
       let best = ''
       let bestWeight = 0
+      const tied = new Set<string>()
       for (const [candidate, weight] of found) {
         // 0.82 and 0.7 are "starts with what was typed": the word is unfinished, not misspelt.
         if (weight >= 0.7) return word
-        // Corrections only: one letter wrong (0.66) or the same sound (0.55). The weaker guesses (two
-        // letters, a shared start, a shorter form) still help the search itself but are not worth announcing.
-        if (weight < 0.55 || weight === 0.6) continue
+        // Corrections only: one letter wrong (0.66). The weaker guesses (two letters, a sound-alike, a
+        // shared start, a shorter form) still help the search itself, but are not worth announcing:
+        // "kamori" (Hindi) sounds like "camera" and is not a misspelling of it.
+        if (weight !== 0.66) continue
         const better =
           weight > bestWeight ||
           (weight === bestWeight && (this.docFrequency.get(candidate) ?? 0) > (this.docFrequency.get(best) ?? 0))
+        if (weight > bestWeight) tied.clear()
+        if (weight >= bestWeight) tied.add(candidate)
         if (better) {
           best = candidate
           bestWeight = weight
         }
+      }
+      // Several words one letter away ("weakess": "weakness", and "weaken" once an ending is put back):
+      // those that are one letter from what was typed, as it stands, win. Still several: not guessed.
+      if (tied.size > 1) {
+        const direct = [...tied].filter((candidate) => editDistance(word, this.spelling.get(candidate) ?? candidate, 1) <= 1)
+        const byUse = direct.sort((a, b) => (this.docFrequency.get(b) ?? 0) - (this.docFrequency.get(a) ?? 0))
+        // One word clearly in more pages than the other ("prostate", not "prostrate"): that one.
+        const clear = byUse.length === 1 || (this.docFrequency.get(byUse[0]) ?? 0) >= 3 * (this.docFrequency.get(byUse[1]) ?? 1)
+        if (byUse.length === 0 || !clear) return word
+        best = byUse[0]
+      }
+      // Two letters wrong in a long word ("constipashion"): only when exactly one word is that near.
+      if (!best && word.length >= 7) {
+        const near = [...found.keys()].filter((candidate) => {
+          const weight = found.get(candidate) ?? 0
+          if (weight !== 0.5 && weight !== 0.55) return false
+          const form = this.spelling.get(candidate) ?? candidate
+          return form[0] === word[0] && Math.abs(form.length - word.length) <= 1 && editDistance(word, form, 2) <= 2
+        })
+        if (near.length === 1) best = near[0]
       }
       if (!best) return word
       changed = true
@@ -847,7 +1134,10 @@ interface Scored {
 }
 
 /** Where the hospital is: never what is being asked for, so it does not count as a word of the query. */
-const CONTEXT_WORDS = new Set(['hisar', 'haryana', 'lims', 'lifeline', 'india', 'hospital', 'aspatal'])
+const CONTEXT_WORDS = new Set([
+  'hisar', 'hissar', 'hissaar', 'haryana', 'lims', 'lim', 'lifeline', 'india', 'hospital', 'aspatal',
+  'हिसार', 'हरियाणा', 'ਹਿਸਾਰ', 'ਹਰਿਆਣਾ',
+])
 
 interface Alt {
   /** All of these words must be in the document. */
@@ -860,8 +1150,15 @@ interface Alt {
 interface Unit {
   alts: Alt[]
   importance: number
+  /** "doctor", "treatment" next to a specific word: scored, but not required. */
+  generic?: boolean
   /** The typed words this unit stands for. */
   words: string[]
+}
+
+/** A section of a page (a condition, a question) rather than a page, from its id. */
+function isChildId(id: string): boolean {
+  return !/^(svc|doc|page|action|info|article):/.test(id)
 }
 
 export function createEngine(docs: SearchDoc[]): SearchEngine {

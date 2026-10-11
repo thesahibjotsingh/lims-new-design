@@ -17,6 +17,11 @@ export type SearchKind =
 export interface SearchDoc {
   /** Unique within a locale's index. */
   id: string
+  /**
+   * A department's own lists from its page, for the results page's "Good to know" box: the reasons to book a
+   * consultation and the signs that mean emergency care now. Carried as written on the page, never matched.
+   */
+  lists?: { when: string[]; emergency: string[] }
   kind: SearchKind
   /** Shown as the row's main line, and matched with the highest weight. */
   title: string
@@ -54,6 +59,13 @@ export interface SearchHit {
   score: number
   /** True when the row was added because one of its sections matched, not because it matched itself. */
   inferred?: boolean
+  /** A department's own "book if" and "emergency if" lists (see SearchDoc.lists). */
+  lists?: { when: string[]; emergency: string[] }
+  /** The page's own answer to a question row (a common question). */
+  answer?: string
+  /** How much of the question this hit covers (1 is all of it), and whether it is ABOUT the words. */
+  coverage?: number
+  strong?: boolean
   /** The emergency card, pinned first. */
   emergency?: boolean
 }
@@ -75,6 +87,19 @@ export interface SearchResult {
   /** The words of someone in distress about living: the result is the emergency card and the phone number only. */
   distress?: boolean
 }
+
+/**
+ * What the results page may say about a question, from SearchEngine.guide():
+ *   named       the question is the name of one page (a department, a test, a doctor): say so
+ *   department  every meaningful word is a first-stop word of one department: "usually looked at by"
+ *   notListed   the question is about a subject the site has no department for: say that, and give the phone
+ *   none        say nothing about a department; list the pages
+ */
+export type Guide =
+  | { kind: 'named'; hit: SearchHit }
+  | { kind: 'department'; hit: SearchHit }
+  | { kind: 'notListed'; key: string }
+  | { kind: 'none' }
 
 export interface SearchOptions {
   limit?: number

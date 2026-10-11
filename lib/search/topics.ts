@@ -41,7 +41,7 @@ export const TOPICS: Record<string, string> = {
     'pregnancy pregnant antenatal prenatal postnatal delivery normal delivery c section cesarean labour pain ' +
     'miscarriage abortion MTP periods menstrual irregular periods heavy bleeding PCOS PCOD ovary ovarian cyst ' +
     'fibroid uterus womb hysterectomy infertility IVF conceive white discharge vaginal infection pelvic pain ' +
-    'menopause hot flushes family planning contraception ultrasound in pregnancy gynecologist gynaecologist ' +
+    'menopause hot flushes family planning contraception ultrasound in pregnancy pregnancy scan baby scan gynecologist gynaecologist ' +
     'gynecology obstetrician lady doctor ladies doctor women doctor female doctor women health',
 
   'paediatrics-neonatology':
@@ -71,7 +71,7 @@ export const TOPICS: Record<string, string> = {
 
   'spine-surgery':
     'spine back neck backache back pain neck pain slip disc slipped disc herniated disc sciatica spondylosis ' +
-    'cervical lumbar stenosis scoliosis kyphosis spine fracture vertebra fusion decompression numbness leg pain ' +
+    'cervical lumbar stenosis scoliosis kyphosis spine vertebra fusion decompression numbness leg pain ' +
     'spine surgeon spine doctor',
 
   ophthalmology:
