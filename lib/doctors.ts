@@ -171,7 +171,28 @@ export const DOCTORS: Doctor[] = [
   {
     id: 'harshal-godara',
     name: 'Dr. Harshal Godara',
-    qualifications: 'M.S. (Orthopedic)',
+    // His own reply to the website sheet (WhatsApp, 2026-10-09, answers 1, 2, 3, 5 and 6): "MS othropedics,FCR".
+    // "FCR" is shown exactly as he wrote it. What it stands for has NOT been supplied, so it is not spelled out
+    // (rule 1); worth asking him for the full form.
+    qualifications: 'M.S. (Orthopedic), FCR',
+    // His title as he wrote it: "Senior consultant Trauma and joint replacement".
+    designation: 'Senior Consultant, Trauma and Joint Replacement',
+    // "monday to friday 9 am to 6 pm, saturday sunday 12 pm to 5 pm". One session per day; the profile page
+    // joins consecutive days with the same hours into one row.
+    opdSchedule: [
+      ...(['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as const).map((day) => ({
+        day,
+        startTime: '09:00',
+        endTime: '18:00',
+        locationId: 'hisar-main',
+      })),
+      ...(['saturday', 'sunday'] as const).map((day) => ({
+        day,
+        startTime: '12:00',
+        endTime: '17:00',
+        locationId: 'hisar-main',
+      })),
+    ],
     departmentSlug: 'ortho-joint-replacement',
     registrationNumber: 'HN-31573',
     // Real photograph, supplied 2026-09-16.

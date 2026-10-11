@@ -113,8 +113,16 @@ const TEXT: Record<string, Record<TranslatedLocale, DoctorText>> = {
     pa: { name: 'ਡਾ. ਵਿਕਾਸ ਰਾਜ', qualifications: 'MS, ਜਨਰਲ ਸਰਜਰੀ' },
   },
   'harshal-godara': {
-    hi: { name: 'डॉ. हर्षल गोदारा', qualifications: 'M.S. (ऑर्थोपेडिक)' },
-    pa: { name: 'ਡਾ. ਹਰਸ਼ਲ ਗੋਦਾਰਾ', qualifications: 'M.S. (ਆਰਥੋਪੈਡਿਕ)' },
+    hi: {
+      name: 'डॉ. हर्षल गोदारा',
+      designation: 'सीनियर कंसल्टेंट, ट्रॉमा एवं ज्वाइंट रिप्लेसमेंट',
+      qualifications: 'M.S. (ऑर्थोपेडिक), FCR',
+    },
+    pa: {
+      name: 'ਡਾ. ਹਰਸ਼ਲ ਗੋਦਾਰਾ',
+      designation: 'ਸੀਨੀਅਰ ਕੰਸਲਟੈਂਟ, ਟ੍ਰੌਮਾ ਅਤੇ ਜੋੜ ਬਦਲਣਾ',
+      qualifications: 'M.S. (ਆਰਥੋਪੈਡਿਕ), FCR',
+    },
   },
   'nirmala-goyat': {
     hi: { name: 'डॉ. निर्मला गोयत' },
