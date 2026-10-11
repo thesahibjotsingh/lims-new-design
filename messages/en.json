@@ -386,7 +386,8 @@
     "valuesLead": "The words on the hospital's own stationery.",
     "findHeading": "Visit us",
     "findBody": "The full address, directions, a map and Street View are on the Contact page.",
-    "findCta": "Contact and directions"
+    "findCta": "Contact and directions",
+    "visitCardNote": "Provided by Google. May set cookies and may be out of date."
   },
   "searchSuggest": {
     "recent": "Recent",

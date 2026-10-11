@@ -5,16 +5,17 @@ import { Link } from '@/i18n/navigation'
 import { ArrowRightIcon, PinIcon } from '@/components/icons'
 import { DoctorRailCard } from '@/components/doctor/DoctorRailCard'
 import { InfoHero } from '@/components/page/InfoHero'
+import { VisitCard } from '@/components/page/VisitCard'
 import { ReviewBand } from '@/components/service/ReviewBand'
 import { SectionNav } from '@/components/service/SectionNav'
 import { Band, DoctorList, RelatedGrid, SectionHeading } from '@/components/service/blocks'
 import { getDoctors, registrationDisplay } from '@/lib/doctors'
-import { googleListing } from '@/lib/google-listing'
+import { googleListing, streetViewEmbedUrl } from '@/lib/google-listing'
 import { REVIEW_MODE } from '@/lib/review'
 import { aboutReviewSlots } from '@/lib/review-slots-pages'
 import { serviceHref, servicesByCategory } from '@/lib/services'
 import { translatedServiceName } from '@/lib/services-i18n'
-import { contact, fullAddress } from '@/lib/site-config'
+import { contact, directionsUrl, fullAddress } from '@/lib/site-config'
 import { localizedLocation, siteText } from '@/lib/site-i18n'
 import type { Locale } from '@/i18n/routing'
 
@@ -133,6 +134,32 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             </Link>
           </>
         }
+        // The card fills the empty right side of the hero and does not make it taller (VisitCard).
+        aside={
+          <VisitCard
+            title={t('findHeading')}
+            // Building, street and the road it is on, then the town: two lines. "Copy address" copies all of it.
+            address={[
+              ...location.addressLines.slice(0, 3),
+              location.city,
+              [location.state, location.pincode].filter(Boolean).join(' '),
+            ].join(', ')}
+            copyText={fullAddress(location)}
+            // A wide, short frame: pulled back a little so the whole building and its sign fit.
+            streetViewSrc={streetViewEmbedUrl({ pitch: 18, zoom: 0.4 })}
+            streetViewTitle={tContact('streetViewTitle')}
+            directionsHref={directionsUrl}
+            directionsLabel={tContact('getDirections')}
+            mapsHref={googleListing.placeUrl}
+            mapsLabel={tContact('openInMaps')}
+            copyLabel={tContact('copyAddress')}
+            copiedLabel={tContact('addressCopied')}
+            failedLabel={tContact('addressCopyFailed')}
+            note={t('visitCardNote')}
+          />
+        }
+        asideWidth="26rem"
+        alignAside="center"
       />
       <SectionNav items={navItems} label={t('navLabel')} />
 

@@ -55,13 +55,26 @@ export const streetView = {
 const geo = primaryLocation.geo ?? { lat: 29.1336255, lng: 75.7462539 }
 
 /**
- * Keyless Google embeds. Both are iframe sources and are only ever loaded after the visitor
- * asks for them (components/contact/MapEmbed.tsx): an embed sets third-party cookies the
- * moment it loads, which is not something to do before anyone has agreed to it.
+ * The Street View embed, with its own camera. The Contact page's tall frame uses the default;
+ * a wide, short one (the card in the About hero, components/page/VisitCard.tsx) wants a wider
+ * view so the whole building and its sign still fit.
+ */
+export function streetViewEmbedUrl(camera: { pitch?: number; zoom?: number } = {}): string {
+  const pitch = camera.pitch ?? streetView.pitch
+  const zoom = camera.zoom ?? streetView.zoom
+  return (
+    `https://www.google.com/maps/embed?pb=!4v1!6m8!1m7!1s${streetView.panoId}` +
+    `!2m2!1d${streetView.lat}!2d${streetView.lng}!3f${streetView.heading}!4f${pitch}!5f${zoom}`
+  )
+}
+
+/**
+ * Keyless Google embeds. Both are iframe sources. The Contact page opens Street View by default
+ * (the hospital's choice, 2026-10-07: components/contact/MapEmbed.tsx) and so does the card in the
+ * About hero; both are `loading="lazy"`, and both say under the picture that Google provides it
+ * and may set cookies. The home page loads nothing until a visitor asks.
  */
 export const embedUrls = {
   map: `https://maps.google.com/maps?q=${geo.lat},${geo.lng}&hl=en&z=17&output=embed`,
-  streetView:
-    `https://www.google.com/maps/embed?pb=!4v1!6m8!1m7!1s${streetView.panoId}` +
-    `!2m2!1d${streetView.lat}!2d${streetView.lng}!3f${streetView.heading}!4f${streetView.pitch}!5f${streetView.zoom}`,
+  streetView: streetViewEmbedUrl(),
 } as const
