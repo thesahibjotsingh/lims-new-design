@@ -16,6 +16,24 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+    transition: background-color 300ms ease;
+  }
+
+  /*
+   * While the phone search is open (components/layout/SearchSheet sets data-search-open), the page behind it is
+   * dimmed by the scrim. iPhone browsers colour the strip between the page and the keyboard (the AutoFill row
+   * with the key, card and pin icons) from the page's own background, which is white here, so a white band sat
+   * under the dimmed page. Give the root the colour of the dimmed page (the scrim is dark-base at 35% over the
+   * white body, 70% with reduced transparency). The body stays white and covers the whole page, so nothing on
+   * screen changes; only what shows behind the strip does.
+   */
+  html[data-search-open] {
+    background-color: #aaadae;
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    html[data-search-open] {
+      background-color: #545a5b;
+    }
   }
 
   /*

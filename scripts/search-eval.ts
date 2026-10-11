@@ -592,6 +592,20 @@ const CORRECTIONS: [string, string | null][] = [
   ['bakc pain', 'back pain'],
   ['nekc pain', 'neck pain'],
   ['i hve a toth ache', 'i have a tooth ache'],
+  // "ache" with its e missing, or spelt by ear.
+  ['i hve stomach ach', 'i have stomach ache'],
+  ['stomach ach', 'stomach ache'],
+  ['stomach ake', 'stomach ache'],
+  ['headach', 'headache'],
+  ['toothach', 'toothache'],
+  ['earake', 'earache'],
+  ['stomachach', 'stomachache'],
+  ['ach', 'ache'],
+  // Words that merely end in the same letters.
+  ['teach', null],
+  ['beach', null],
+  ['coach', null],
+  ['approach', null],
   // Not slips: an apostrophe left out, a word of another language, a subject the site has no department for.
   ['im having eye pain', null],
   ['i dont have fever', null],

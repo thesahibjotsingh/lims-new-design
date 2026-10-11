@@ -697,6 +697,9 @@ export class SearchEngine {
     // "best doctor for pregnancy in Hisar": where we are is not what is being asked for.
     const without = typed.filter((word) => !CONTEXT_WORDS.has(word))
     if (without.length > 0) typed = without
+    // "ache" is "pain": the site's pages say "pain", so "stomach ache" is searched as "stomach pain" and finds the same
+    // pages in the same order ("ache" alone found them a little lower, and "ach" a little differently again).
+    typed = typed.map((word) => (ACHE_WORDS.has(word) ? 'pain' : word))
 
     const terms = everyWord.filter((word) => word.length >= 2 && !STOP_WORDS.has(word))
     const emergency = this.emergencyDoc >= 0 && looksLikeEmergency(typed)
@@ -1146,6 +1149,12 @@ export class SearchEngine {
     if (matchesPhrase(DISTRESS, asTyped) || looksLikeEmergency(asTyped.filter((word) => !STOP_WORDS.has(word)))) return null
     let changed = false
     const out = words(query).map((word) => {
+      // "ach" for "ache" and "headach" for "headache": no other word is meant, whatever the synonym lists say.
+      const ache = ACHE_SLIPS[word] ?? (ACHE_COMPOUND.test(word) ? word.replace(/(ach|ake)$/, 'ache') : undefined)
+      if (ache) {
+        changed = true
+        return ache
+      }
       // A word the vocabulary knows, in any language, is never "corrected": "peeth" (back, in Hindi) is not
       // a misspelt "teeth".
       // A short word is left alone when it is a word of any synonym group in any language ("pani": water, not "pain"),
@@ -1285,6 +1294,16 @@ const SHORT_TARGETS = new Set<string>(
     /^[a-z]{3,6}$/.test(word),
   ),
 )
+
+/** "ache" as the search sees it (stemmed): "ache", and "aches", "aching" and a missing-e "ach". */
+const ACHE_WORDS = new Set(['ache', 'ach'])
+
+/** "ach" and "ake" are "ache" with a letter missing or a sound-alike; put right and said so ("stomach ach"). */
+const ACHE_SLIPS: Record<string, string> = {
+  ach: 'ache', ake: 'ache', akes: 'aches', ahce: 'ache', aech: 'ache', acke: 'ache', achs: 'aches',
+}
+/** "headach", "toothake": a body word run into an "ach"/"ake" that lost its e. */
+const ACHE_COMPOUND = /^(head|back|tooth|ear|belly|stomach|tummy|neck|chest|body|muscle)(ach|ake)$/
 
 /** Slips in the small words of a sentence that a search engine would put right and say so ("i hve eye pain"). */
 const SLIP_FIXES: Record<string, string> = {
