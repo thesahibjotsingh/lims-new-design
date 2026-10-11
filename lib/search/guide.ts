@@ -85,6 +85,8 @@ export const QUALIFIERS = new Set([
   'lot', 'much', 'little', 'bit', 'some', 'something', 'wife', 'husband', 'father',
   'mother', 'mom', 'dad', 'papa', 'mummy', 'brother', 'sister', 'grandfather', 'grandmother', 'patient',
   'person', 'people', 'someone', 'one', 'who', 'about', 'need', 'help', 'info', 'information',
+  'cannot', 'cant', 'unable', 'dont', 'didnt', 'doesnt', 'isnt', 'wasnt', 'werent', 'arent', 'hasnt', 'hadnt', 'havent',
+  'couldnt', 'wouldnt', 'shouldnt', 'wont', 'aint',
 ])
 
 /**

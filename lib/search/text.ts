@@ -38,6 +38,13 @@ export const STOP_WORDS = new Set([
   'from', 'into', 'by', 'as', 'if', 'so', 'but', 'very', 'too', 'also', 'just', 'get', 'got', 'see',
   'seeing', 'go', 'going', 'take', 'taking', 'give', 'best', 'good', 'will', 'would', 'should', 'could',
   'tell', 'let', 'know', 'like',
+  // The slips people make in those small words when they type fast: "i hve eye pain", "im hurt", "iam having".
+  'im', 'iam', 'ive', 'hve', 'hav', 'hvae', 'haev', 'ahve', 'havee', 'ihave', 'ihve', 'ihav', 'havin', 'havng', 'hving',
+  'haveing', 'hae', 'hv',
+  // "that's", "you're" typed without the apostrophe (a phone's own text-replacement list is full of them), and text-speak.
+  'itll', 'lets', 'hows', 'whats', 'whos', 'thats', 'theres', 'theyll', 'theyre', 'youll', 'youre', 'shouldve',
+  'couldve', 'wouldve', 'wheres', 'whens', 'whatre', 'theyve', 'weve', 'youve', 'pls', 'plz', 'plss', 'plzz',
+  'thx', 'abt', 'wat', 'wht', 'whr', 'hw', 'wen', 'wich', 'ur', 'u', 'ya',
   // The same kind of filler in Hindi and Punjabi: "and", "of", "in", "is", "for".
   'एवं', 'और', 'के', 'का', 'की', 'में', 'है', 'हैं', 'को', 'से', 'लिए', 'ਅਤੇ', 'ਦੇ', 'ਦਾ', 'ਦੀ',
   'बीमारी', 'मिलना', 'मिलने', 'इलाज', 'खराब', 'ਬਿਮਾਰੀ', 'ਮਿਲਣਾ', 'ਇਲਾਜ', 'ਖਰਾਬ',

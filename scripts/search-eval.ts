@@ -26,6 +26,10 @@ import { EXTRA_VOICE } from './search-cases-voice'
 import { GENERATED } from './search-cases-generated'
 import { GRID } from './search-cases-grid'
 import { GOOGLE } from './search-cases-google'
+import { DESCRIBE_CASES } from './search-cases-descriptions'
+import { DESCRIPTIONS } from '@/lib/search/descriptions/data'
+import { ENGLISH_SYMPTOMS } from './search-cases'
+import { KNOWN_WORDS } from '@/lib/search/known-words'
 
 type Locale = 'en' | 'hi' | 'pa'
 
@@ -579,6 +583,23 @@ function reaches(expected: string, hit: SearchHit): boolean {
 }
 
 const CORRECTIONS: [string, string | null][] = [
+  // Slips Google would put right and say so (the small words of a sentence, and swapped letters in a short word).
+  ['i hve eye pain', 'i have eye pain'],
+  ['i hav eye pian', 'i have eye pain'],
+  ['ihave tooth pain', 'i have tooth pain'],
+  ['iam having eye pain', 'i am having eye pain'],
+  ['eey pain', 'eye pain'],
+  ['bakc pain', 'back pain'],
+  ['nekc pain', 'neck pain'],
+  ['i hve a toth ache', 'i have a tooth ache'],
+  // Not slips: an apostrophe left out, a word of another language, a subject the site has no department for.
+  ['im having eye pain', null],
+  ['i dont have fever', null],
+  ['whats the hospital timing', null],
+  ['safed pani', null],
+  ['acne', null],
+  ['hart pain', null],
+  ['cant breathe', null],
   ['neurosergery', 'neurosurgery'],
   ['gastroentrology', 'gastroenterology'],
   ['orthopeadic', 'orthopedic'],
@@ -773,6 +794,61 @@ for (const [typed, expected] of CORRECTIONS) {
     failed += 1
     failures.push(`FAIL [en] correct(${typed})  expected ${expected} got ${got}`)
   }
+}
+
+/* THE OVERVIEWS (lib/search/descriptions): what each may say, and which question reaches which. */
+const BANNED_EN = /\b(tablets?|pills?|syrups?|doses?|dosage|mg|antibiotics?|painkillers?|paracetamol|ibuprofen|medicines?|medications?|drugs?|remedy|remedies|cure[sd]?|ointments?|creams?|injections?)\b/i
+const BANNED_LOCAL = /(दवा|दवाई|गोली|घरेलू|नुस्खा|ਦਵਾਈ|ਗੋਲੀ|ਘਰੇਲੂ|ਨੁਸਖਾ)/
+{
+  const english = engineFor('en')
+  const knownWords = new Set(KNOWN_WORDS.split(' '))
+  const seen = new Set<string>()
+  for (const entry of DESCRIPTIONS) {
+    const problems: string[] = []
+    if (seen.has(entry.id)) problems.push('duplicate id')
+    seen.add(entry.id)
+    if (entry.phrases.length === 0) problems.push('no phrases')
+    for (const locale of ['en', 'hi', 'pa'] as const) {
+      const text = entry[locale]
+      const all = [text.about, ...text.points]
+      if (!text.about || text.about.length > 340) problems.push(`${locale}: about missing or over 340 characters`)
+      if (text.points.length < 3 || text.points.length > 6) problems.push(`${locale}: needs 3 to 6 points`)
+      if (all.some((line) => line.length > (locale === 'en' ? 210 : 270))) problems.push(`${locale}: a line is too long`)
+      if (locale === 'en') {
+        const strange = (all.join(' ').toLowerCase().match(/[a-z]{3,}/g) ?? []).filter((word) => !knownWords.has(word))
+        if (strange.length > 0) problems.push(`en: words not on lib/search/known-words.ts (run scripts/gen-known-words.ts): ${[...new Set(strange)].slice(0, 6).join(', ')}`)
+      }
+      if (all.some((line) => BANNED_EN.test(line) || BANNED_LOCAL.test(line))) problems.push(`${locale}: names a medicine, a dose, a remedy or a cure`)
+      if (new Set(all).size !== all.length) problems.push(`${locale}: a line is repeated`)
+      if (locale === 'hi' && !/[\u0900-\u097F]/.test(all.join(''))) problems.push('hi: no Devanagari')
+      if (locale === 'pa' && !/[\u0A00-\u0A7F]/.test(all.join(''))) problems.push('pa: no Gurmukhi')
+      if (locale === 'en' && /[\u0900-\u0A7F]/.test(all.join(''))) problems.push('en: has Hindi or Punjabi letters')
+    }
+    for (const phrase of entry.phrases) {
+      const got = english.describe(english.correct(phrase) ?? phrase, DESCRIPTIONS)
+      if (got !== entry.id) problems.push(`phrase "${phrase}" reaches ${got ?? 'nothing'}`)
+    }
+    if (problems.length === 0) passed += 1
+    else {
+      failed += 1
+      failures.push(`FAIL overview(${entry.id})  ${problems.join('; ')}`)
+    }
+  }
+  for (const [locale, question, expected] of DESCRIBE_CASES) {
+    const engine = engineFor(locale)
+    const asked = engine.correct(question) ?? question
+    const got = engine.describe(asked, DESCRIPTIONS)
+    if (got === expected) passed += 1
+    else {
+      failed += 1
+      failures.push(`FAIL [${locale}] describe(${question})  expected ${expected ?? 'nothing'} got ${got ?? 'nothing'}`)
+    }
+  }
+  // How much of what people type gets an overview: the complaint seeds the test set is built from.
+  const seeds = [...new Set(ENGLISH_SYMPTOMS.map((line) => line.slice(0, line.indexOf(' => '))))].filter((query) => query.split(' ').length <= 4)
+  const without = seeds.filter((query) => english.describe(english.correct(query) ?? query, DESCRIPTIONS) === null)
+  console.log(`\nOverviews: ${DESCRIPTIONS.length} written. Of ${seeds.length} complaint searches in the test set, ${seeds.length - without.length} reach one.`)
+  if (process.env.DESC_COVERAGE) console.log(`Without an overview:\n  ${without.join('\n  ')}`)
 }
 
 for (const line of failures) console.log(line)

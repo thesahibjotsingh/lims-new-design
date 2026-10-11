@@ -23,6 +23,10 @@ import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import { ArrowRightIcon, ArrowUpRightIcon, PhoneIcon, SparkleIcon } from '@/components/icons'
 import { hitToSuggestion } from '@/lib/search'
+import { REVIEW_MODE } from '@/lib/review'
+import { pickDirect } from '@/lib/search/direct'
+import { HelpfulBar } from '@/components/search/HelpfulBar'
+import { contact as siteContact } from '@/lib/site-config'
 import { firstSentence, goodToKnowHit, pickAnswers, pickSectionLines, pickWhen } from '@/lib/search/answers'
 import type { SearchHit, SearchKind } from '@/lib/search/types'
 import { Highlight, iconFor, rememberSearch } from '@/components/search/SearchSuggest'
@@ -62,11 +66,14 @@ function Row({
   terms,
   kindLabel,
   bordered = true,
+  showDetail = true,
 }: {
   hit: SearchHit
   terms: string[]
   kindLabel?: string
   bordered?: boolean
+  /** Off in the side card, where a department's own paragraph would be a second copy of the one beside it. */
+  showDetail?: boolean
 }) {
   const Icon = iconFor(hitToSuggestion(hit))
   const remember = () => rememberSearch(hitToSuggestion(hit))
@@ -79,7 +86,9 @@ function Row({
         <span className="block text-[15px] font-semibold leading-snug text-brand-dark-base">
           <Highlight text={hit.title} terms={terms} />
         </span>
-        {hit.detail && <span className="mt-0.5 block text-[13px] leading-snug text-brand-dark-base/60">{hit.detail}</span>}
+        {showDetail && hit.detail && (
+          <span className="mt-0.5 block text-[13px] leading-snug text-brand-dark-base/60">{hit.detail}</span>
+        )}
       </span>
       {kindLabel ? (
         <span className="mt-0.5 shrink-0 rounded-md bg-brand-mist px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-brand-teal">
@@ -182,10 +191,21 @@ export function SearchResults() {
   const tw = useTranslations('serviceDetail')
   const { engine, status, ensure } = useSearchEngine(locale)
   const [view, setView] = useState<View>('guide')
+  // The overviews are loaded on their own, after the page: the other pages and the suggestion lists never carry them.
+  const [descriptions, setDescriptions] = useState<typeof import('@/lib/search/descriptions/data') | null>(null)
 
   useEffect(() => {
     ensure()
   }, [ensure])
+  useEffect(() => {
+    let alive = true
+    void import('@/lib/search/descriptions/data').then((module) => {
+      if (alive) setDescriptions(module)
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
   useEffect(() => {
     setView('guide')
   }, [original])
@@ -239,6 +259,22 @@ export function SearchResults() {
     !['svc:general-medicine', 'svc:emergency-services'].includes(guide.hit.id) &&
     result?.mode === 'match'
 
+  // A complaint with no place in it ("im hurt"): ask where, instead of listing every department that mentions pain.
+  const vague = useMemo(() => (engine && query && !exact ? engine.vague(query) : false), [engine, query, exact])
+  // The everyday questions (opening hours, the phone number, where the hospital is) answered in a sentence.
+  const direct = vague ? null : pickDirect(rest, result)
+  // The overview of the complaint, condition or test that was asked about (lib/search/descriptions). Never for an
+  // emergency, distress or a question about medicines; outside review mode only once a doctor has signed it off.
+  const describeId = useMemo(() => {
+    if (!engine || !descriptions || !query || !result || result.emergency || result.distress || vague) return null
+    if (guide?.kind === 'notListed' && guide.key === 'advice') return null
+    return engine.describe(query, descriptions.DESCRIPTIONS)
+  }, [engine, descriptions, query, result, guide, vague])
+  const descEntry = describeId && descriptions ? descriptions.DESCRIPTIONS.find((entry) => entry.id === describeId) : undefined
+  const descReviewed = descEntry !== undefined && (descriptions?.REVIEWED.includes(descEntry.id) ?? false)
+  const descText = descEntry && (REVIEW_MODE || descReviewed) ? descEntry[locale] : null
+  const asking = (result?.terms ?? []).join(' ') || query
+
   // GOOD TO KNOW and FROM THIS SITE: lines quoted from the site's own pages, only when lib/search/answers.ts
   // says they may be (never for an emergency, never for a close match).
   const goodHit = goodToKnowHit(guide, result)
@@ -291,17 +327,15 @@ export function SearchResults() {
                 ? t.rich('guideDoctor', { title: hit.title, b: bold })
                 : bold(hit.title)}
           </p>
-          {hit.detail && <p className="mt-2 text-sm text-brand-dark-base/70">{hit.detail}</p>}
+          {hit.detail && ['info', 'page', 'action'].includes(hit.kind) && (
+            <p className="mt-2 text-sm text-brand-dark-base/70">{hit.detail}</p>
+          )}
         </>
       )
     }
     if (guide.kind === 'department') {
-      return (
-        <>
-          <p>{t.rich('guideDept', { query, dept: guide.hit.title, b: bold })}</p>
-          {guide.hit.detail && <p className="mt-2 text-sm text-brand-dark-base/70">{guide.hit.detail}</p>}
-        </>
-      )
+      // The department's own paragraph is in "Who can help" just below; saying it here too is saying it twice.
+      return <p>{t.rich('guideDept', { query, dept: guide.hit.title, b: bold })}</p>
     }
     // Pages match, but no department is claimed: say so, and let the list speak.
     return <p>{t('guideNeutral', { query })}</p>
@@ -384,7 +418,7 @@ export function SearchResults() {
       </div>
     )
   } else {
-    const depts = byGroup('departments').slice(0, 4)
+    const depts = byGroup('departments').slice(0, result.mode === 'weak' ? 3 : 4)
     const tests = byGroup('tests').slice(0, 4)
     const reasons = byGroup('conditions').slice(0, 6)
     const questions = byGroup('questions').slice(0, 4)
@@ -440,13 +474,92 @@ export function SearchResults() {
           </div>
         )}
 
-        {guideNode && (
+        {vague && (
           <div className="rounded-2xl border-l-4 border-brand-copper bg-brand-mist p-4 lg:p-5">
             <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-teal">
               <SparkleIcon className="h-4 w-4" />
               {t('guideLabel')}
             </p>
-            <div className="text-[15px] leading-relaxed text-brand-dark-base lg:text-base">{guideNode}</div>
+            <h2 className="font-serif text-xl font-bold text-brand-teal-dark">{t('vagueTitle')}</h2>
+            <p className="mt-1 text-[15px] text-brand-dark-base/80">{t('vagueHelp')}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(t.raw('vaguePlaces') as string[]).map((place) => (
+                <Link
+                  key={place}
+                  href={`/search?q=${encodeURIComponent(t('vagueQuery', { place }))}`}
+                  className="tap-target inline-flex items-center rounded-full border border-brand-teal/25 bg-white px-4 text-sm font-semibold text-brand-teal-dark transition-colors hover:bg-white/70"
+                >
+                  {place}
+                </Link>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-brand-dark-base/50">{t('guideNote')}</p>
+          </div>
+        )}
+
+        {direct && (
+          <div className="rounded-2xl border-l-4 border-brand-copper bg-brand-mist p-4 lg:p-5">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-teal">
+              <SparkleIcon className="h-4 w-4" />
+              {t('directLabel')}
+            </p>
+            <p className="text-[15px] leading-relaxed text-brand-dark-base lg:text-base">{t(direct.text, direct.params)}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {direct.actions.map((action) => {
+                const className =
+                  'tap-target inline-flex items-center gap-2 rounded-full bg-brand-teal px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-teal-dark'
+                const label = t(action.label, { number: action.number ?? siteContact.secondaryDisplay })
+                return action.external ? (
+                  <a
+                    key={action.label + action.href}
+                    href={action.href}
+                    className={className}
+                    {...(action.href.startsWith('tel:') ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
+                  >
+                    {action.href.startsWith('tel:') && <PhoneIcon className="h-4 w-4" />}
+                    {label}
+                  </a>
+                ) : (
+                  <Link key={action.label + action.href} href={action.href} className={className}>
+                    {label}
+                  </Link>
+                )
+              })}
+            </div>
+            <HelpfulBar query={original} locale={locale} />
+          </div>
+        )}
+
+        {!vague && !direct && (guideNode || descText) && (
+          <div className="rounded-2xl border-l-4 border-brand-copper bg-brand-mist p-4 lg:p-5">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-teal">
+              <SparkleIcon className="h-4 w-4" />
+              {t('guideLabel')}
+            </p>
+            {guideNode && <div className="text-[15px] leading-relaxed text-brand-dark-base lg:text-base">{guideNode}</div>}
+            {descText && descEntry && (
+              <div className={guideNode ? 'mt-3 border-t border-brand-teal/15 pt-3' : ''}>
+                <h2 className="font-serif text-lg font-bold text-brand-teal-dark">{t('descAbout', { topic: asking })}</h2>
+                <p className="mt-1.5 text-[15px] leading-relaxed text-brand-dark-base">{descText.about}</p>
+                <h3 className="mt-3 text-sm font-semibold text-brand-dark-base">
+                  {descEntry.kind === 'symptom' ? t('descReasons') : t('descPoints')}
+                </h3>
+                <ul className="mt-2 space-y-1.5">
+                  {descText.points.map((line) => (
+                    <li key={line} className="flex gap-2.5 text-[15px] leading-snug text-brand-dark-base/90">
+                      <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-copper" />
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-xs text-brand-dark-base/55">{t('descNote')}</p>
+                {REVIEW_MODE && !descReviewed && (
+                  <p className="mt-2 inline-block rounded bg-brand-copper/15 px-2 py-0.5 text-[11px] font-semibold text-brand-dark-base">
+                    {t('descDraft')}
+                  </p>
+                )}
+              </div>
+            )}
             {startAtGp && (
               <p className="mt-2 text-sm text-brand-dark-base/80">
                 {t.rich('guideStart', {
@@ -460,6 +573,7 @@ export function SearchResults() {
               </p>
             )}
             <p className="mt-3 text-xs text-brand-dark-base/50">{t('guideNote')}</p>
+            {!result.emergency && !result.distress && <HelpfulBar query={original} locale={locale} />}
           </div>
         )}
 
@@ -523,7 +637,8 @@ export function SearchResults() {
           </div>
         )}
 
-        {notListed && showing.length > 0 && (
+        {vague && null}
+        {notListed && !vague && showing.length > 0 && (
           <>
             <SectionTitle>{t('sectionMentions')}</SectionTitle>
             {showing.slice(0, 8).map((hit) => (
@@ -531,7 +646,7 @@ export function SearchResults() {
             ))}
           </>
         )}
-        {!notListed && result.mode !== 'none' && depts.length > 0 && (
+        {!notListed && !vague && result.mode !== 'none' && depts.length > 0 && (
           <>
             <SectionTitle>{says ? t('sectionDepartments') : t('sectionRelated')}</SectionTitle>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -541,7 +656,7 @@ export function SearchResults() {
             </div>
           </>
         )}
-        {!notListed && result.mode !== 'none' && tests.length > 0 && (
+        {!notListed && !vague && result.mode !== 'none' && tests.length > 0 && (
           <>
             <SectionTitle>{t('sectionTests')}</SectionTitle>
             {tests.map((hit) => (
@@ -549,19 +664,19 @@ export function SearchResults() {
             ))}
           </>
         )}
-        {!notListed && result.mode !== 'none' && reasons.length > 0 && (
+        {!notListed && !vague && result.mode !== 'none' && reasons.length > 0 && (
           <>
             <SectionTitle>{t('sectionReasons')}</SectionTitle>
             <ReasonList hits={reasons} />
           </>
         )}
-        {!notListed && result.mode !== 'none' && questions.length > 0 && (
+        {!notListed && !vague && result.mode !== 'none' && questions.length > 0 && (
           <>
             <SectionTitle>{t('sectionQuestions')}</SectionTitle>
             <ReasonList hits={questions} />
           </>
         )}
-        {doctors.length > 0 && (
+        {!vague && doctors.length > 0 && (
           <>
             <SectionTitle>{t('sectionDoctors')}</SectionTitle>
             {doctors.map((hit) => (
@@ -569,7 +684,7 @@ export function SearchResults() {
             ))}
           </>
         )}
-        {pages.length > 0 && (
+        {!vague && pages.length > 0 && (
           <>
             <SectionTitle>{t('sectionPages')}</SectionTitle>
             {pages.map((hit) => (
@@ -607,11 +722,17 @@ export function SearchResults() {
         </div>
 
         <aside className="mt-8 space-y-4 lg:mt-0">
-          {view === 'guide' && showing.length > 0 && !notListed && !result?.distress && (
+          {view === 'guide' && showing.length > 0 && !notListed && !vague && !result?.distress && (
             <div className="hidden rounded-2xl border border-brand-teal/15 bg-white p-4 lg:block">
               <h2 className="mb-1 font-serif text-lg font-bold text-brand-teal-dark">{t('sidebarTitle')}</h2>
               {showing.slice(0, 4).map((hit, index, list) => (
-                <Row key={hit.id} hit={hit} terms={[]} bordered={index < list.length - 1} />
+                <Row
+                  key={hit.id}
+                  hit={hit}
+                  terms={[]}
+                  bordered={index < list.length - 1}
+                  showDetail={hit.kind !== 'department'}
+                />
               ))}
               {showing.length > 4 && (
                 <button

@@ -2,32 +2,32 @@
 
 // components/layout/SearchSheet.tsx
 //
-// The Search tab of the phone's bottom pill, and the panel it opens.
+// The Search tab of the phone's bottom pill, and what it turns into.
 //
-// It lives IN the pill now (before it was a separate floating circle beside it, and before that a
-// button in the header, which was already full). It is still a tool and not a place: it does not
-// navigate, it opens a panel, and the tab is the only one in the pill that does.
+// IT IS THE LEFT END OF THE PILL, AND THE PILL BECOMES THE SEARCH BAR, the way iPhone search does:
+//   - tap Search and the other tabs slide away while the pill's left end grows to the right into the
+//     search field, with a round close button appearing at the right;
+//   - the field settles at the BOTTOM of the screen, just above the keyboard, and the results fill all
+//     of the screen above it, so the thumb never covers what it is looking for;
+//   - the page behind blurs and dims, and a tap on it closes the search;
+//   - closing runs the same path back into the pill, from wherever the spring is, so a tap mid-opening
+//     reverses without a jump.
 //
-// THE PANEL GROWS OUT OF THE SEARCH ICON, the way the booking form grows out of its button
-// (components/appointments/BookingProvider.tsx, which has the long version of this note):
-//   - one critically damped spring (lib/spring.ts) drives a number from 0 to 1; at 0 the panel is
-//     clipped to a small circle exactly over the icon, at 1 to the panel's own rectangle, so the
-//     content is revealed rather than stretched;
-//   - the page behind blurs and dims with the same number, and a tap on it closes the panel;
-//   - closing runs the same path back into the icon, from wherever the spring is, so a tap mid-
-//     opening reverses without a jump;
-//   - reduced motion swaps all of it for a short cross-fade.
+// ONE SPRING DRIVES IT (lib/spring.ts, critically damped: no bounce, as nothing here was thrown). It is a
+// number from 0 to 1. At 0 the field is exactly the pill's left end (same place, same height, same glass);
+// at 1 it is the bar above the keyboard. Everything else (the results, the close button, the blur, the
+// tabs sliding away) is that one number turned into a style, straight on the DOM, because it runs every
+// frame and a React render per frame is not something to pay for. The tabs read it through the CSS
+// variable --search-p on <html> (app/globals.css, .bottom-nav).
 //
-// THE PANEL IS AS TALL AS THE SCREEN THAT IS LEFT. It is sized to the VISUAL viewport, which is
-// what shrinks when the on-screen keyboard comes up, so the field stays at the top and the
-// suggestions below it are never behind the keys. (A panel that rose from the bottom, as the old
-// sheet did, was exactly where the keyboard goes.) Its height is set directly on the element on
-// every visualViewport change, and the clip is re-measured with it.
+// REDUCED MOTION swaps all of it for a short cross-fade. REDUCED TRANSPARENCY drops the blur.
 //
-// The field takes focus synchronously inside the tap that opens the panel: iOS Safari only raises
-// the keyboard for a focus() call made in the same task as the tap, so it cannot wait for the
-// animation or an effect. The search index, the suggestion list and the keyboard wiring are the
-// ones the desktop hero card and the directory use (components/search/SearchSuggest).
+// THE BAR FOLLOWS THE KEYBOARD. It is placed from the VISUAL viewport, which is what shrinks when the
+// on-screen keyboard comes up, and re-placed on every change of it. (A bar fixed to the bottom of the page
+// would be behind the keys.) The field takes focus synchronously inside the tap that opens it: iOS Safari
+// only raises the keyboard for a focus() call made in the same task as the tap, so it cannot wait for the
+// animation or an effect. The search index, the suggestion list and the keyboard wiring are the ones the
+// desktop hero card and the directory use (components/search/SearchSuggest).
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal, flushSync } from 'react-dom'
@@ -50,44 +50,48 @@ import { translatedServiceName } from '@/lib/services-i18n'
 
 const OPEN_RESPONSE = 0.42
 const CLOSE_RESPONSE = 0.34
-const PANEL_RADIUS = 28
 const BACKDROP_BLUR = 10
-/** The icon's circle is the icon plus this much on every side. */
-const ICON_PAD = 7
+/** The bar and its round close button, the gap between them, and the page margin. */
+const BAR_HEIGHT = 52
+const CLOSE_SIZE = 52
+const GAP = 8
+const MARGIN = 12
+/** The results are never wider than this on a big phone or a tablet. */
+const MAX_WIDTH = 640
 /** What shows under an empty field when there is no search history yet. */
 const POPULAR = SERVICES.slice(0, 6)
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), [tabindex]:not([tabindex="-1"])'
 
-interface Origin {
-  top: number
+interface Box {
   left: number
-  right: number
-  bottom: number
-  radius: number
+  top: number
+  width: number
+  height: number
 }
 
-function readOrigin(el: HTMLElement | null, fallback?: Origin): Origin {
-  if (el && el.isConnected) {
-    const r = el.getBoundingClientRect()
-    if (r.width > 0 && r.height > 0) {
-      const size = Math.max(r.width, r.height) + ICON_PAD * 2
-      const cx = r.left + r.width / 2
-      const cy = r.top + r.height / 2
-      return {
-        top: cy - size / 2,
-        left: cx - size / 2,
-        right: cx + size / 2,
-        bottom: cy + size / 2,
-        radius: size / 2,
-      }
-    }
-  }
-  if (fallback) return fallback
-  const w = window.innerWidth
-  const h = window.innerHeight
-  return { top: h - 70, left: w / 2 - 18, right: w / 2 + 18, bottom: h - 34, radius: 18 }
+interface Geometry {
+  /** Where the bar starts: the left end of the pill. */
+  from: Box
+  /** Where it ends: above the keyboard. */
+  to: Box
+  close: Box
+  /** The results area: from the top of the screen to just above the bar. */
+  results: { top: number; height: number }
+  blur: boolean
+}
+
+/** env(safe-area-inset-*) cannot be read in script; an element that pads itself with it can. */
+function readInsets(): { top: number; bottom: number } {
+  const probe = document.createElement('div')
+  probe.style.cssText =
+    'position:fixed;left:0;top:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)'
+  document.body.appendChild(probe)
+  const style = getComputedStyle(probe)
+  const insets = { top: parseFloat(style.paddingTop) || 0, bottom: parseFloat(style.paddingBottom) || 0 }
+  probe.remove()
+  return insets
 }
 
 export function SearchSheet() {
@@ -100,24 +104,22 @@ export function SearchSheet() {
   const placeholder = tSearch('drawerPlaceholder')
 
   const [query, setQuery] = useState('')
-  // `open` is intent; `rendered` keeps the panel mounted while it shrinks back into the icon.
+  // `open` is intent; `rendered` keeps the bar mounted while it shrinks back into the pill.
   const [open, setOpen] = useState(false)
   const [rendered, setRendered] = useState(false)
 
   const triggerRef = useRef<HTMLButtonElement>(null)
-  const iconRef = useRef<HTMLSpanElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
-  const sheetRef = useRef<HTMLDivElement>(null)
-  const panelRef = useRef<HTMLDivElement>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
   const scrimRef = useRef<HTMLDivElement>(null)
-  const shadowRef = useRef<HTMLDivElement>(null)
+  const barRef = useRef<HTMLFormElement>(null)
+  const barContentRef = useRef<HTMLDivElement>(null)
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const resultsRef = useRef<HTMLDivElement>(null)
   const fieldRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const openRef = useRef(false)
-  const originRef = useRef<Origin | null>(null)
-  const geoRef = useRef({ width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0, blur: true })
+  const geoRef = useRef<Geometry | null>(null)
   const releaseRef = useRef<(() => void) | null>(null)
   const reducedRef = useRef(false)
 
@@ -133,7 +135,7 @@ export function SearchSheet() {
     listProps,
   } = useSearchSuggest({ query, popular: false, onQueryChange: setQuery })
 
-  // A tap outside the FIELD closes the suggestion list, not the panel.
+  // A tap outside the FIELD closes the suggestion list, not the search.
   useCloseOnOutside(
     fieldRef,
     useCallback(() => setSuggestOpen(false), [setSuggestOpen]),
@@ -141,19 +143,34 @@ export function SearchSheet() {
 
   /* ---- the spring's value, applied straight to the DOM ---- */
   const apply = useCallback((p: number) => {
-    const sheet = sheetRef.current
-    const origin = originRef.current
-    if (!sheet || !origin) return
     const g = geoRef.current
+    if (!g) return
     const k = clamp01(p)
-    const mix = (from: number, to: number) => Math.max(0, from + (to - from) * k)
-    sheet.style.clipPath =
-      `inset(${mix(origin.top, g.top)}px ${mix(g.width - origin.right, g.width - g.right)}px ` +
-      `${mix(g.height - origin.bottom, g.height - g.bottom)}px ${mix(origin.left, g.left)}px ` +
-      `round ${mix(origin.radius, PANEL_RADIUS)}px)`
-    sheet.style.backgroundColor = `rgba(255, 255, 255, ${clamp01(p / 0.22)})`
-    if (contentRef.current) contentRef.current.style.opacity = String(clamp01((p - 0.38) / 0.38))
-    if (shadowRef.current) shadowRef.current.style.opacity = String(clamp01((p - 0.7) / 0.3))
+    const mix = (from: number, to: number) => from + (to - from) * k
+
+    const bar = barRef.current
+    if (bar) {
+      bar.style.left = `${mix(g.from.left, g.to.left)}px`
+      bar.style.top = `${mix(g.from.top, g.to.top)}px`
+      bar.style.width = `${mix(g.from.width, g.to.width)}px`
+      bar.style.height = `${mix(g.from.height, g.to.height)}px`
+    }
+    // The field's own contents arrive once it is wide enough to hold them.
+    if (barContentRef.current) barContentRef.current.style.opacity = String(clamp01((k - 0.3) / 0.4))
+
+    const close = closeRef.current
+    if (close) {
+      close.style.opacity = String(clamp01((k - 0.45) / 0.4))
+      close.style.transform = `scale(${(0.6 + 0.4 * clamp01((k - 0.35) / 0.5)).toFixed(3)})`
+      close.style.pointerEvents = k > 0.7 ? 'auto' : 'none'
+    }
+
+    const results = resultsRef.current
+    if (results) {
+      results.style.opacity = String(clamp01((k - 0.4) / 0.45))
+      results.style.transform = `translateY(${((1 - k) * 14).toFixed(2)}px)`
+    }
+
     const scrim = scrimRef.current
     if (scrim) {
       scrim.style.opacity = String(k)
@@ -163,39 +180,66 @@ export function SearchSheet() {
       scrim.style.backdropFilter = blur
       scrim.style.setProperty('-webkit-backdrop-filter', blur)
     }
+
+    // The tabs of the pill read this to slide away and fade (app/globals.css, .bottom-nav).
+    document.documentElement.style.setProperty('--search-p', k.toFixed(3))
   }, [])
 
-  /** Fit the panel to the part of the screen that is showing, then measure it. */
+  /** Work out where everything goes, from the part of the screen that is showing. */
   const layout = useCallback(() => {
-    const sheet = sheetRef.current
-    const panel = panelRef.current
-    if (!sheet || !panel) return
+    const trigger = triggerRef.current
+    const nav = trigger?.closest('nav') ?? null
     const vv = window.visualViewport
-    const viewport = vv?.height ?? window.innerHeight
-    const offset = vv?.offsetTop ?? 0
-    // The top inset keeps clear of a notch; env() cannot be read in script, so it stays in CSS.
-    const top = 'max(0.5rem, env(safe-area-inset-top))'
-    panel.style.top = `calc(${offset}px + ${top})`
-    panel.style.height = `calc(${viewport}px - ${top} - 0.5rem)`
+    const viewportHeight = vv?.height ?? window.innerHeight
+    const offsetTop = vv?.offsetTop ?? 0
+    const width = document.documentElement.clientWidth
+    const keyboardOpen = window.innerHeight - viewportHeight > 120
+    const insets = readInsets()
 
-    const box = sheet.getBoundingClientRect()
-    const rect = panel.getBoundingClientRect()
+    // Where the pill's left end is now: the nav, as far right as the Search tab reaches.
+    let from: Box
+    if (trigger && nav && nav.isConnected) {
+      const navRect = nav.getBoundingClientRect()
+      const tabRect = trigger.getBoundingClientRect()
+      from = {
+        left: navRect.left,
+        top: navRect.top,
+        width: Math.max(tabRect.right - navRect.left + 6, 56),
+        height: navRect.height,
+      }
+    } else {
+      from = { left: MARGIN, top: window.innerHeight - 90, width: 72, height: 68 }
+    }
+
+    const content = Math.min(width - MARGIN * 2, MAX_WIDTH)
+    const left = (width - content) / 2
+    const bottomGap = keyboardOpen ? GAP : Math.max(MARGIN, insets.bottom)
+    const barTop = offsetTop + viewportHeight - bottomGap - BAR_HEIGHT
+    const to: Box = { left, top: barTop, width: content - CLOSE_SIZE - GAP, height: BAR_HEIGHT }
+    const close: Box = { left: left + content - CLOSE_SIZE, top: barTop, width: CLOSE_SIZE, height: CLOSE_SIZE }
+    const resultsTop = offsetTop + Math.max(MARGIN, insets.top)
+
     geoRef.current = {
-      width: box.width,
-      height: box.height,
-      top: rect.top - box.top,
-      left: rect.left - box.left,
-      right: rect.right - box.left,
-      bottom: rect.bottom - box.top,
+      from,
+      to,
+      close,
+      results: { top: resultsTop, height: Math.max(0, barTop - GAP - resultsTop) },
       blur: !window.matchMedia('(prefers-reduced-transparency: reduce)').matches,
     }
-    const shadow = shadowRef.current
-    if (shadow) {
-      shadow.style.left = `${rect.left}px`
-      shadow.style.top = `${rect.top}px`
-      shadow.style.width = `${rect.width}px`
-      shadow.style.height = `${rect.height}px`
-      shadow.style.borderRadius = `${PANEL_RADIUS}px`
+
+    const closeButton = closeRef.current
+    if (closeButton) {
+      closeButton.style.left = `${close.left}px`
+      closeButton.style.top = `${close.top}px`
+      closeButton.style.width = `${close.width}px`
+      closeButton.style.height = `${close.height}px`
+    }
+    const results = resultsRef.current
+    if (results) {
+      results.style.top = `${geoRef.current.results.top}px`
+      results.style.height = `${geoRef.current.results.height}px`
+      results.style.left = `${left}px`
+      results.style.width = `${content}px`
     }
   }, [])
 
@@ -203,15 +247,17 @@ export function SearchSheet() {
   if (!driverRef.current) driverRef.current = createDriver((value) => apply(value))
   const driver = driverRef.current
 
-  /* ---- locking the page behind the panel ---- */
+  /* ---- locking the page behind the search ---- */
   const lock = useCallback(() => {
     if (releaseRef.current) return
     const body = document.body
+    const root = document.documentElement
     const previousOverflow = body.style.overflow
     const previousPadding = body.style.paddingRight
-    const scrollbar = window.innerWidth - document.documentElement.clientWidth
+    const scrollbar = window.innerWidth - root.clientWidth
     body.style.overflow = 'hidden'
     if (scrollbar > 0) body.style.paddingRight = `${scrollbar}px`
+    root.setAttribute('data-search-open', 'true')
     const inerted: Element[] = []
     for (const child of Array.from(body.children)) {
       if (child === overlayRef.current || child.hasAttribute('inert')) continue
@@ -223,6 +269,8 @@ export function SearchSheet() {
     releaseRef.current = () => {
       body.style.overflow = previousOverflow
       body.style.paddingRight = previousPadding
+      root.removeAttribute('data-search-open')
+      root.style.removeProperty('--search-p')
       inerted.forEach((child) => child.removeAttribute('inert'))
       releaseRef.current = null
     }
@@ -239,8 +287,8 @@ export function SearchSheet() {
   /* ---- opening and closing ---- */
   useLayoutEffect(() => {
     if (!rendered) return
-    const sheet = sheetRef.current
-    if (!sheet) return
+    const overlay = overlayRef.current
+    if (!overlay) return
     reducedRef.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     if (open) {
@@ -248,23 +296,22 @@ export function SearchSheet() {
       layout()
       if (reducedRef.current) {
         apply(1)
-        sheet.style.transition = 'none'
-        sheet.style.opacity = '0'
-        void sheet.offsetWidth
-        sheet.style.transition = 'opacity 160ms ease'
-        sheet.style.opacity = '1'
+        overlay.style.transition = 'none'
+        overlay.style.opacity = '0'
+        void overlay.offsetWidth
+        overlay.style.transition = 'opacity 160ms ease'
+        overlay.style.opacity = '1'
       } else {
-        if (driver.value() === 0) apply(0) // the first frame is the icon, exactly
+        if (driver.value() === 0) apply(0) // the first frame is the pill's own left end, exactly
         driver.to(1, OPEN_RESPONSE)
       }
     } else if (reducedRef.current) {
-      sheet.style.transition = 'opacity 160ms ease'
-      sheet.style.opacity = '0'
+      overlay.style.transition = 'opacity 160ms ease'
+      overlay.style.opacity = '0'
       const timer = window.setTimeout(finishClose, 170)
       return () => window.clearTimeout(timer)
     } else {
-      // Back into the icon as it is now, along the same path.
-      originRef.current = readOrigin(iconRef.current, originRef.current ?? undefined)
+      // Back into the pill as it is now, along the same path.
       layout()
       driver.to(0, CLOSE_RESPONSE, finishClose)
     }
@@ -278,7 +325,7 @@ export function SearchSheet() {
     }
   }, [driver])
 
-  // The keyboard coming and going, or the window being resized: re-fit and re-measure.
+  // The keyboard coming and going, or the window being resized: re-place and re-apply.
   useEffect(() => {
     if (!rendered) return
     const vv = window.visualViewport
@@ -308,7 +355,6 @@ export function SearchSheet() {
     openRef.current = true
     // The index starts loading with the tap, before the first letter.
     prefetch()
-    originRef.current = readOrigin(iconRef.current)
     // Committed to the DOM right here, so the field exists and can take focus inside this tap.
     flushSync(() => {
       setRendered(true)
@@ -317,7 +363,7 @@ export function SearchSheet() {
     inputRef.current?.focus({ preventScroll: true })
   }
 
-  // Following a link from the panel (or any navigation) closes it at once.
+  // Following a link from the results (or any navigation) closes it at once.
   useEffect(() => {
     if (!openRef.current) return
     openRef.current = false
@@ -331,7 +377,7 @@ export function SearchSheet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname])
 
-  /* ---- keyboard: Escape, and Tab kept inside the panel ---- */
+  /* ---- keyboard: Escape, and Tab kept inside the search ---- */
   useEffect(() => {
     if (!open) return
     function onKeyDown(event: KeyboardEvent) {
@@ -341,7 +387,7 @@ export function SearchSheet() {
         return
       }
       if (event.key !== 'Tab') return
-      const root = sheetRef.current
+      const root = overlayRef.current
       const items = root
         ? Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
             (el) => el.getClientRects().length > 0,
@@ -376,7 +422,10 @@ export function SearchSheet() {
 
   return (
     <>
-      {/* Laid out like the other tabs in the pill (components/layout/MobileBottomNav). */}
+      {/*
+        The first tab of the pill (components/layout/MobileBottomNav). It is laid out exactly like the others: the
+        same icon box, the same label, the same reserved underline row, so the labels sit on one line.
+      */}
       <button
         ref={triggerRef}
         type="button"
@@ -386,17 +435,23 @@ export function SearchSheet() {
         aria-expanded={open}
         className="tap-target flex-col gap-1 rounded-2xl px-2.5 text-[11px] font-semibold text-brand-teal"
       >
-        <span ref={iconRef} className="grid h-6 w-6 place-items-center">
+        <span className="grid h-7 w-7 place-items-center">
           <SearchIcon className="h-6 w-6" strokeWidth={1.75} />
         </span>
-        <span>{tNav('search')}</span>
-        {/* The same height as the active underline the other tabs reserve. */}
+        <span className="leading-none">{tNav('search')}</span>
         <span aria-hidden="true" className="h-0.5 w-6" />
       </button>
 
       {rendered &&
         createPortal(
-          <div ref={overlayRef} className="fixed inset-0 z-[80] lg:hidden">
+          <div
+            ref={overlayRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={tA11y('searchTitle')}
+            tabIndex={-1}
+            className="fixed inset-0 z-[80] outline-none lg:hidden"
+          >
             <div
               ref={scrimRef}
               aria-hidden="true"
@@ -405,116 +460,111 @@ export function SearchSheet() {
               style={{ opacity: 0 }}
             />
 
-            {/* The panel's shadow is its own layer: a shadow on the clipped panel would be cut off. */}
+            {/* The results fill the screen above the bar. */}
             <div
-              ref={shadowRef}
-              aria-hidden="true"
-              className="pointer-events-none absolute shadow-[0_40px_90px_-24px_rgba(11,20,22,0.6),0_12px_28px_-12px_rgba(11,20,22,0.3)]"
+              ref={resultsRef}
+              className="absolute flex flex-col overflow-y-auto overscroll-contain"
               style={{ opacity: 0 }}
-            />
-
-            <div
-              ref={sheetRef}
-              role="dialog"
-              aria-modal="true"
-              aria-label={tA11y('searchTitle')}
-              tabIndex={-1}
-              className="absolute inset-0 outline-none will-change-[clip-path]"
-              style={{ backgroundColor: 'rgba(255, 255, 255, 0)' }}
+              onClick={(event) => {
+                // A tap on the empty part of the results area (not on a row) closes the search.
+                if (event.target === event.currentTarget) closeNow()
+              }}
             >
-              <div
-                ref={panelRef}
-                className="absolute inset-x-2 mx-auto max-h-[44rem] max-w-[40rem]"
-              >
-                <div ref={contentRef} className="flex h-full min-h-0 flex-col" style={{ opacity: 0 }}>
-                  <form onSubmit={handleSubmit} className="shrink-0 px-3 pb-2 pt-3">
-                    <div ref={fieldRef} className="flex items-center gap-2">
-                      <label htmlFor="phone-search-field" className="sr-only">
-                        {placeholder}
-                      </label>
-                      <div className="relative min-w-0 flex-1">
-                        <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-brand-dark-base/50" />
-                        <input
-                          {...inputProps}
-                          ref={inputRef}
-                          id="phone-search-field"
-                          type="search"
-                          enterKeyHint="search"
-                          // The real placeholder stays the plain sentence for assistive tech; the
-                          // overlay below owns every visible state.
-                          placeholder={placeholder}
-                          value={query}
-                          onChange={(event) => {
-                            setQuery(event.target.value)
-                            setSuggestOpen(true)
-                            setActive(-1)
-                          }}
-                          // 16px, or iOS Safari zooms the page when the field is focused.
-                          className="h-[52px] w-full rounded-full bg-brand-mist pl-11 pr-14 text-base text-brand-dark-base shadow-[inset_0_0_0_1px_rgba(15,91,102,0.13)] outline-none placeholder:text-transparent focus:shadow-[inset_0_0_0_2px_rgba(15,91,102,0.45)]"
-                        />
-                        <VoiceButton
-                          voice={voice}
-                          className="absolute right-1.5 top-1/2 h-10 w-10 -translate-y-1/2"
-                        />
-                        {query.length === 0 && (
-                          <TypewriterPlaceholder
-                            phrases={searchPhrases(locale).general}
-                            // The field is focused the moment the panel opens, so gating the
-                            // animation on focus would mean it never plays.
-                            idle
-                            staticText={placeholder}
-                            className="pointer-events-none absolute left-11 right-3 top-1/2 -translate-y-1/2 truncate text-base text-brand-dark-base/45"
-                          />
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={closeNow}
-                        aria-label={tA11y('closeSearch')}
-                        className="tap-target press h-[52px] w-[52px] shrink-0 rounded-full bg-brand-mist text-brand-dark-base/65"
-                      >
-                        <CloseIcon className="h-5 w-5" strokeWidth={2} />
-                      </button>
-                    </div>
-                  </form>
-
-                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3">
-                    {visible && (
-                      <SuggestionList
-                        {...listProps}
-                        choose={(index) => {
-                          choose(index)
-                          closeNow()
-                        }}
-                        variant="inline"
-                      />
-                    )}
-
-                    {showPopular && (
-                      <>
-                        <p className="px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-brand-dark-base/50">
-                          {tSearch('popularDepartments')}
-                        </p>
-                        <ul>
-                          {POPULAR.map((service) => (
-                            <li key={service.slug}>
-                              <Link
-                                href={serviceHref(service)}
-                                onClick={closeNow}
-                                className="flex min-h-[56px] items-center gap-3 rounded-2xl px-2 text-[15px] font-semibold text-brand-dark-base active:bg-brand-mist"
-                              >
-                                <ServiceIcon slug={service.slug} size={36} />
-                                {translatedServiceName(service.slug, locale)}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </>
-                    )}
+              {/* mt-auto sits the list right above the bar (nearest the thumb) and still scrolls when it is long. */}
+              <div className="mt-auto">
+                {visible && (
+                  <SuggestionList
+                    {...listProps}
+                    choose={(index) => {
+                      choose(index)
+                      closeNow()
+                    }}
+                    variant="inline"
+                  />
+                )}
+  
+                {showPopular && (
+                  <div className="rounded-2xl border border-brand-teal/15 bg-white/95 px-2 pb-2 pt-1 shadow-glass">
+                    <p className="px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-brand-dark-base/50">
+                      {tSearch('popularDepartments')}
+                    </p>
+                    <ul>
+                      {POPULAR.map((service) => (
+                        <li key={service.slug}>
+                          <Link
+                            href={serviceHref(service)}
+                            onClick={closeNow}
+                            className="flex min-h-[56px] items-center gap-3 rounded-2xl px-2 text-[15px] font-semibold text-brand-dark-base active:bg-brand-mist"
+                          >
+                            <ServiceIcon slug={service.slug} size={36} />
+                            {translatedServiceName(service.slug, locale)}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                </div>
+                )}
               </div>
             </div>
+
+            {/* The bar: at 0 it is the pill's left end, at 1 it sits above the keyboard. */}
+            <form
+              ref={barRef}
+              onSubmit={handleSubmit}
+              className="absolute overflow-hidden rounded-full border border-white/40 bg-white/80 shadow-glass backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-white/95 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
+            >
+              <div ref={barContentRef} className="h-full" style={{ opacity: 0 }}>
+                <div ref={fieldRef} className="relative h-full min-w-0">
+                  <label htmlFor="phone-search-field" className="sr-only">
+                    {placeholder}
+                  </label>
+                  <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-brand-teal" />
+                  <input
+                    {...inputProps}
+                    ref={inputRef}
+                    id="phone-search-field"
+                    type="search"
+                    enterKeyHint="search"
+                    // The real placeholder stays the plain sentence for assistive tech; the overlay below owns
+                    // every visible state.
+                    placeholder={placeholder}
+                    value={query}
+                    onChange={(event) => {
+                      setQuery(event.target.value)
+                      setSuggestOpen(true)
+                      setActive(-1)
+                    }}
+                    // 16px, or iOS Safari zooms the page when the field is focused.
+                    className="h-full w-full bg-transparent pl-11 pr-14 text-base text-brand-dark-base outline-none placeholder:text-transparent"
+                  />
+                  <VoiceButton
+                    voice={voice}
+                    className="absolute right-1.5 top-1/2 h-10 w-10 -translate-y-1/2"
+                  />
+                  {query.length === 0 && (
+                    <TypewriterPlaceholder
+                      phrases={searchPhrases(locale).general}
+                      // The field is focused the moment the search opens, so gating the animation on focus would
+                      // mean it never plays.
+                      idle
+                      staticText={placeholder}
+                      className="pointer-events-none absolute left-11 right-3 top-1/2 -translate-y-1/2 truncate text-base text-brand-dark-base/45"
+                    />
+                  )}
+                </div>
+              </div>
+            </form>
+
+            <button
+              ref={closeRef}
+              type="button"
+              onClick={closeNow}
+              aria-label={tA11y('closeSearch')}
+              className="press absolute grid place-items-center rounded-full border border-white/40 bg-white/80 text-brand-dark-base/70 shadow-glass backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-white/95 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
+              style={{ opacity: 0 }}
+            >
+              <CloseIcon className="h-5 w-5" strokeWidth={2} />
+            </button>
           </div>,
           document.body,
         )}

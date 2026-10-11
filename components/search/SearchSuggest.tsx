@@ -37,6 +37,7 @@ import {
   RouteIcon,
   SearchIcon,
   ShieldIcon,
+  SparkleIcon,
   StethoscopeIcon,
   WhatsAppIcon,
   ArrowRightIcon,
@@ -136,6 +137,9 @@ export function rememberSearch(suggestion: SearchSuggestion): void {
 
 export type SuggestionItem = SearchSuggestion & { section?: 'recent' | 'popular' }
 
+/** The Quick guide's one line, shown above the suggestions (the same sentence as on the results page). */
+export type DropdownGuide = { kind: 'department'; dept: string } | { kind: 'notListed'; key: string }
+
 export function useSearchSuggest({
   query,
   kinds,
@@ -193,6 +197,17 @@ export function useSearchSuggest({
     () => (searching && engine ? engine.search(asked, { kinds, limit: RESULT_LIMIT }) : null),
     [engine, searching, asked, kinds],
   )
+
+  // The Quick guide's sentence, one line of it: "ear pain" is usually looked at by ENT. The same strict rule as the
+  // results page (lib/search/guide.ts), so a suggestion list never says what the page would not. Not under the hero
+  // card's "A doctor" / "A department" toggle, which has already narrowed what is wanted.
+  const guideLine = useMemo<DropdownGuide | null>(() => {
+    if (!searching || !engine || kinds || !result || result.mode !== 'match' || result.emergency || result.distress) return null
+    const guide = engine.guide(asked)
+    if (guide.kind === 'department') return { kind: 'department', dept: guide.hit.title }
+    if (guide.kind === 'notListed' && guide.key !== 'advice') return { kind: 'notListed', key: guide.key }
+    return null
+  }, [searching, engine, kinds, result, asked])
 
   // With nothing typed, the list shows where this reader went last time and then what most people
   // look for. It is the one moment a search box can be useful before it has been used.
@@ -326,6 +341,7 @@ export function useSearchSuggest({
     voice: voiceState,
     query: searching ? trimmed : '',
     onSeeAll: searching ? submit : undefined,
+    guideLine,
   }
 
   return {
@@ -439,6 +455,7 @@ export function SuggestionList({
   voice,
   query = '',
   onSeeAll,
+  guideLine = null,
   className = '',
   variant = 'floating',
   visible = true,
@@ -460,6 +477,8 @@ export function SuggestionList({
   query?: string
   /** Opens the results page for the query. Without it there is no such row. */
   onSeeAll?: () => void
+  /** The Quick guide's sentence, when it has one to say. */
+  guideLine?: DropdownGuide | null
   className?: string
   /**
    * 'floating' (default): absolutely positioned below the field, overlaying
@@ -488,6 +507,7 @@ export function SuggestionList({
   visible?: boolean
 }) {
   const t = useTranslations('searchSuggest')
+  const tg = useTranslations('searchPage')
   const kindLabel: Record<SuggestionKind, string> = {
     doctor: t('kindDoctor'),
     department: t('kindDepartment'),
@@ -594,6 +614,21 @@ export function SuggestionList({
       {unavailable && (
         <li role="status" className="px-4 py-3 text-sm text-brand-dark-base/70">
           {t('unavailable')}
+        </li>
+      )}
+
+      {guideLine && query && (
+        <li role="presentation" className="flex items-start gap-2 border-b border-brand-teal/10 px-4 pb-2 pt-2.5 text-sm leading-snug text-brand-dark-base">
+          <SparkleIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-teal" />
+          <span className="min-w-0">
+            {guideLine.kind === 'department'
+              ? tg.rich('guideDept', {
+                  query,
+                  dept: guideLine.dept,
+                  b: (chunks) => <b className="rounded bg-brand-teal/15 px-1 font-bold">{chunks}</b>,
+                })
+              : tg('guideNotListed', { subject: tg(`subjects.${guideLine.key}`) })}
+          </span>
         </li>
       )}
 

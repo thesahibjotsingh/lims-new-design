@@ -12,9 +12,15 @@
 // data-nav-hidden on <html>, so the action bar above the pill (PhoneActionBar) can follow
 // without a shared store.
 //
-// SEARCH IS A TAB, NOT A LINK. It sits between Departments and Book (Book stays last, under the
-// right thumb) and opens a panel that grows out of its icon (SearchSheet). Five slots is the
-// most this pill holds at 390px without the labels touching.
+// SEARCH IS THE FIRST TAB, AND IT IS A TOOL, NOT A LINK. It sits at the left end (Book stays last,
+// under the right thumb). Tapping it turns the whole pill into the search bar: the other tabs slide
+// away while the left end grows to the right into the field, as iPhone search does (SearchSheet).
+// Five slots is the most this pill holds at 390px without the labels touching.
+//
+// EVERY TAB IS BUILT THE SAME WAY, so the five labels sit on one line: a 28px icon box (the Book
+// badge fills it; the other icons are centred in it), the label, and a reserved underline row that
+// only the current page fills. Before, the Book badge was taller than the other icons and had no
+// underline row, which put its label lower than the rest.
 //
 // `pb-[env(safe-area-inset-bottom)]` on the wrapper is what keeps it clear of that
 // indicator on a notched device. The layout reserves matching space at the foot of
@@ -90,14 +96,14 @@ export function MobileBottomNav() {
         aria-label={tA11y('quickNav')}
         className="pointer-events-auto mb-4 flex w-full max-w-[28rem] items-center justify-around rounded-full border border-white/40 bg-white/75 px-3 py-2 shadow-glass backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-white/95 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
       >
+        {/* Search is the first tab: the pill's left end is what becomes the search bar. */}
+        <SearchSheet />
         {TABS.map(({ labelKey, href, Icon, ...rest }) => {
           const accent = 'accent' in rest && rest.accent
           const active = isActiveHref(pathname, href)
 
           return (
             <Fragment key={href}>
-              {/* Search takes the slot just before Book. */}
-              {accent && <SearchSheet />}
               <Link
                 href={href}
                 aria-current={active ? 'page' : undefined}
@@ -118,24 +124,24 @@ export function MobileBottomNav() {
                     <Icon className="h-4 w-4" strokeWidth={2.25} />
                   </span>
                 ) : (
-                  <Icon className="h-6 w-6" strokeWidth={active ? 2.25 : 1.75} />
+                  <span aria-hidden="true" className="grid h-7 w-7 place-items-center">
+                    <Icon className="h-6 w-6" strokeWidth={active ? 2.25 : 1.75} />
+                  </span>
                 )}
-                <span>{t(labelKey)}</span>
+                <span className="leading-none">{t(labelKey)}</span>
                 {/*
                   Active state is icon weight + colour + an underline, not colour
                   alone. A colour-blind user gets the underline and the heavier
                   stroke. Copper, not teal — it marks the same "selected" the label
                   and icon just switched to, rather than adding a third colour.
                 */}
-                {!accent && (
-                  <span
-                    aria-hidden="true"
-                    className={[
-                      'h-0.5 w-6 rounded-full bg-brand-copper transition-opacity',
-                      active ? 'opacity-100' : 'opacity-0',
-                    ].join(' ')}
-                  />
-                )}
+                <span
+                  aria-hidden="true"
+                  className={[
+                    'h-0.5 w-6 rounded-full bg-brand-copper transition-opacity',
+                    active && !accent ? 'opacity-100' : 'opacity-0',
+                  ].join(' ')}
+                />
               </Link>
             </Fragment>
           )

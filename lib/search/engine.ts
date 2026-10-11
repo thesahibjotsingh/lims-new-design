@@ -28,6 +28,8 @@
 
 import { DISTRESS_PHRASES, EMERGENCY_PHRASES, GROUPS } from '@/lib/search/groups'
 import { NOT_LISTED, PRIMARY, PRIMARY_WITH, QUALIFIERS, THINGS } from '@/lib/search/guide'
+import type { DescriptionTrigger } from '@/lib/search/descriptions/types'
+import { KNOWN_WORDS } from '@/lib/search/known-words'
 import {
   commonPrefix,
   contentWords,
@@ -131,9 +133,12 @@ const WITH_SETS = new Map<string, Set<string>>(
   Object.entries(PRIMARY_WITH).map(([slug, list]) => [slug, new Set(asTokens(list))]),
 )
 /** Words that ask for "a doctor" without saying which: they should not outweigh the complaint. */
-const GENERIC_WORDS = new Set(asTokens('doctor doctors dr specialist specialists consultant treatment clinic centre center problem problems issue issues trouble dry cannot cant unable days day weeks week months month years year two three four five six seven'))
+const GENERIC_WORDS = new Set(asTokens('doctor doctors dr specialist specialists consultant treatment clinic centre center problem problems issue issues trouble dry cannot cant unable dont didnt doesnt isnt wasnt werent arent hasnt hadnt havent couldnt wouldnt shouldnt wont aint days day weeks week months month years year two three four five six seven'))
 const QUALIFIER_SET = new Set(asTokens([...QUALIFIERS].join(' ')))
 const THING_SET = new Set(asTokens([...THINGS].join(' ')))
+const NOT_LISTED_ALL = new Set<string>(NOT_LISTED.flatMap((entry) => entry.words.flatMap((word) => asTokens(word))))
+/** Every word of every synonym group, in every language and script, as typed words are compared. */
+const ALL_GROUP_WORDS = new Set<string>(GROUP_DEFS.flatMap((group) => group.terms.flatMap((term) => term.words)))
 const NOT_LISTED_WORDS = NOT_LISTED.flatMap((entry) => entry.words).filter((word) => /^[a-z]{6,}$/.test(word))
 const NOT_LISTED_SETS = NOT_LISTED.map((entry) => ({
   key: entry.key,
@@ -326,6 +331,10 @@ export class SearchEngine {
   /** Index word -> the way it is spelt on the site (the index folds "gynaecology" to "gynecology"). */
   private readonly spelling = new Map<string, string>()
   private readonly serviceDoc = new Map<string, number>()
+  private readonly describeIndexes = new WeakMap<
+    readonly DescriptionTrigger[],
+    Map<string, { id: string; exact: Set<string> }[]>
+  >()
   private readonly emergencyDoc: number
   private readonly fallbackDocs: number[]
   private readonly popularDocs: number[]
@@ -1038,7 +1047,9 @@ export class SearchEngine {
 
     // The search's own best department is the only one the sentence may name: the sentence confirms the
     // ranking, it never promotes a lower department that happens to fit the words.
-    const firstHit = pages.find((hit) => hit.id.startsWith('svc:') || hit.parent)
+    // A condition the department lists ("Eye pain, redness or watering") can come first with its department
+    // beside it; the department it belongs to is still the search's answer, and cover() below checks the words.
+    const firstHit = found.hits.find((hit) => !hit.emergency && (hit.id.startsWith('svc:') || hit.parent))
     const topSlug = firstHit ? (firstHit.id.startsWith('svc:') ? firstHit.id.slice(4) : firstHit.parent) : undefined
     if (!topSlug || !PRIMARY_SETS.has(topSlug)) return { kind: 'none' }
     const topCover = cover(topSlug)
@@ -1052,6 +1063,83 @@ export class SearchEngine {
     return { kind: 'department', hit: this.toHit(doc, firstHit?.score ?? 0, false) }
   }
 
+  /**
+   * The id of the overview that is ABOUT this question, or null. Strict like guide(): the question, with the small
+   * words and "doctor" / "treatment" / "symptoms" taken out, must be exactly one entry's way of being searched, the
+   * same words in any order and any language the synonym groups know ("kaan dard", "pain in ear", "earache"). Two
+   * things in one question ("ear pain and fever"), a body part alone, or an emergency gets nothing.
+   */
+  describe(query: string, entries: readonly DescriptionTrigger[]): string | null {
+    const asTyped = words(query).map((word) => stem(word))
+    if (matchesPhrase(DISTRESS, asTyped) || looksLikeEmergency(asTyped.filter((word) => !STOP_WORDS.has(word)))) return null
+    let index = this.describeIndexes.get(entries)
+    if (!index) {
+      index = new Map<string, { id: string; exact: Set<string> }[]>()
+      for (const entry of entries) {
+        for (const phrase of entry.phrases) {
+          const key = this.describeKey(phrase)
+          if (!key) continue
+          const list = index.get(key) ?? []
+          let item = list.find((candidate) => candidate.id === entry.id)
+          if (!item) {
+            item = { id: entry.id, exact: new Set<string>() }
+            list.push(item)
+          }
+          item.exact.add(this.describeWords(phrase).sort().join('|'))
+          index.set(key, list)
+        }
+      }
+      this.describeIndexes.set(entries, index)
+    }
+    const key = this.describeKey(query)
+    const found = key ? index.get(key) : undefined
+    if (!found) return null
+    if (found.length === 1) return found[0].id
+    // Two entries are the same thing to the synonym groups ("nausea" and "vomiting"): the one whose own words were
+    // typed. Neither typed ("ulti", Hindi for both): no overview.
+    const exact = this.describeWords(query).sort().join('|')
+    return found.find((item) => item.exact.has(exact))?.id ?? null
+  }
+
+  /** The words of a question that name the thing asked about: no small words, no "doctor", no "how bad". */
+  private describeWords(text: string): string[] {
+    return words(text)
+      .filter((word) => !STOP_WORDS.has(word))
+      .map((word) => stem(word))
+      .filter((word) => !CONTEXT_WORDS.has(word) && !GENERIC_WORDS.has(word) && !DESCRIBE_FILLER.has(word) && !MODIFIERS.has(word))
+  }
+
+  /**
+   * "It hurts", "im hurt", "pain", "severe pain": a complaint with no place in it. The results page asks where
+   * instead of listing every department that mentions pain.
+   */
+  vague(query: string): boolean {
+    const asTyped = words(query).map((word) => stem(word))
+    if (matchesPhrase(DISTRESS, asTyped) || looksLikeEmergency(asTyped.filter((word) => !STOP_WORDS.has(word)))) return false
+    const typed = this.describeWords(query)
+    if (typed.length === 0) return false
+    return typed.every((word, at) => groupMatchesAt(typed, at).some((match) => match.group === PAIN_GROUP && match.length === 1))
+  }
+
+  /** The way entries are compared: each word or group of words by its synonym group, as a sorted set. */
+  private describeKey(text: string): string {
+    const typed = this.describeWords(text)
+    const parts = new Set<string>()
+    let at = 0
+    while (at < typed.length) {
+      const matches = groupMatchesAt(typed, at)
+      if (matches.length === 0) {
+        parts.add(typed[at])
+        at += 1
+        continue
+      }
+      const longest = matches.reduce((max, match) => Math.max(max, match.length), 1)
+      parts.add(`g${Math.min(...matches.filter((match) => match.length === longest).map((match) => match.group))}`)
+      at += longest
+    }
+    return [...parts].sort().join('|')
+  }
+
   correct(query: string): string | null {
     // Words of an emergency or of distress are matched as they were typed; they are never "corrected".
     const asTyped = words(query).map((word) => stem(word))
@@ -1060,6 +1148,47 @@ export class SearchEngine {
     const out = words(query).map((word) => {
       // A word the vocabulary knows, in any language, is never "corrected": "peeth" (back, in Hindi) is not
       // a misspelt "teeth".
+      // A short word is left alone when it is a word of any synonym group in any language ("pani": water, not "pain"),
+      // or is, or is one letter from, a subject this site has no department for ("acne" is not "ache", "hart" is not "hurt").
+      if (
+        word.length <= 4 &&
+        (ALL_GROUP_WORDS.has(stem(word)) ||
+          NOT_LISTED_ALL.has(stem(word)) ||
+          [...NOT_LISTED_ALL].some((anchor) => anchor.length >= 4 && anchor[0] === word[0] && editDistance(word, anchor, 1) <= 1))
+      ) {
+        return word
+      }
+      const slip = SLIP_FIXES[word]
+      if (slip) {
+        changed = true
+        return slip
+      }
+      // An ordinary word the site's pages happen not to use ("thigh", "ringing") is not a slip for one they do.
+      if (KNOWN_ENGLISH.has(word) || (word.endsWith('s') && KNOWN_ENGLISH.has(word.slice(0, -1)))) return word
+      // Two neighbouring letters swapped in a short word: "pian" for "pain", "eey" for "eye". Only when exactly one
+      // swap makes a word the site knows, and the word typed is not one itself.
+      if (word.length >= 3 && word.length <= 4 && /^[a-z]+$/.test(word) && !STOP_WORDS.has(word) && !SINGLE.has(word) && !PHRASE_FIRST.has(word) && !this.postings.has(stem(word))) {
+        const swaps = new Set<string>()
+        for (let i = 0; i + 1 < word.length; i += 1) {
+          const swapped = word.slice(0, i) + word[i + 1] + word[i] + word.slice(i + 2)
+          if (swapped !== word && !STOP_WORDS.has(swapped) && (this.postings.has(stem(swapped)) || SINGLE.has(swapped))) swaps.add(swapped)
+        }
+        if (swaps.size === 1) {
+          changed = true
+          return [...swaps][0]
+        }
+        // One letter missing, extra or wrong in a short word ("toth", "paim"): only a first-stop or describing word
+        // of the guide ("tooth", "pain"), only one such word, and the same first letter.
+        if (swaps.size === 0) {
+          const near = [...SHORT_TARGETS].filter(
+            (target) => target[0] === word[0] && Math.abs(target.length - word.length) <= 1 && editDistance(word, target, 1) <= 1,
+          )
+          if (near.length === 1) {
+            changed = true
+            return near[0]
+          }
+        }
+      }
       if (STOP_WORDS.has(word) || word.length < 5 || !/^[a-z]+$/.test(word)) return word
       if (SINGLE.has(word) || PHRASE_FIRST.has(word)) return word
       // "pimles" is a slip for "pimples" (skin) as much as for "piles": near a subject the site has no
@@ -1070,7 +1199,7 @@ export class SearchEngine {
       let found = this.candidates(token, true, false)
       // "gastrits" is stemmed to "gastrit", which is the start of "gastritis": it looks unfinished. As typed
       // it is not the start of anything, so look again at the word itself.
-      if (token === word.slice(0, -1) && word.endsWith('s') && [...found.values()].some((weight) => weight >= 0.7)) found = this.candidates(word, true, false)
+      if (token !== word && /(s|es|ed|ing)$/.test(word) && [...found.values()].some((weight) => weight >= 0.7)) found = this.candidates(word, true, false)
       let best = ''
       let bestWeight = 0
       const tied = new Set<string>()
@@ -1131,6 +1260,37 @@ interface Scored {
   scores: Map<number, number>
   /** Documents matched in the title or the aliases and topics. */
   strong: Set<number>
+}
+
+/** The synonym group of "pain", "ache", "hurt" and "dard". */
+const PAIN_GROUP = GROUP_DEFS.findIndex((group) => group.terms.some((term) => term.words.length === 1 && term.words[0] === 'pain'))
+/** Words that say how bad a complaint is without changing what it is: "severe headache", "tez bukhar". */
+const MODIFIERS = new Set(
+  asTokens(
+    'severe bad sharp sudden mild constant chronic terrible unbearable little lot too much more so very ' +
+      'tez bahut bohot bahot zyada jyada halka halki thoda thodi kaafi ' +
+      'बहुत तेज तेज़ ज्यादा ज़्यादा हल्का हल्की थोड़ा थोड़ी काफी काफ़ी ਬਹੁਤ ਤੇਜ਼ ਤੇਜ ਹਲਕਾ ਥੋੜ੍ਹਾ ਕਾਫ਼ੀ',
+  ),
+)
+
+/** Words that ask about a thing without being part of its name: "ear pain causes", "diabetes symptoms". */
+const DESCRIBE_FILLER = new Set(asTokens('symptom symptoms cause causes reason reasons sign signs meaning mean overview info information detail details explain explanation definition about'))
+
+/** Ordinary English words (as typed, or with a plural "s") that are never "corrected": see scripts/gen-known-words.ts. */
+const KNOWN_ENGLISH = new Set<string>(KNOWN_WORDS.split(' '))
+
+/** The short words a one-letter slip may be put right to: what a department's first-stop list and a complaint use. */
+const SHORT_TARGETS = new Set<string>(
+  [...ALL_PRIMARY, ...asTokens('pain ache fever cough cold head neck back knee hand foot skin rash tooth teeth ear eye nose')].filter((word) =>
+    /^[a-z]{3,6}$/.test(word),
+  ),
+)
+
+/** Slips in the small words of a sentence that a search engine would put right and say so ("i hve eye pain"). */
+const SLIP_FIXES: Record<string, string> = {
+  hve: 'have', hav: 'have', hvae: 'have', haev: 'have', ahve: 'have', havee: 'have', hae: 'have', ihve: 'i have',
+  ihav: 'i have', ihave: 'i have', iam: 'i am', haveing: 'having', havin: 'having', havng: 'having', hving: 'having',
+  wat: 'what', wht: 'what', whr: 'where', hw: 'how', wen: 'when', wich: 'which',
 }
 
 /** Where the hospital is: never what is being asked for, so it does not count as a word of the query. */
