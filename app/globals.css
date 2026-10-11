@@ -652,14 +652,14 @@
 
     /*
      * While the search is open or opening (components/layout/SearchSheet) it sets --search-p on <html>, a number
-     * from 0 to 1 that is the progress of its spring. The pill's tabs read it: they slide to the right as the
-     * search bar grows out of the pill's left end, and the whole pill fades as the bar takes its place.
+     * from 0 to 1 that is the progress of its spring. The pill's tabs read it: they slide to the left as the
+     * search bar grows out of the pill's right end, and the whole pill fades as the bar takes its place.
      */
     .bottom-nav nav {
       opacity: calc(1 - var(--search-p, 0) * 1.7);
     }
     .bottom-nav nav > a {
-      transform: translateX(calc(var(--search-p, 0) * 26px));
+      transform: translateX(calc(var(--search-p, 0) * -26px));
     }
 
     .phone-bar {

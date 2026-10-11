@@ -12,9 +12,9 @@
 // data-nav-hidden on <html>, so the action bar above the pill (PhoneActionBar) can follow
 // without a shared store.
 //
-// SEARCH IS THE FIRST TAB, AND IT IS A TOOL, NOT A LINK. It sits at the left end (Book stays last,
-// under the right thumb). Tapping it turns the whole pill into the search bar: the other tabs slide
-// away while the left end grows to the right into the field, as iPhone search does (SearchSheet).
+// SEARCH IS THE LAST TAB, AND IT IS A TOOL, NOT A LINK. It sits at the right end, under the right
+// thumb. Tapping it turns the whole pill into the search bar: the other tabs slide away while the
+// right end grows to the left into the field, as iPhone search does (SearchSheet).
 // Five slots is the most this pill holds at 390px without the labels touching.
 //
 // EVERY TAB IS BUILT THE SAME WAY, so the five labels sit on one line: a 28px icon box (the Book
@@ -96,8 +96,6 @@ export function MobileBottomNav() {
         aria-label={tA11y('quickNav')}
         className="pointer-events-auto mb-4 flex w-full max-w-[28rem] items-center justify-around rounded-full border border-white/40 bg-white/75 px-3 py-2 shadow-glass backdrop-blur-xl [@media(prefers-reduced-transparency:reduce)]:bg-white/95 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none"
       >
-        {/* Search is the first tab: the pill's left end is what becomes the search bar. */}
-        <SearchSheet />
         {TABS.map(({ labelKey, href, Icon, ...rest }) => {
           const accent = 'accent' in rest && rest.accent
           const active = isActiveHref(pathname, href)
@@ -146,6 +144,8 @@ export function MobileBottomNav() {
             </Fragment>
           )
         })}
+        {/* Search is the last tab: the pill's right end is what becomes the search bar. */}
+        <SearchSheet />
       </nav>
     </div>
   )

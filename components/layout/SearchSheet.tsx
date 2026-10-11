@@ -4,9 +4,9 @@
 //
 // The Search tab of the phone's bottom pill, and what it turns into.
 //
-// IT IS THE LEFT END OF THE PILL, AND THE PILL BECOMES THE SEARCH BAR, the way iPhone search does:
-//   - tap Search and the other tabs slide away while the pill's left end grows to the right into the
-//     search field, with a round close button appearing at the right;
+// IT IS THE RIGHT END OF THE PILL, AND THE PILL BECOMES THE SEARCH BAR, the way iPhone search does:
+//   - tap Search and the other tabs slide away while the pill's right end grows to the left into the
+//     search field, with a round close button appearing where the Search tab was;
 //   - the field settles at the BOTTOM of the screen, just above the keyboard, and the results fill all
 //     of the screen above it, so the thumb never covers what it is looking for;
 //   - the page behind blurs and dims, and a tap on it closes the search;
@@ -14,7 +14,7 @@
 //     reverses without a jump.
 //
 // ONE SPRING DRIVES IT (lib/spring.ts, critically damped: no bounce, as nothing here was thrown). It is a
-// number from 0 to 1. At 0 the field is exactly the pill's left end (same place, same height, same glass);
+// number from 0 to 1. At 0 the field is exactly the pill's right end (same place, same height, same glass);
 // at 1 it is the bar above the keyboard. Everything else (the results, the close button, the blur, the
 // tabs sliding away) is that one number turned into a style, straight on the DOM, because it runs every
 // frame and a React render per frame is not something to pay for. The tabs read it through the CSS
@@ -72,7 +72,7 @@ interface Box {
 }
 
 interface Geometry {
-  /** Where the bar starts: the left end of the pill. */
+  /** Where the bar starts: the right end of the pill. */
   from: Box
   /** Where it ends: above the keyboard. */
   to: Box
@@ -196,19 +196,20 @@ export function SearchSheet() {
     const keyboardOpen = window.innerHeight - viewportHeight > 120
     const insets = readInsets()
 
-    // Where the pill's left end is now: the nav, as far right as the Search tab reaches.
+    // Where the pill's right end is now: the nav, as far left as the Search tab reaches.
     let from: Box
     if (trigger && nav && nav.isConnected) {
       const navRect = nav.getBoundingClientRect()
       const tabRect = trigger.getBoundingClientRect()
+      const startWidth = Math.max(navRect.right - (tabRect.left - 6), 56)
       from = {
-        left: navRect.left,
+        left: navRect.right - startWidth,
         top: navRect.top,
-        width: Math.max(tabRect.right - navRect.left + 6, 56),
+        width: startWidth,
         height: navRect.height,
       }
     } else {
-      from = { left: MARGIN, top: window.innerHeight - 90, width: 72, height: 68 }
+      from = { left: width - MARGIN - 72, top: window.innerHeight - 90, width: 72, height: 68 }
     }
 
     const content = Math.min(width - MARGIN * 2, MAX_WIDTH)
@@ -302,7 +303,7 @@ export function SearchSheet() {
         overlay.style.transition = 'opacity 160ms ease'
         overlay.style.opacity = '1'
       } else {
-        if (driver.value() === 0) apply(0) // the first frame is the pill's own left end, exactly
+        if (driver.value() === 0) apply(0) // the first frame is the pill's own right end, exactly
         driver.to(1, OPEN_RESPONSE)
       }
     } else if (reducedRef.current) {
@@ -423,7 +424,7 @@ export function SearchSheet() {
   return (
     <>
       {/*
-        The first tab of the pill (components/layout/MobileBottomNav). It is laid out exactly like the others: the
+        The last tab of the pill (components/layout/MobileBottomNav). It is laid out exactly like the others: the
         same icon box, the same label, the same reserved underline row, so the labels sit on one line.
       */}
       <button
@@ -507,7 +508,7 @@ export function SearchSheet() {
               </div>
             </div>
 
-            {/* The bar: at 0 it is the pill's left end, at 1 it sits above the keyboard. */}
+            {/* The bar: at 0 it is the pill's right end, at 1 it sits above the keyboard. */}
             <form
               ref={barRef}
               onSubmit={handleSubmit}
