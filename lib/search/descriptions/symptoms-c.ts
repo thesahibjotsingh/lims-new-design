@@ -9,7 +9,7 @@ export const SYMPTOMS_C: DescriptionEntry[] = [
   {
     id: 'burning-urination',
     kind: 'symptom',
-    phrases: ['burning urination', 'burning while urinating', 'burning in urine', 'painful urination', 'pain while passing urine', 'burning micturition', 'burning during urination', 'urine burning', 'burning when passing urine'],
+    phrases: ['burning urination', 'burning while urinating', 'burning in urine', 'painful urination', 'pain while passing urine', 'burning micturition', 'burning during urination', 'urine burning', 'burning when passing urine', 'burning while passing urine'],
     en: {
       about: "A burning or stinging feeling when passing urine is a common complaint. It usually points to irritation or infection somewhere in the urinary tract.",
       points: [
@@ -461,7 +461,7 @@ export const SYMPTOMS_C: DescriptionEntry[] = [
   {
     id: 'child-fever',
     kind: 'symptom',
-    phrases: ['child fever', 'baby fever', 'fever in child', 'fever in baby', 'fever in children', 'kids fever', 'toddler fever', 'infant fever', 'child has fever', 'my child has fever', 'bachche ko bukhar', 'bacche ko bukhar'],
+    phrases: ['child fever', 'baby fever', 'fever in child', 'fever in baby', 'fever in children', 'kids fever', 'toddler fever', 'infant fever', 'child has fever', 'my child has fever', 'my son has fever', 'my daughter has fever', 'son has fever', 'daughter has fever', 'bachche ko bukhar', 'bacche ko bukhar'],
     en: {
       about: "Fever is common in children and is usually the body fighting an infection. Babies and young children can become unwell more quickly, so a fever in a baby is checked sooner.",
       points: [

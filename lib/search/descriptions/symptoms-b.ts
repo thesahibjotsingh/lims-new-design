@@ -219,7 +219,7 @@ export const SYMPTOMS_B: DescriptionEntry[] = [
   {
     id: 'muscle-pain',
     kind: 'symptom',
-    phrases: ['muscle pain', 'body ache', 'body pain', 'muscle ache', 'body aches', 'myalgia', 'aching muscles', 'muscle cramps', 'whole body pain'],
+    phrases: ['muscle pain', 'body ache', 'body pain', 'muscle ache', 'body aches', 'myalgia', 'aching muscles', 'muscle cramps', 'whole body pain', 'pain all over body', 'pain in whole body', 'pain all over the body'],
     en: {
       about: "Muscle or body aches are a common complaint. They are usually from overuse or an infection and settle with rest, but long-lasting aches need a check.",
       points: [
